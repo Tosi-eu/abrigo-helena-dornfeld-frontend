@@ -1,0 +1,13 @@
+services:
+  postgres_hml:
+    image: postgres:15
+    container_name: postgres_hml
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: hml_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./docker-data/hml:/var/lib/postgresql/data
