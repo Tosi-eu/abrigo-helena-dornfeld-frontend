@@ -1,7 +1,5 @@
 import Layout from "@/components/Layout";
-import { medicines } from "../../mocks/medicines";
-import { useEffect, useMemo, useState } from "react";
-import { medicineInventory } from "../../mocks/stock";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PieChart,
@@ -20,14 +18,7 @@ import EditableTable from "@/components/EditableTable";
 import LoadingModal from "@/components/LoadingModal";
 import { api } from "@/api/canonical";
 
-const daysBetween = (date1: string, date2: string) => {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-  return Math.ceil((d1.getTime() - d2.getTime()) / (1000 * 3600 * 24));
-};
-
 export default function Dashboard() {
-  const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate();
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
@@ -51,19 +42,13 @@ export default function Dashboard() {
       setLoading(true);
       try {
         const [
-          noStockRes,
-          belowMinRes,
-          expiredRes,
-          expiringSoonRes,
+          stockList,
           medicamentosMovRes,
           insumosMovRes,
           proportionRes,
           cabinetRes,
         ] = await Promise.all([
-          api.get("/estoque", { filter: "noStock" }),
-          api.get("/estoque", { filter: "belowMin" }),
-          api.get("/estoque", { filter: "expired" }),
-          api.get("/estoque", { filter: "expiringSoon" }),
+          api.get("/estoque"),
 
           api.get("/movimentacoes/medicamentos", { days: 7 }),
           api.get("/movimentacoes/insumos", { days: 7 }),
@@ -81,7 +66,7 @@ export default function Dashboard() {
         quantity: m.quantidade,
         patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
         cabinet: m.ArmarioModel?.num_armario ?? "-",
-        date: new Date(m.data).toLocaleString("pt-BR"),
+        date: m.data,
       })),
       ...insumosMovRes.map((m: any) => ({
         name: m.InsumoModel?.nome || "-",
@@ -91,18 +76,28 @@ export default function Dashboard() {
         quantity: m.quantidade,
         patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
         cabinet: m.ArmarioModel?.num_armario ?? "-",
-        date: new Date(m.data).toLocaleString("pt-BR"),
+        date: m.data,
       })),
     ].sort((a, b) => Number(new Date(b.date)) - Number(new Date(a.date)));
 
-    setNoStock(noStockRes.length);
-    setBelowMin(belowMinRes.length);
-    setExpired(expiredRes.length);
-    setExpiringSoon(expiringSoonRes);
-    setNoStockData(noStockRes);
-    setBelowMinData(belowMinRes);
-    setExpiredData(expiredRes);
-    setExpiringSoonData(expiringSoonRes);
+    const noStockItems = stockList.filter(i => i.quantidade === 0);
+
+    const belowMinItems = stockList.filter(i => i.st_quantidade === "low");
+
+    const expiredItems = stockList.filter(i => i.st_expiracao === "expired");
+
+    const expiringSoonItems = stockList.filter(i =>
+      i.st_expiracao === "warning" || i.st_expiracao === "critical"
+    );
+
+    setNoStock(noStockItems.length);
+    setBelowMin(belowMinItems.length);
+    setExpired(expiredItems.length);
+    setExpiringSoon(expiringSoonItems);
+    setNoStockData(noStockItems);
+    setBelowMinData(belowMinItems);
+    setExpiredData(expiredItems);
+    setExpiringSoonData(expiringSoonItems);
     setRecentMovements(recentMovements);
 
     setStockDistribution([
@@ -136,23 +131,6 @@ export default function Dashboard() {
 };
 
     fetchDashboardData();
-  }, []);
-
-  const expiringMedicines = useMemo(() => {
-    return medicineInventory
-      .filter((m) => {
-        const days = daysBetween(m.expiry, today);
-        return days >= 0 && days <= 60;
-      })
-      .map((m) => {
-        const med = medicines.find((x) => x.id === m.medicineId);
-        return {
-          name: med?.name || "-",
-          substance: med?.substance || "-",
-          quantity: m.quantity,
-          expiry: m.expiry,
-        };
-      });
   }, []);
 
   const stats = [
@@ -246,7 +224,7 @@ export default function Dashboard() {
                 </h3>
               </div>
 
-              <EditableTable
+              {/* <EditableTable
                 columns={[
                   { key: "name", label: "Medicamento", editable: false },
                   {
@@ -261,9 +239,9 @@ export default function Dashboard() {
                     editable: false,
                   },
                 ]}
-                data={expiringMedicines}
+                data={null}
                 showAddons={false}
-              />
+              /> */}
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">

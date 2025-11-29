@@ -25,7 +25,7 @@ export default function InputMovements() {
 
       quantity: item.quantidade,
       operator: item.LoginModel?.login ?? "",
-      movementDate: new Date(item.data).toLocaleDateString("pt-BR"),
+      movementDate: item.data,
 
       cabinet: item.CabinetModel?.num_armario ?? item.armario_id ?? "",
 
@@ -34,8 +34,8 @@ export default function InputMovements() {
       type: item.tipo.toUpperCase(),
 
       validade: item.validade_medicamento
-        ? new Date(item.validade_medicamento).toLocaleDateString("pt-BR")
-        : new Date(item.validade.toLocaleDateString("pt-BR"))
+        ? item.validade_medicamento
+        : item.validade
     };
   }
 

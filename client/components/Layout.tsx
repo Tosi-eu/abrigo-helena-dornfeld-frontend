@@ -13,7 +13,7 @@ export default function Layout({ children, title }: LayoutProps) {
 
   const navigation = [
     { name: "Painel", href: "/dashboard" },
-    { name: "Movimentações", href: "/transactions" },
+    { name: "Movimentações", href: "/Movements" },
     { name: "Medicamentos", href: "/medicines" },
     { name: "Insumos", href: "/inputs" },
     { name: "Estoque", href: "/stock" },

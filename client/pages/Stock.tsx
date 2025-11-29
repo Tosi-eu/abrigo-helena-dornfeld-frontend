@@ -30,6 +30,10 @@ export default function Stock() {
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
+      expirationMsg: item.msg_expiracao,
+      quantityMsg: item.msg_quantidade,
+      expirationStatus: item.st_expiracao,
+      quantityStatus: item.st_quantidade,
     }));
   };
 
@@ -45,6 +49,8 @@ export default function Stock() {
         let stockData: any[] = [];
 
         stockData = await getStock().then((res) => res);
+
+        console.log(stockData)
 
         setItems(formatStockItems(stockData));
       } catch (err) {

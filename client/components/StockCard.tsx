@@ -12,13 +12,13 @@ export function StockCard({ item, selected, onSelect, disabled = false, tooltip 
   const fields: { label: string; value: string | number }[] = [];
   fields.push({ label: "Nome", value: displayValue(item.nome) });
   fields.push({ label: "Quantidade", value: displayValue(item.quantidade) });
+  fields.push({
+      label: "Validade",
+      value: item.validade ? item.validade : "N/A",
+    });
 
   if (item.tipo_item === "medicamento") {
-    fields.push({ label: "Princípio ativo", value: displayValue(item.detalhes) });
-    fields.push({
-      label: "Validade",
-      value: item.validade ? new Date(item.validade).toLocaleDateString() : "N/A",
-    });
+    fields.push({ label: "Princípio ativo", value: displayValue(item.principio_ativo) });
     if (item.paciente) {
       fields.push({ label: "Paciente", value: displayValue(item.paciente) });
     }
@@ -45,7 +45,7 @@ export function StockCard({ item, selected, onSelect, disabled = false, tooltip 
         border
         shadow-sm
         transition
-        ${selected ? "bg-sky-50 border-sky-500" : "border-gray-200 hover:bg-gray-50"}
+        ${selected ? "bg-sky-50 border-sky-500" : "border-gray-400 hover:bg-gray-50"}
         ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
       `}
     >

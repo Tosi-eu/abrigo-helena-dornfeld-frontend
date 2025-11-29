@@ -121,12 +121,6 @@ const styles = StyleSheet.create({
   },
 });
 
-function formatDate(value?: string | Date) {
-  if (!value) return "N/A";
-  const d = value instanceof Date ? value : new Date(value);
-  return d.toLocaleDateString("pt-BR");
-}
-
 export function createStockPDF(tipo: string, data: RowData[]) {
   const renderTable = (headers: string[], rows: RowData[]) => {
 
@@ -156,8 +150,6 @@ export function createStockPDF(tipo: string, data: RowData[]) {
                 .replace(/\s+/g, "_");
 
               let value: any = row[key as keyof RowData] ?? "";
-
-              if (key === "validade") value = formatDate(value);
 
               return (
                 <Text key={i} style={styles.cell}>

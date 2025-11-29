@@ -12,7 +12,7 @@ import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import SignUpMedicine from "./pages/RegisterMedicine";
-import Transactions from "./pages/Transactions";
+import Movements from "./pages/Movements";
 import Stock from "./pages/Stock";
 import StockEntry from "./pages/StockIn";
 import Resident from "./pages/Residents";
@@ -53,10 +53,10 @@ const App = () => (
               }
             />
             <Route
-              path="/transactions"
+              path="/Movements"
               element={
                 <PrivateRoute>
-                  <Transactions />
+                  <Movements />
                 </PrivateRoute>
               }
             />

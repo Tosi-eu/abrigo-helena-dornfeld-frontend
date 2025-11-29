@@ -46,3 +46,9 @@ export enum StockTypeLabels {
   carrinho_emergencia = "Carrinho de emergência",
 };
 
+export enum StockWizardSteps {
+  TIPO = "tipo",
+  ITENS = "itens",
+  QUANTIDADE = "quantidade"
+}
+

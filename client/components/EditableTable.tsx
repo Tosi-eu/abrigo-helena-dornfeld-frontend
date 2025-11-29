@@ -12,7 +12,6 @@ import {
 import DeletePopUp from "./DeletePopUp";
 
 import {
-  getCabinets,
   deleteCabinet,
   deleteInput,
   deleteMedicine,
@@ -39,37 +38,9 @@ export default function EditableTable({
 
   useEffect(() => {
     if (!data) return;
-
-    const convertToBRT = (dateString: string) => {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
-      return date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        timeZone: "America/Sao_Paulo",
-      });
-    };
-
-    const formatted = data.map((row) => {
-      const updatedRow: Record<string, any> = {};
-      for (const key in row) {
-        const value = row[key];
-        if (
-          typeof value === "string" &&
-          (/^\d{4}-\d{2}-\d{2}/.test(value) ||
-            /^\d{4}\/\d{2}\/\d{2}/.test(value))
-        ) {
-          updatedRow[key] = convertToBRT(value);
-        } else {
-          updatedRow[key] = value;
-        }
-      }
-      return updatedRow;
-    });
-
-    setRows(formatted);
+    setRows(data);
   }, [data]);
+
 
   const handleAddRow = () => {
     if (entityType === "entries") {
@@ -106,7 +77,7 @@ export default function EditableTable({
   };
 
   const confirmDelete = async (index: number) => {
-    setDeleteIndex(index); // Delete puro agora
+    setDeleteIndex(index); 
   };
 
   const handleDeleteConfirmed = async () => {
@@ -202,7 +173,7 @@ export default function EditableTable({
                       let cellContent = row[col.key];
 
                       if (col.key === "expiry") {
-                        cellContent = renderExpiryTag(row[col.key]);
+                        cellContent = renderExpiryTag(row);
                       } else if (col.key === "quantity") {
                         cellContent = renderQuantityTag(row);
                       }
@@ -263,47 +234,31 @@ export default function EditableTable({
   );
 }
 
-const renderExpiryTag = (value: string) => {
-  if (!value) return "-";
+const renderExpiryTag = (row: any) => {
+  const status = row.expirationStatus;      
+  const message = row.expirationMsg;   
 
-  const [day, month, year] = value.split("/").map(Number);
-  const expiryDate = new Date(year, month - 1, day);
-  if (isNaN(expiryDate.getTime())) return value;
+  if (!status) return "-";
 
-  const today = new Date();
-  const diffDays = Math.ceil(
-    (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  let tooltipText = "";
-  let colorClasses = "";
-
-  if (diffDays < 0) {
-    tooltipText = `Vencido há ${Math.abs(diffDays)} dias`;
-    colorClasses = "bg-red-100 text-red-700 border border-red-300";
-  } else if (diffDays <= 30) {
-    tooltipText = `Vencerá em ${diffDays} dias`;
-    colorClasses = "bg-orange-100 text-orange-700 border border-orange-300";
-  } else if (diffDays <= 60) {
-    tooltipText = `Vencerá em ${diffDays} dias`;
-    colorClasses = "bg-yellow-100 text-yellow-700 border border-yellow-300";
-  } else {
-    tooltipText = `Vencerá em ${diffDays} dias`;
-    colorClasses = "bg-green-100 text-green-700 border border-green-300";
-  }
+  const colorMap: Record<string, string> = {
+    expired: "bg-red-100 text-red-700 border border-red-300",
+    critical: "bg-orange-100 text-orange-700 border border-orange-300",
+    warning: "bg-yellow-100 text-yellow-700 border border-yellow-300",
+    healthy: "bg-green-100 text-green-700 border border-green-300",
+  };
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorClasses}`}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
           >
-            {value}
+            {row.expiry}
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
-          {tooltipText}
+          {message}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -311,39 +266,29 @@ const renderExpiryTag = (value: string) => {
 };
 
 const renderQuantityTag = (row: any) => {
-  let colorClasses = "";
-  let tooltipText = "";
+  const status = row.quantityStatus;   
+  const message = row.quantityMsg;
 
-  if (row.minimumStock != null) {
-    const margin = row.minimumStock * 0.2;
-
-    if (row.quantity > row.minimumStock * 2) {
-      colorClasses = "bg-green-100 text-green-700 border border-green-300";
-      tooltipText = `Estoque saudável: ${row.quantity} unidades, mínimo ${row.minimumStock}`;
-    } else if (row.quantity > row.minimumStock + margin) {
-      colorClasses = "bg-yellow-100 text-yellow-700 border border-yellow-300";
-      tooltipText = `Estoque médio: ${row.quantity} unidades, mínimo ${row.minimumStock}`;
-    } else {
-      colorClasses = "bg-red-100 text-red-700 border border-red-300";
-      tooltipText = `Estoque baixo: ${row.quantity} unidades, mínimo ${row.minimumStock}`;
-    }
-  } else {
-    colorClasses = "bg-green-100 text-green-700 border border-green-300";
-    tooltipText = `Quantidade: ${row.quantity}`;
-  }
+  const colorMap: Record<string, string> = {
+    empty: "bg-red-100 text-red-700 border border-red-300",
+    low: "bg-red-100 text-red-700 border border-red-300",
+    medium: "bg-yellow-100 text-yellow-700 border border-yellow-300",
+    high: "bg-green-100 text-green-700 border border-green-300",
+    normal: "bg-green-100 text-green-700 border border-green-300",
+  };
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorClasses}`}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
           >
             {row.quantity}
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
-          {tooltipText}
+          {message}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

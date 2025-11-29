@@ -1,6 +1,7 @@
 import {
   CabinetCategory,
   MovementType,
+  OperationType,
   OriginType,
   StockType,
 } from "@/enums/enums";
@@ -141,6 +142,23 @@ export interface PrepareMovementsParams {
   users: User[];
   medicineInventory: MedicineInventory[];
   inputInventory: InputInventory[];
+}
+
+export interface StockItemRaw {
+  item_id: number;
+  estoque_id: number;
+  tipo_item: OperationType | string;
+  nome: string;
+  principio_ativo?: string;
+  validade?: string | null;
+  quantidade: number;
+  minimo?: number;
+  origem?: string;
+  tipo?: string;
+  paciente?: string | null;
+  armario_id?: number | null;
+  casela_id?: number | null;
+  detalhes?: string;
 }
 
 export interface StockItem {
