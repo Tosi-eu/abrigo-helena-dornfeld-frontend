@@ -9,14 +9,15 @@ export default function RegisterInput() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    description: "",
+    minimum: 0
   });
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.category) {
+    if (!formData.name || !formData.description) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha todos os campos para cadastrar o Insumo.",
@@ -28,14 +29,14 @@ export default function RegisterInput() {
     setSaving(true);
 
     try {
-      await createInput(formData.name, formData.category);
+      await createInput(formData.name, formData.description, formData.minimum);
       toast({
         title: "Insumo cadastrado",
         description: `${formData.name} foi adicionado ao sistema.`,
         variant: "success",
       });
 
-      setFormData({ name: "", category: "" });
+      setFormData({ name: "", description: "", minimum: 0 });
       navigate("/inputs");
     } catch (err) {
       console.error(err);
@@ -71,8 +72,13 @@ export default function RegisterInput() {
             },
             {
               label: "Categoria",
-              field: "category",
+              field: "description",
               placeholder: "Material de Injeção",
+            },
+            {
+              label: "Estoque Minimo",
+              field: "minimum",
+              placeholder: "5",
             },
           ].map(({ label, field, placeholder }) => (
             <div key={field}>

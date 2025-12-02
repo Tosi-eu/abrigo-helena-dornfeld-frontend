@@ -9,26 +9,34 @@ export default function Resident() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+
   const columns = [
     { key: "name", label: "Nome", editable: true },
     { key: "casela", label: "Casela", editable: true },
   ];
 
-  useEffect(() => {
-    const fetchResidents = async () => {
-      try {
-        await getResidents().then((data) => {
-          setResidents(data);
-        });
-      } catch (err: any) {
-        console.error("Erro ao buscar residentes:", err);
-        setError(err.message ?? "Erro ao buscar residentes");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchResidents = async (pageNumber = 1) => {
+    try {
+      setLoading(true);
+      const res = await getResidents(pageNumber, 10);
 
-    fetchResidents();
+      console.log(res)
+
+      setResidents(res.data);
+      setPage(res.page);
+      setHasNextPage(res.hasNext);
+    } catch (err: any) {
+      console.error("Erro ao buscar residentes:", err);
+      setError(err.message ?? "Erro ao buscar residentes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchResidents(1);
   }, []);
 
   return (
@@ -49,6 +57,10 @@ export default function Resident() {
             data={residents}
             columns={columns}
             entityType="residents"
+            currentPage={page}
+            hasNextPage={hasNextPage}
+            onNextPage={() => fetchResidents(page + 1)}
+            onPrevPage={() => fetchResidents(page - 1)}
           />
         </div>
       )}

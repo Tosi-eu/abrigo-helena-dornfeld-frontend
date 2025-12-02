@@ -3,7 +3,7 @@ import {
   MovementType,
   OperationType,
   OriginType,
-  StockType,
+  MedicineStockType,
 } from "@/enums/enums";
 import { ReactNode } from "react";
 
@@ -18,6 +18,8 @@ export interface Column {
 export interface EditableTableProps {
   data: Record<string, any>[];
   columns: Column[];
+  entityType?: string;      
+  showAddons?: boolean;  
   onAdd?: (newRow: Record<string, any>) => void;
   onEdit?: (updatedRow: Record<string, any>, index: number) => void;
   onDelete?: (index: number) => void;
@@ -84,7 +86,7 @@ export interface MedicineInventory {
   quantity: number;
   expiry: string;
   origin: OriginType;
-  stockType: StockType;
+  stockType: MedicineStockType;
 }
 
 export interface InputInventory {
@@ -170,7 +172,7 @@ export interface StockItem {
   patient?: string;
   cabinet?: number | string;
   casela?: string | number;
-  stockType: StockType;
+  stockType: MedicineStockType;
 }
 
 export interface StockOutFormProps {
@@ -199,7 +201,8 @@ export interface InputFormProps {
     cabinetId: number;
     caselaId?: number;
     quantity: number;
-    validity: Date
+    validity: Date;
+    stockType: string;
   }) => void;
 }
 

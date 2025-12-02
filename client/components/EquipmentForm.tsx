@@ -5,6 +5,7 @@ import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
+import { InputStockType, StockTypeLabels } from "@/enums/enums";
 
 export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
   const [formData, setFormData] = useState({
@@ -13,7 +14,8 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
     quantity: 0,
     cabinetId: 0,
     caselaId: 0,
-    validity: null as Date
+    validity: null as Date,
+    stockType: "" as InputStockType | "",
   });
 
   const navigate = useNavigate();
@@ -56,7 +58,8 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
       cabinetId: formData.cabinetId,
       caselaId: formData.caselaId || undefined,
       quantity: quantity,
-      validity: formData.validity
+      validity: formData.validity,
+      stockType: formData.stockType,
     });
   };
 
@@ -134,6 +137,33 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
           {cabinets.map((cab) => (
             <option key={cab.numero} value={cab.numero}>
               {cab.numero}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Tipo de Estoque
+        </label>
+
+        <select
+          value={formData.stockType}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              stockType: e.target.value as InputStockType,
+            })
+          }
+          className="w-full border bg-white rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none"
+        >
+          <option value="" disabled hidden>
+            Selecione
+          </option>
+
+          {Object.values(InputStockType).map((type) => (
+            <option key={type} value={type}>
+              {StockTypeLabels[type]}
             </option>
           ))}
         </select>

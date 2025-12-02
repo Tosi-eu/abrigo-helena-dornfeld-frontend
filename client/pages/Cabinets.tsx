@@ -21,7 +21,7 @@ export default function Cabinets() {
   if (isLoading)
     return (
       <Layout title="Armários">
-        <p>Carregando armários...</p>
+        <p>Carregando armários!</p>
       </Layout>
     );
 

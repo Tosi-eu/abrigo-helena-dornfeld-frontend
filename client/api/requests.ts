@@ -9,20 +9,39 @@ export const checkCabinetStock = (number: number) =>
 export const deleteCabinet = (number: number, destiny?: any) =>
   api.delete(`/armarios/${number}`, destiny);
 
-export const getMedicines = () => api.get("/medicamentos");
+export const getMedicines = (page = 1, limit = 10) =>
+  api.get("/medicamentos", {
+    params: { page, limit },
+  });
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
 
-export const getInputMovements = () => api.get("/movimentacoes/insumos");
+export const getInputMovements = ({ page = 1, limit = 10, days = 0 }: {
+  page?: number;
+  limit?: number;
+  days?: number;
+}) =>
+  api.get("/movimentacoes/insumos", {
+    params: { page, limit, days },
+  });
 
-export const getMedicineMovements = () =>
-  api.get("/movimentacoes/medicamentos");
+export const getMedicineMovements = ({ page = 1, limit = 10, days = 0, type }: {
+  page?: number;
+  limit?: number;
+  days?: number;
+  type?: string;
+}) =>
+  api.get("/movimentacoes/medicamentos", {
+    params: { page, limit, days, type },
+  });
 
-export const getInputs = () => api.get("/insumos");
+export const getInputs = (page = 1, limit = 10) =>
+  api.get(`/insumos?page=${page}&limit=${limit}`);
 
 export const deleteInput = (id: number) => api.delete(`/insumos/${id}`);
 
-export const getResidents = () => api.get("/residentes");
+export const getResidents = (page = 1, limit = 20) =>
+  api.get("/residentes", { params: { page, limit } });
 
 export const deleteResident = (casela: string | number) =>
   api.delete(`/residentes/${casela}`);
@@ -63,8 +82,8 @@ export const updateUser = (
 export const createCabinet = (numero: number, categoria: string) =>
   api.post("/armarios", { numero, categoria });
 
-export const createInput = (nome: string, descricao?: string) =>
-  api.post("/insumos", { nome, descricao: descricao ?? null });
+export const createInput = (nome: string, descricao?: string, estoque_minimo?: number) =>
+  api.post("/insumos", { nome, descricao: descricao ?? null, estoque_minimo: estoque_minimo ?? 0 });
 
 export const createMedicine = (
   nome: string,
@@ -108,8 +127,9 @@ export const createMovement = (payload: {
   quantidade: number;
   casela_id?: number;
   medicamento_id?: number;
-  validade_medicamento?: string | null;
+  validade: string;
   insumo_id?: number;
 }) => api.post("/movimentacoes", payload);
 
-export const getStock = () => api.get("/estoque");
+export const getStock = (page = 1, limit = 5, type?: string) =>
+  api.get(`/estoque?page=${page}&limit=${limit}${type ? `&type=${type}` : ""}`);

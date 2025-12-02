@@ -6,7 +6,7 @@ import { StockItem } from "@/interfaces/interfaces";
 import ReportModal from "@/components/ReportModal";
 import LoadingModal from "@/components/LoadingModal";
 import { getStock } from "@/api/requests";
-import { StockType, StockTypeLabels } from "@/enums/enums";
+import { MedicineStockType, StockTypeLabels } from "@/enums/enums";
 
 export default function Stock() {
   const navigate = useNavigate();
@@ -16,9 +16,11 @@ export default function Stock() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const limit = 5;
+  const [hasNext, setHasNext] = useState(false);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
-
     return raw.map((item) => ({
       name: item.nome || "-",
       description: item.principio_ativo || item.descricao || "-",
@@ -26,7 +28,7 @@ export default function Stock() {
       quantity: Number(item.quantidade) || 0,
       cabinet: item.armario_id ?? "-",
       casela: item.casela_id ?? "-",
-      stockType: StockTypeLabels[item.tipo as StockType] ?? item.tipo,
+      stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
@@ -37,31 +39,47 @@ export default function Stock() {
     }));
   };
 
-  useEffect(() => {
-    async function loadStock() {
-      try {
-        if(data) {
-          setItems(formatStockItems(data));
-          return;
-        }
+  async function loadStock(pageToLoad: number) {
+    try {
+      setLoading(true);
 
-        setLoading(true);
-        let stockData: any[] = [];
-
-        stockData = await getStock().then((res) => res);
-
-        console.log(stockData)
-
-        setItems(formatStockItems(stockData));
-      } catch (err) {
-        console.error("Erro ao buscar estoque:", err);
-      } finally {
-        setLoading(false);
+      if (data) {
+        setItems(formatStockItems(data));
+        setHasNext(false);
+        return;
       }
+
+      const res = await getStock(pageToLoad, limit);
+
+      setItems(formatStockItems(res.data));
+      setHasNext(res.hasNext);
+    } catch (err) {
+      console.error("Erro ao buscar estoque:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    async function init() {
+      if (data) {
+        setItems(formatStockItems(data));
+        setHasNext(false);
+        setLoading(false);
+        return;
+      }
+
+      await loadStock(1);
     }
 
-    loadStock();
+    init();
   }, []);
+
+  useEffect(() => {
+    if (!data) {
+      loadStock(page);
+    }
+  }, [page]);
 
   const columns = [
     { key: "stockType", label: "Tipo de Estoque", editable: false },
@@ -116,8 +134,19 @@ export default function Stock() {
 
         {!loading && (
           <>
-            <h2 className="text-lg font-semibold mt-6">Visão Geral do Estoque</h2>
-            <EditableTable data={items} columns={columns} showAddons={false} />
+            <h2 className="text-lg font-semibold mt-6">
+              Visão Geral do Estoque
+            </h2>
+
+            <EditableTable
+              data={items}
+              columns={columns}
+              showAddons={false}
+              currentPage={page}
+              hasNextPage={hasNext}
+              onNextPage={() => setPage((p) => p + 1)}
+              onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+            />
           </>
         )}
       </div>

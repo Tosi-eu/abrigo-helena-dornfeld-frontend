@@ -2,7 +2,7 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
-import { OriginType, StockType, StockTypeLabels } from "@/enums/enums";
+import { OriginType, MedicineStockType, StockTypeLabels } from "@/enums/enums";
 import { useNavigate } from "react-router-dom";
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast";
@@ -16,7 +16,7 @@ export function MedicineForm({
   const [formData, setFormData] = useState({
     id: null as number | null,
     quantity: "",
-    stockType: "" as StockType | "",
+    stockType: "" as MedicineStockType | "",
     expirationDate: null as Date | null,
     resident: "",
     casela: null as number | null,
@@ -57,7 +57,7 @@ export function MedicineForm({
       return;
     }
 
-    if (formData.stockType === StockType.GERAL && formData.casela) {
+    if (formData.stockType === MedicineStockType.GERAL && formData.casela) {
       toast({
         title: "Erro de seleção",
         description: "Não é possível selecionar uma casela para estoque geral.",
@@ -138,7 +138,7 @@ export function MedicineForm({
         <select
           value={formData.stockType}
           onChange={(e) =>
-            updateField("stockType", e.target.value as StockType)
+            updateField("stockType", e.target.value as MedicineStockType)
           }
           className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-sky-300 focus:outline-none"
         >
@@ -146,7 +146,7 @@ export function MedicineForm({
             Selecione
           </option>
 
-          {Object.values(StockType).map((type) => (
+          {Object.values(MedicineStockType).map((type) => (
             <option key={type} value={type}>
                {StockTypeLabels[type]}
             </option>

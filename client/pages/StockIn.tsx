@@ -33,41 +33,41 @@ export default function StockIn() {
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
-        await getMedicines().then((data) => {
-          setMedicines(data);
-        });
+        const result = await getMedicines();
+        setMedicines(result?.data ?? []);
       } catch (err) {
         console.error("Erro ao buscar medicines:", err);
+        setMedicines([]);
       }
     };
 
     const fetchInputs = async () => {
       try {
-        await getInputs().then((data) => {
-          setInputs(data);
-        });
+        const result = await getInputs();
+        setInputs(result?.data ?? []); 
       } catch (err) {
         console.error("Erro ao buscar inputs:", err);
+        setInputs([]);
       }
     };
 
     const fetchCaselas = async () => {
       try {
-        await getResidents().then((data) => {
-          setCaselas(data);
-        });
+        const result = await getResidents();
+        setCaselas(result.data ?? []);
       } catch (err) {
         console.error("Erro ao buscar caselas:", err);
+        setCaselas([]);
       }
     };
 
     const fetchCabinets = async () => {
       try {
-        await getCabinets().then((data) => {
-          setCabinets(data);
-        });
+        const result = await getCabinets();
+        setCabinets(result?.data ?? result ?? []);
       } catch (err) {
         console.error("Erro ao buscar armários:", err);
+        setCabinets([]);
       }
     };
 
@@ -106,7 +106,7 @@ export default function StockIn() {
         armario_id: data.cabinet,
         casela_id: data.casela ?? null,
         quantidade: data.quantity,
-        validade_medicamento: data.expirationDate ?? null,
+        validade: data.expirationDate ?? null,
       });
 
       toast({
@@ -130,11 +130,11 @@ export default function StockIn() {
 
     try {
       const payload = {
-        tipo: "insumo",
+        tipo: data.stockType,
         insumo_id: data.inputId,
         quantidade: data.quantity,
         armario_id: data.cabinetId,
-        validade: data.validity
+        validade: data.validity,
       };
 
       await createStockIn(payload);
@@ -145,6 +145,7 @@ export default function StockIn() {
         insumo_id: data.inputId,
         armario_id: data.cabinetId,
         quantidade: data.quantity,
+        validade: data.validity
       });
 
       toast({
@@ -177,6 +178,7 @@ export default function StockIn() {
     id: i.id,
     name: i.nome,
     description: i.descricao,
+    minimumStock: i.estoque_minimo,
   }));
 
   return (

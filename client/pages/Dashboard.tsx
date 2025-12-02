@@ -50,43 +50,47 @@ export default function Dashboard() {
         ] = await Promise.all([
           api.get("/estoque"),
 
-          api.get("/movimentacoes/medicamentos", { days: 7 }),
-          api.get("/movimentacoes/insumos", { days: 7 }),
+          api.get("/movimentacoes/medicamentos", { params: { days: 7, page: 1, limit: 400 } }),
+          api.get("/movimentacoes/insumos", { params: { days: 7, page: 1, limit: 400 } }),
 
           api.get("/estoque/proporcao"),
-          api.get("/estoque", { type: "armarios" }),
+          api.get("/estoque", { params: { type: "armarios" } }),
         ]);
 
-    const recentMovements = [
-      ...medicamentosMovRes.map((m: any) => ({
-        name: m.MedicamentoModel?.nome || "-",
-        type: m.tipo,
-        operator: m.LoginModel?.login || "-",
-        casela: m.ResidenteModel?.num_casela ?? "-",
-        quantity: m.quantidade,
-        patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
-        cabinet: m.ArmarioModel?.num_armario ?? "-",
-        date: m.data,
-      })),
-      ...insumosMovRes.map((m: any) => ({
-        name: m.InsumoModel?.nome || "-",
-        type: m.tipo,
-        operator: m.LoginModel?.login || "-",
-        casela: m.ResidenteModel?.num_casela ?? "-",
-        quantity: m.quantidade,
-        patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
-        cabinet: m.ArmarioModel?.num_armario ?? "-",
-        date: m.data,
-      })),
-    ].sort((a, b) => Number(new Date(b.date)) - Number(new Date(a.date)));
+    const medicamentosMov = medicamentosMovRes.data ?? [];
+        const insumosMov = insumosMovRes.data ?? [];
 
-    const noStockItems = stockList.filter(i => i.quantidade === 0);
+        const recentMovements = [
+          ...medicamentosMov.map((m: any) => ({
+            name: m.MedicamentoModel?.nome || "-",
+            type: m.tipo,
+            operator: m.LoginModel?.login || "-",
+            casela: m.ResidenteModel?.num_casela ?? "-",
+            quantity: m.quantidade,
+            patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
+            cabinet: m.ArmarioModel?.num_armario ?? "-",
+            date: m.data,
+          })),
 
-    const belowMinItems = stockList.filter(i => i.st_quantidade === "low");
+          ...insumosMov.map((m: any) => ({
+            name: m.InsumoModel?.nome || "-",
+            type: m.tipo,
+            operator: m.LoginModel?.login || "-",
+            casela: m.ResidenteModel?.num_casela ?? "-",
+            quantity: m.quantidade,
+            patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
+            cabinet: m.ArmarioModel?.num_armario ?? "-",
+            date: m.data,
+          })),
+        ].sort((a, b) => Number(new Date(b.date)) - Number(new Date(a.date)));
 
-    const expiredItems = stockList.filter(i => i.st_expiracao === "expired");
+    const noStockItems = stockList.data.filter(i => i.quantidade === 0);
 
-    const expiringSoonItems = stockList.filter(i =>
+    const belowMinItems = stockList.data.filter(i => i.st_quantidade === "low");
+
+    const expiredItems = stockList.data.filter(i => i.st_expiracao === "expired");
+
+    const expiringSoonItems = stockList.data.filter(i =>
       i.st_expiracao === "warning" || i.st_expiracao === "critical"
     );
 
@@ -100,26 +104,18 @@ export default function Dashboard() {
     setExpiringSoonData(expiringSoonItems);
     setRecentMovements(recentMovements);
 
+    const { percentuais, totais } = proportionRes;
+
     setStockDistribution([
-      {
-        name: "Estoque Geral (medicamentos)",
-        value: parseFloat(proportionRes.medicamentos_geral.toFixed(2)),
-        rawValue: proportionRes.totais.medicamentos_geral,
-      },
-      {
-        name: "Estoque Individual (medicamentos)",
-        value: parseFloat(proportionRes.medicamentos_individual.toFixed(2)),
-        rawValue: proportionRes.totais.medicamentos_individual,
-      },
-      {
-        name: "Insumos",
-        value: proportionRes.insumos,
-        rawValue: proportionRes.totais.insumos,
-      },
+      { name: "Estoque Geral (medicamentos)", value: percentuais.medicamentos_geral, rawValue: totais.medicamentos_geral },
+      { name: "Estoque Individual (medicamentos)", value: percentuais.medicamentos_individual, rawValue: totais.medicamentos_individual },
+      { name: "Insumos", value: percentuais.insumos, rawValue: totais.insumos },
+      { name: "Medicamentos no Carrinho", value: percentuais.carrinho_medicamentos, rawValue: totais.carrinho_medicamentos },
+      { name: "Insumos no Carrinho", value: percentuais.carrinho_insumos, rawValue: totais.carrinho_insumos },
     ]);
 
-    const formattedCabinetData = cabinetRes.map((arm: any) => ({
-      cabinet: arm.armario_nome || `Armário ${arm.armario_id}`,
+    const formattedCabinetData = cabinetRes.data.map((arm: any) => ({
+      cabinet: arm.armario_id,
       total: Number(arm.total_geral) || 0,
     }));
     setCabinetStockData(formattedCabinetData);
@@ -165,7 +161,13 @@ export default function Dashboard() {
     },
   ];
 
-  const COLORS = ["#0EA5E9", "#FACC15", "#EF4444"];
+  const COLORS = [
+    "#0EA5E9",
+    "#FACC15",
+    "#EF4444",
+    "#10B981", 
+    "#8B5CF6", 
+  ];
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =

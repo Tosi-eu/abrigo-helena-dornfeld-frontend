@@ -5,15 +5,26 @@ import { toast } from "@/hooks/use-toast";
 import LoadingModal from "@/components/LoadingModal";
 import { getMedicines } from "@/api/requests";
 
+const DEFAULT_LIMIT = 10;
+
 export default function Medicines() {
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchMedicines = async () => {
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+
+  const fetchMedicines = async (pageToLoad = 1) => {
     try {
       setLoading(true);
-      const res = await getMedicines();
-      setMedicines(res);
+      const res = await getMedicines(pageToLoad, DEFAULT_LIMIT);
+
+      console.log(res)
+
+      setMedicines(Array.isArray(res.data) ? res.data : []);
+
+      setPage(res.page ?? pageToLoad);
+      setHasNext(res.hasNext ?? false);
     } catch (err) {
       console.error(err);
       toast({
@@ -25,8 +36,16 @@ export default function Medicines() {
     }
   };
 
+  const goNextPage = () => {
+    if (hasNext) fetchMedicines(page + 1);
+  };
+
+  const goPrevPage = () => {
+    if (page > 1) fetchMedicines(page - 1);
+  };
+
   useEffect(() => {
-    fetchMedicines();
+    fetchMedicines(1);
   }, []);
 
   return (
@@ -41,17 +60,17 @@ export default function Medicines() {
         <EditableTable
           data={medicines}
           columns={[
-            { key: "nome", label: "Nome", editable: true },
-            {
-              key: "principio_ativo",
-              label: "Princípio Ativo",
-              editable: true,
-            },
-            { key: "dosagem", label: "Dosagem", editable: true },
-            { key: "unidade_medida", label: "Unidade", editable: true },
-            { key: "estoque_minimo", label: "Estoque Mínimo", editable: true },
+            { key: "nome", label: "Nome" },
+            { key: "principio_ativo", label: "Princípio Ativo" },
+            { key: "dosagem", label: "Dosagem" },
+            { key: "unidade_medida", label: "Unidade" },
+            { key: "estoque_minimo", label: "Estoque Mínimo" },
           ]}
           entityType="medicines"
+          currentPage={page}
+          hasNextPage={hasNext}
+          onNextPage={goNextPage}
+          onPrevPage={goPrevPage}
         />
       )}
     </Layout>

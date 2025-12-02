@@ -20,7 +20,7 @@ export default function StockOut() {
       setLoading(true);
       try {
         const data = await getStock();
-        setItems(data);
+        setItems(data.data);
       } catch (err) {
         console.error("Erro ao buscar estoque:", err);
         toast({
@@ -52,15 +52,10 @@ export default function StockOut() {
         armario_id: payload.armarioId,
         casela_id: payload.caselaId ?? null,
         quantidade: Number(payload.quantity),
-        ...(payload.tipoItem === "medicamento" && payload.validity
-          ? { expirationDate: new Date(payload.validity) }
-          : {}),
+        validade: payload.validity,
         ...(payload.tipoItem === "medicamento"
           ? {
               medicamento_id: payload.itemId,
-              validade_medicamento: payload.validity
-                ? new Date(payload.validity).toISOString()
-                : null,
             }
           : { insumo_id: payload.itemId }),
       });

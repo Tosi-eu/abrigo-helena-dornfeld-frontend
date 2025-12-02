@@ -28,11 +28,21 @@ export default function EditableTable({
   columns,
   entityType,
   showAddons = true,
-}: EditableTableProps & { entityType?: string; showAddons?: boolean }) {
+  currentPage = 1,
+  hasNextPage = false,
+  onNextPage,
+  onPrevPage,
+}: EditableTableProps & {
+  entityType?: string;
+  showAddons?: boolean;
+  currentPage?: number;
+  hasNextPage?: boolean;
+  onNextPage?: () => void;
+  onPrevPage?: () => void;
+}) {
   const [rows, setRows] = useState(data);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 6;
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -40,7 +50,6 @@ export default function EditableTable({
     if (!data) return;
     setRows(data);
   }, [data]);
-
 
   const handleAddRow = () => {
     if (entityType === "entries") {
@@ -77,7 +86,7 @@ export default function EditableTable({
   };
 
   const confirmDelete = async (index: number) => {
-    setDeleteIndex(index); 
+    setDeleteIndex(index);
   };
 
   const handleDeleteConfirmed = async () => {
@@ -106,6 +115,7 @@ export default function EditableTable({
         description: res.message ?? "O item foi excluído com sucesso.",
         variant: "success",
       });
+
       setRows(rows.filter((_, i) => i !== deleteIndex));
     } catch (err) {
       console.error(err);
@@ -121,14 +131,10 @@ export default function EditableTable({
 
   const handleDeleteCancel = () => setDeleteIndex(null);
 
-  const rowsFiltered = rows;
-  const startIndex = (currentPage - 1) * recordsPerPage;
-  const endIndex = startIndex + recordsPerPage;
-  const pageRows = rowsFiltered.slice(startIndex, endIndex);
-
   return (
     <>
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden font-[Inter]">
+        {/* Header */}
         <div className="flex items-center justify-end px-4 py-3 border-b border-slate-200 bg-sky-50 text-sm">
           {showAddons && (
             <button
@@ -140,6 +146,7 @@ export default function EditableTable({
           )}
         </div>
 
+        {/* Table */}
         <div className="overflow-x-auto relative">
           <table className="w-full text-center border-collapse">
             <thead>
@@ -161,55 +168,48 @@ export default function EditableTable({
             </thead>
 
             <tbody>
-              {pageRows.map((row, i) => {
-                const absoluteIndex = startIndex + i;
+              {rows.map((row, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-slate-200 hover:bg-sky-50 transition-colors"
+                >
+                  {columns.map((col) => {
+                    let cellContent = row[col.key];
 
-                return (
-                  <tr
-                    key={absoluteIndex}
-                    className="border-b border-slate-200 hover:bg-sky-50 transition-colors"
-                  >
-                    {columns.map((col) => {
-                      let cellContent = row[col.key];
+                    if (col.key === "expiry") cellContent = renderExpiryTag(row);
+                    if (col.key === "quantity") cellContent = renderQuantityTag(row);
 
-                      if (col.key === "expiry") {
-                        cellContent = renderExpiryTag(row);
-                      } else if (col.key === "quantity") {
-                        cellContent = renderQuantityTag(row);
-                      }
-
-                      return (
-                        <td
-                          key={col.key}
-                          className="px-4 py-3 text-xs text-slate-800"
-                        >
-                          {cellContent}
-                        </td>
-                      );
-                    })}
-
-                    {showAddons && (
-                      <td className="px-3 py-2 flex justify-center gap-3">
-                        <button
-                          onClick={() => handleEditClick(row)}
-                          className="text-sky-700 hover:text-sky-900 transition-colors"
-                        >
-                          <Pencil size={16} />
-                        </button>
-
-                        <button
-                          onClick={() => confirmDelete(absoluteIndex)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                    return (
+                      <td
+                        key={col.key}
+                        className="px-4 py-3 text-xs text-slate-800"
+                      >
+                        {cellContent}
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+                    );
+                  })}
 
-              {rowsFiltered.length === 0 && (
+                  {showAddons && (
+                    <td className="px-3 py-2 flex justify-center gap-3">
+                      <button
+                        onClick={() => handleEditClick(row)}
+                        className="text-sky-700 hover:text-sky-900 transition-colors"
+                      >
+                        <Pencil size={16} />
+                      </button>
+
+                      <button
+                        onClick={() => confirmDelete(i)}
+                        className="text-red-600 hover:text-red-800 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+
+              {rows.length === 0 && (
                 <tr>
                   <td
                     colSpan={columns.length + 1}
@@ -222,6 +222,35 @@ export default function EditableTable({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {(onNextPage || onPrevPage) && (
+          <div className="flex justify-center gap-4 py-4 border-t bg-white">
+            <button
+              onClick={onPrevPage}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg font-medium border ${
+                currentPage === 1
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white text-sky-700 hover:bg-sky-50"
+              }`}
+            >
+              Anterior
+            </button>
+
+            <button
+              onClick={onNextPage}
+              disabled={!hasNextPage}
+              className={`px-4 py-2 rounded-lg font-medium border ${
+                !hasNextPage
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white text-sky-700 hover:bg-sky-50"
+              }`}
+            >
+              Próximo
+            </button>
+          </div>
+        )}
       </div>
 
       <DeletePopUp
@@ -234,9 +263,11 @@ export default function EditableTable({
   );
 }
 
+/* ==== Tags de Status ==== */
+
 const renderExpiryTag = (row: any) => {
-  const status = row.expirationStatus;      
-  const message = row.expirationMsg;   
+  const status = row.expirationStatus;
+  const message = row.expirationMsg;
 
   if (!status) return "-";
 
@@ -252,7 +283,7 @@ const renderExpiryTag = (row: any) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
           >
             {row.expiry}
           </span>
@@ -266,7 +297,7 @@ const renderExpiryTag = (row: any) => {
 };
 
 const renderQuantityTag = (row: any) => {
-  const status = row.quantityStatus;   
+  const status = row.quantityStatus;
   const message = row.quantityMsg;
 
   const colorMap: Record<string, string> = {
@@ -282,7 +313,7 @@ const renderQuantityTag = (row: any) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
           >
             {row.quantity}
           </span>

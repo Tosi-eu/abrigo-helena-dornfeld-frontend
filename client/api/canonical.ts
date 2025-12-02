@@ -33,9 +33,9 @@ async function request(path: string, options: RequestInit = {}) {
 }
 
 export const api = {
-  get: (path: string, params?: Record<string, any>) =>
-    request(`${path}${buildQueryString(params)}`, { method: "GET" }),
-  
+  get: (path: string, options?: { params?: Record<string, any> }) =>
+    request(`${path}${buildQueryString(options?.params)}`, { method: "GET" }),
+
   post: (path: string, body?: any) =>
     request(path, { method: "POST", body: JSON.stringify(body) }),
   
