@@ -1,72 +1,92 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { CabinetCategory } from "@/enums/enums";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import LoadingModal from "@/components/LoadingModal";
-import { getCabinets, updateCabinet } from "@/api/requests";
+import { getCabinets, updateCabinet, getCabinetCategories } from "@/api/requests";
+import { Cabinet } from "@/interfaces/interfaces";
 
 export default function EditCabinet() {
   const location = useLocation();
-  const item = location.state?.item;
   const navigate = useNavigate();
 
-  const [cabinets, setCabinets] = useState<any[]>([]);
-  const [selectedCabinet, setSelectedCabinet] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    id: 0,
-    category: "",
-  });
+  const item = location.state?.item as Cabinet | undefined;
+
+  const [cabinets, setCabinets] = useState<Cabinet[]>([]);
+  const [categories, setCategories] = useState<{ id: number; nome: string }[]>([]);
+  const [formData, setFormData] = useState({ id: 0, categoryId: 0 });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getCabinets()
       .then((data) => setCabinets(data))
-      .catch(() => {
+      .catch(() =>
         toast({
           title: "Erro ao carregar armários",
           description: "Não foi possível buscar os armários do servidor.",
           variant: "error",
-        });
-      });
+        })
+      );
   }, []);
 
   useEffect(() => {
-    if (item) {
-      setSelectedCabinet(item);
-      setFormData({
-        id: item.numero,
-        category: item.categoria,
-      });
+    getCabinetCategories(1, 200)
+      .then((res) => setCategories(res.data))
+      .catch(() =>
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as categorias.",
+          variant: "error",
+        })
+      );
+  }, []);
+
+  useEffect(() => {
+    if (item && cabinets.length > 0 && categories.length > 0) {
+      const cab = cabinets.find((c) => c.numero === item.numero);
+
+      if (cab) {
+        const matchedCategory = categories.find((c) => c.nome === cab.categoria);
+
+        setFormData({
+          id: cab.numero,
+          categoryId: matchedCategory?.id ?? 0,
+        });
+      }
     }
-  }, [item]);
+  }, [item, cabinets, categories]);
 
   const handleSelectChange = (value: string) => {
-    const cabinet = cabinets.find((c) => c.numero === parseInt(value, 10));
-    if (cabinet) {
-      setSelectedCabinet(cabinet);
-      setFormData({
-        id: cabinet.numero,
-        category: cabinet.categoria,
-      });
-    } else {
-      setSelectedCabinet(null);
-      setFormData({ id: 0, category: "" });
+    const cab = cabinets.find((c) => c.numero === Number(value));
+
+    if (!cab) {
+      setFormData({ id: 0, categoryId: 0 });
+      return;
     }
+
+    const matchedCategory = categories.find((c) => c.nome === cab.categoria);
+
+    setFormData({
+      id: cab.numero,
+      categoryId: matchedCategory?.id ?? 0,
+    });
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "categoryId" ? Number(value) : value,
+    }));
   };
 
   const handleSave = async () => {
-    if (!selectedCabinet) {
+    if (!formData.id || !formData.categoryId) {
       toast({
         title: "Campos obrigatórios",
-        description: "Selecione um armário para editar.",
+        description: "Selecione um armário e uma categoria.",
         variant: "warning",
       });
       return;
@@ -75,20 +95,19 @@ export default function EditCabinet() {
     setLoading(true);
 
     try {
-      await updateCabinet(selectedCabinet.numero, {
+      await updateCabinet(formData.id, {
         numero: formData.id,
-        categoria: formData.category,
+        categoriaId: formData.categoryId,
       });
 
       toast({
         title: "Armário atualizado",
-        description: `O armário ${formData.id} foi atualizado com sucesso!`,
+        description: `O armário ${formData.id} foi atualizado com sucesso.`,
         variant: "success",
       });
 
       navigate("/cabinets");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast({
         title: "Erro ao editar armário",
         description: "Não foi possível atualizar o armário.",
@@ -116,14 +135,16 @@ export default function EditCabinet() {
           <label className="block text-sm font-medium text-slate-700 mb-1">
             Selecionar Armário
           </label>
+
           <select
-            value={selectedCabinet?.numero || ""}
+            value={formData.id || ""}
             onChange={(e) => handleSelectChange(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 focus:ring-2 focus:ring-sky-300 focus:outline-none"
+            className="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-sky-300"
           >
             <option value="" disabled hidden>
               Selecione
             </option>
+
             {cabinets.map((c) => (
               <option key={c.numero} value={c.numero}>
                 Armário {c.numero} ({c.categoria})
@@ -132,35 +153,31 @@ export default function EditCabinet() {
           </select>
         </div>
 
-        {selectedCabinet && (
+        {formData.id !== 0 && (
           <div className="space-y-5 pt-4 border-t border-slate-100">
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Número do Armário
-              </label>
+              <label className="block text-sm font-medium mb-1">Número</label>
               <input
                 type="number"
                 name="id"
                 value={formData.id}
                 onChange={handleChange}
-                className="w-full border bg-white rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none"
+                className="w-full border rounded-lg p-2.5"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Categoria
-              </label>
+              <label className="block text-sm font-medium mb-1">Categoria</label>
               <select
-                name="category"
-                value={formData.category}
+                name="categoryId"
+                value={formData.categoryId}
                 onChange={handleChange}
-                className="w-full border bg-white rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none"
+                className="w-full border rounded-lg p-2.5 bg-white"
               >
-                {Object.entries(CabinetCategory).map(([key, label]) => (
-                  <option key={key} value={label}>
-                    {label}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
                   </option>
                 ))}
               </select>
@@ -168,23 +185,22 @@ export default function EditCabinet() {
 
             <div className="flex justify-between pt-4">
               <button
-                type="button"
                 onClick={() => navigate("/cabinets")}
-                className="px-5 py-2 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-100 transition"
+                className="px-5 py-2 border rounded-lg text-sm"
               >
                 Cancelar
               </button>
+
               <button
                 onClick={handleSave}
+                className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm"
                 disabled={loading}
-                className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-50"
               >
-                Salvar Alterações
+                Salvar
               </button>
             </div>
           </div>
         )}
-
       </div>
     </Layout>
   );

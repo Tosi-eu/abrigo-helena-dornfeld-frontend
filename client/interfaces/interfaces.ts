@@ -1,5 +1,4 @@
 import {
-  CabinetCategory,
   MovementType,
   OperationType,
   OriginType,
@@ -69,7 +68,12 @@ export interface Medicine {
 
 export interface Cabinet {
   numero: number;
-  categoria: CabinetCategory | string;
+  categoria: string;
+}
+
+export interface CabinetCategory {
+    id:number;
+    nome: string;
 }
 
 export interface Input {

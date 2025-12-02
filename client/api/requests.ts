@@ -79,8 +79,8 @@ export const updateUser = (
   },
 ) => api.put(`/login/${userId}`, payload);
 
-export const createCabinet = (numero: number, categoria: string) =>
-  api.post("/armarios", { numero, categoria });
+export const createCabinet = (numero: number, categoria_id: number) =>
+  api.post("/armarios", { numero, categoria_id });
 
 export const createInput = (nome: string, descricao?: string, estoque_minimo?: number) =>
   api.post("/insumos", { nome, descricao: descricao ?? null, estoque_minimo: estoque_minimo ?? 0 });
@@ -133,3 +133,11 @@ export const createMovement = (payload: {
 
 export const getStock = (page = 1, limit = 5, type?: string) =>
   api.get(`/estoque?page=${page}&limit=${limit}${type ? `&type=${type}` : ""}`);
+
+export const getCabinetCategories = (page = 1, limit = 5) =>
+  api.get("/categoria-armario", {
+    params: { page, limit },
+  });
+
+export const createCabinetCategory = (nome: string) =>
+  api.post("/categoria-armario", { nome });

@@ -11,13 +11,6 @@ export enum OriginType {
   COMPRA_DOACAO = "Compra/Doação"
 }
 
-export enum CabinetCategory {
-  MEDICACAO_GERAL = "Medicação geral",
-  PSICOTROPICOS_E_INJECOES = "Psicotrópicos e injeções",
-  MEDICAMENTOS_DOADOS = "Medicamentos doados / Fitas / Dersane / Clorexidina",
-  DIVERSOS = "Lactulose / Hipratrópio / Pomadas / Domperidona / Materiais de glicemia",
-}
-
 export enum StockCategory {
   MEDICINE = "Medicamento",
   INPUT = "Insumo",

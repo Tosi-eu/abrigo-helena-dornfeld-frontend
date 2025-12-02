@@ -23,7 +23,7 @@ export default function SignUpMedicine() {
     async function fetchMedicines() {
       try {
         await getMedicines().then((data) => {
-          setMedicines(data);
+          setMedicines(data.data);
         });
       } catch (err) {
         console.error(err);
@@ -143,7 +143,7 @@ export default function SignUpMedicine() {
               list="lista-medicamentos"
               value={formData.name}
               onChange={(e) => handleMedicineSelect(e.target.value)}
-              placeholder="Selecione ou digite um medicamento"
+              placeholder="Digite o nome do medicamento"
               className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
               disabled={saving}
             />
