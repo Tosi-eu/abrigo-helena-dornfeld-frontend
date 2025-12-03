@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Package, Stethoscope, Check, X, Loader2, User } from "lucide-react";
+import { Package, Stethoscope, Check, X, Loader2, User, Syringe } from "lucide-react";
 import { createStockPDF } from "./StockReporter";
 import { pdf } from "@react-pdf/renderer";
 import { getReport } from "@/api/requests";
@@ -27,6 +27,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
     { value: "insumos", label: "Insumos", icon: Package },
     { value: "medicamentos", label: "Medicamentos", icon: Stethoscope },
     { value: "residentes", label: "Residentes", icon: User },
+    { value: "psicotropicos", label: "Psicotrópicos", icon: Syringe },
     {
       value: "insumos_medicamentos",
       label: "Insumos e Medicamentos",
@@ -41,6 +42,8 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
     setStatus("loading");
 
     try {
+
+      console.log(selectedReports)
       const tipo = selectedReports[0];
 
       const res = await getReport(tipo);

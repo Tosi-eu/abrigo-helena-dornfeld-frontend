@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
 
 export function createStockPDF(tipo: string, data: RowData[]) {
   const renderTable = (headers: string[], rows: RowData[]) => {
-
+    console.log(rows);
     return (
       <>
         <View style={styles.tableHeader}>
@@ -231,6 +231,22 @@ export function createStockPDF(tipo: string, data: RowData[]) {
             {renderTable(
               ["Insumo", "Quantidade", "Armario"],
               (data as any).insumos ?? [],
+            )}
+          </>
+        )}
+
+        {tipo === "psicotropicos" && (
+          <>
+            <Text style={styles.sectionTitle}>Psicotrópicos</Text>
+            {renderTable(
+              [
+                "Tipo",
+                "Medicamento",
+                "Residente",
+                "Data Movimentação",
+                "Quantidade",
+              ],
+              (data as any).psicotropico ?? [],
             )}
           </>
         )}
