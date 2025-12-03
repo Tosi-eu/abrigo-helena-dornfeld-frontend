@@ -17,6 +17,8 @@ import {
 import EditableTable from "@/components/EditableTable";
 import LoadingModal from "@/components/LoadingModal";
 import { api } from "@/api/canonical";
+import { getMedicineRanking } from "@/api/requests";
+import { StockStatusItem, CabinetStockItem, StockDistributionItem, RecentMovement, MedicineRankingItem, RawMovement } from "@/interfaces/interfaces";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,15 +29,20 @@ export default function Dashboard() {
   const [noStock, setNoStock] = useState<number>(0);
   const [belowMin, setBelowMin] = useState<number>(0);
   const [expired, setExpired] = useState<number>(0);
-  const [expiringSoon, setExpiringSoon] = useState<any[]>([]);
+  const [expiringSoon, setExpiringSoon] = useState<StockStatusItem[]>([]);
+  const [cabinetStockData, setCabinetStockData] = useState<CabinetStockItem[]>([]);
+  const [noStockData, setNoStockData] = useState<StockStatusItem[]>([]);
+  const [belowMinData, setBelowMinData] = useState<StockStatusItem[]>([]);
+  const [expiredData, setExpiredData] = useState<StockStatusItem[]>([]);
+  const [expiringSoonData, setExpiringSoonData] = useState<StockStatusItem[]>([]);
 
-  const [cabinetStockData, setCabinetStockData] = useState<any[]>([]);
-  const [noStockData, setNoStockData] = useState<any[]>([]);
-  const [belowMinData, setBelowMinData] = useState<any[]>([]);
-  const [expiredData, setExpiredData] = useState<any[]>([]);
-  const [expiringSoonData, setExpiringSoonData] = useState<any[]>([]);
-  const [stockDistribution, setStockDistribution] = useState<any[]>([]);
-  const [recentMovements, setRecentMovements] = useState<any[]>([]);
+  const [stockDistribution, setStockDistribution] = useState<StockDistributionItem[]>([]);
+
+  const [recentMovements, setRecentMovements] = useState<RecentMovement[]>([]);
+
+  const [mostMovData, setMostMovData] = useState<MedicineRankingItem[]>([]);
+  const [leastMovData, setLeastMovData] = useState<MedicineRankingItem[]>([]);
+
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -57,11 +64,17 @@ export default function Dashboard() {
           api.get("/estoque", { params: { type: "armarios" } }),
         ]);
 
+        const [medMoreRes, medLessRes] = await Promise.all([
+            getMedicineRanking("more"),
+            getMedicineRanking("less"),
+        ]);
+
+
     const medicamentosMov = medicamentosMovRes.data ?? [];
         const insumosMov = insumosMovRes.data ?? [];
 
         const recentMovements = [
-          ...medicamentosMov.map((m: any) => ({
+          ...medicamentosMov.map((m: RawMovement) => ({
             name: m.MedicamentoModel?.nome || "-",
             type: m.tipo,
             operator: m.LoginModel?.login || "-",
@@ -72,7 +85,7 @@ export default function Dashboard() {
             date: m.data,
           })),
 
-          ...insumosMov.map((m: any) => ({
+          ...insumosMov.map((m: RawMovement) => ({
             name: m.InsumoModel?.nome || "-",
             type: m.tipo,
             operator: m.LoginModel?.login || "-",
@@ -103,6 +116,26 @@ export default function Dashboard() {
     setExpiredData(expiredItems);
     setExpiringSoonData(expiringSoonItems);
     setRecentMovements(recentMovements);
+
+    setMostMovData(
+      medMoreRes.data.map(item => ({
+        name: item.medicamento.nome,
+        substance: item.medicamento.principio_ativo,
+        total: item.total_movimentado,
+        entradas: item.total_entradas,
+        saidas: item.total_saidas,
+      }))
+    );
+
+    setLeastMovData(
+      medLessRes.data.map(item => ({
+        name: item.medicamento.nome,
+        substance: item.medicamento.principio_ativo,
+        total: item.total_movimentado,
+        entradas: item.total_entradas,
+        saidas: item.total_saidas,
+      }))
+    );
 
     const { percentuais, totais } = proportionRes;
 
@@ -271,6 +304,48 @@ export default function Dashboard() {
                 showAddons={false}
               />
             </div>
+          </section>
+
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-200 bg-sky-50 text-center">
+                  <h3 className="text-base font-semibold text-slate-800">
+                    Top 10 Medicamentos Mais Movimentados
+                  </h3>
+                </div>
+
+                <EditableTable
+                  columns={[
+                    { key: "name", label: "Nome", editable: false },
+                    { key: "substance", label: "Princípio Ativo", editable: false },
+                    { key: "total", label: "Total Movimentado", editable: false },
+                    { key: "entradas", label: "Entradas", editable: false },
+                    { key: "saidas", label: "Saídas", editable: false },
+                  ]}
+                  data={mostMovData}
+                  showAddons={false}
+                />
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-200 bg-sky-50 text-center">
+                  <h3 className="text-base font-semibold text-slate-800">
+                    Top 10 Medicamentos Menos Movimentados
+                  </h3>
+                </div>
+
+                <EditableTable
+                  columns={[
+                    { key: "name", label: "Nome", editable: false },
+                    { key: "substance", label: "Princípio Ativo", editable: false },
+                    { key: "total", label: "Total Movimentado", editable: false },
+                    { key: "entradas", label: "Entradas", editable: false },
+                    { key: "saidas", label: "Saídas", editable: false },
+                  ]}
+                  data={leastMovData}
+                  showAddons={false}
+                />
+              </div>
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">

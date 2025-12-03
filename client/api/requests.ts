@@ -141,3 +141,8 @@ export const getCabinetCategories = (page = 1, limit = 5) =>
 
 export const createCabinetCategory = (nome: string) =>
   api.post("/categoria-armario", { nome });
+
+export const getMedicineRanking = (type: "more" | "less", page = 1, limit = 10) =>
+  api.get("/movimentacoes/medicamentos/ranking", {
+    params: { type, page, limit },
+  });

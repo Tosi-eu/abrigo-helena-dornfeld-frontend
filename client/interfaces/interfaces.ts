@@ -230,3 +230,83 @@ export interface LoadingModalProps {
   title?: string;
   description?: string;
 }
+
+export interface RecentMovement {
+  name: string;
+  type: string;
+  operator: string;
+  casela: string | number;
+  quantity: number;
+  patient: string;
+  cabinet: string | number;
+  date: string;
+}
+
+export interface StockStatusItem {
+  id: number;
+  name: string;
+  quantity: number;
+  expiry: string | null;
+  st_quantidade: "low" | "ok" | "zero";
+  st_expiracao: "expired" | "warning" | "critical" | "ok";
+  minimo?: number;
+  paciente?: string | null;
+  armario_id?: number | null;
+  casela_id?: number | null;
+}
+
+export interface StockDistributionItem {
+  name: string;
+  value: number;
+  rawValue: number;
+}
+
+export interface CabinetStockItem {
+  cabinet: number;
+  total: number;
+}
+
+export interface MedicineRankingItem {
+  name: string;
+  substance: string;
+  total: number;
+  entradas: number;
+  saidas: number;
+}
+
+export interface RawMedicineMovement {
+  tipo: string;
+  quantidade: number;
+  data: string;
+  MedicamentoModel?: { nome: string };
+  LoginModel?: { login: string };
+  ResidenteModel?: { nome: string; num_casela: number };
+  ArmarioModel?: { num_armario: number };
+}
+
+export interface RawMovement {
+  tipo: string;
+  quantidade: number;
+  data: string;
+
+  MedicamentoModel?: {
+    nome: string;
+  };
+
+  InsumoModel?: {
+    nome: string;
+  };
+
+  LoginModel?: {
+    login: string;
+  };
+
+  ResidenteModel?: {
+    nome: string;
+    num_casela: number;
+  };
+
+  ArmarioModel?: {
+    num_armario: number;
+  };
+}
