@@ -140,9 +140,9 @@ export default function Dashboard() {
     const { percentuais, totais } = proportionRes;
 
     setStockDistribution([
-      { name: "Estoque Geral (medicamentos)", value: percentuais.medicamentos_geral, rawValue: totais.medicamentos_geral },
-      { name: "Estoque Individual (medicamentos)", value: percentuais.medicamentos_individual, rawValue: totais.medicamentos_individual },
-      { name: "Insumos", value: percentuais.insumos, rawValue: totais.insumos },
+      { name: "Medicamentos em Estoque Geral", value: percentuais.medicamentos_geral, rawValue: totais.medicamentos_geral },
+      { name: "Medicamentos em Estoque Individual", value: percentuais.medicamentos_individual, rawValue: totais.medicamentos_individual },
+      { name: "Insumos em Estoque Geral", value: percentuais.insumos, rawValue: totais.insumos },
       { name: "Medicamentos no Carrinho", value: percentuais.carrinho_medicamentos, rawValue: totais.carrinho_medicamentos },
       { name: "Insumos no Carrinho", value: percentuais.carrinho_insumos, rawValue: totais.carrinho_insumos },
     ]);

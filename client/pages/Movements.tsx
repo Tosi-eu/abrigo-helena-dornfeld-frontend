@@ -23,11 +23,13 @@ export default function InputMovements() {
     { key: "operator", label: "Operador", editable: false },
     { key: "movementDate", label: "Data da Transação", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
-    { key: "resident", label: "Residente", editable: false },
+    { key: "resident", label: "Casela", editable: false },
   ];
 
   function normalizeMovement(item: any) {
     const isMedicine = item.medicamento_id !== null;
+
+    console.log(item)
 
     return {
       id: item.id,
@@ -43,7 +45,7 @@ export default function InputMovements() {
       operator: item.LoginModel?.login ?? "",
       movementDate: item.data,
       cabinet: item.CabinetModel?.num_armario ?? item.armario_id ?? "",
-      resident: item.ResidentModel?.num_casela ?? "",
+      resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
       validade: item.validade
     };
@@ -94,7 +96,7 @@ export default function InputMovements() {
       <LoadingModal open={loading} title="Aguarde" description="Carregando..." />
 
       {!loading && (
-        <div className="w-full p-22 flex flex-col items-center justify-center space-y-10">
+        <div className="w-full p-24 flex flex-col items-center justify-center space-y-10">
 
           <div className="w-full max-w-5xl">
             <EditableTable
@@ -105,6 +107,7 @@ export default function InputMovements() {
               hasNextPage={entriesHasNext}
               onNextPage={() => setEntriesPage(p => p + 1)}
               onPrevPage={() => setEntriesPage(p => Math.max(1, p - 1))}
+              showAddons={false}
             />
           </div>
 

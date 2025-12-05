@@ -112,7 +112,7 @@ export default function EditableTable({
 
       toast({
         title: "Item removido",
-        description: res.message ?? "O item foi excluído com sucesso.",
+        description: "O item foi excluído com sucesso.",
         variant: "success",
       });
 
@@ -134,7 +134,6 @@ export default function EditableTable({
   return (
     <>
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden font-[Inter]">
-        {/* Header */}
         <div className="flex items-center justify-end px-4 py-3 border-b border-slate-200 bg-sky-50 text-sm">
           {showAddons && (
             <button
@@ -146,7 +145,6 @@ export default function EditableTable({
           )}
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto relative">
           <table className="w-full text-center border-collapse">
             <thead>
@@ -223,7 +221,6 @@ export default function EditableTable({
           </table>
         </div>
 
-        {/* Pagination */}
         {(onNextPage || onPrevPage) && (
           <div className="flex justify-center gap-4 py-4 border-t bg-white">
             <button
@@ -262,8 +259,6 @@ export default function EditableTable({
     </>
   );
 }
-
-/* ==== Tags de Status ==== */
 
 const renderExpiryTag = (row: any) => {
   const status = row.expirationStatus;

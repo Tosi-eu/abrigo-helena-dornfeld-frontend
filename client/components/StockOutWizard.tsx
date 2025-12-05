@@ -86,9 +86,9 @@ export default function StockOutWizard({
       estoqueId: selected.estoque_id,
       tipoItem: selected.tipo_item,
       armarioId: selected.armario_id ?? 0,
-      caselaId: selected.casela_id ?? undefined,
+      caselaId: selected.casela_id ?? null,
       quantity: qty,
-      validity: selected.validade ? new Date(selected.validade).toISOString() : null,
+      validity: selected.validade,
       resident: selected.paciente ?? null,
     });
 

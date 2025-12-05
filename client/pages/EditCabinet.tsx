@@ -50,7 +50,7 @@ export default function EditCabinet() {
 
         setFormData({
           id: cab.numero,
-          categoryId: matchedCategory?.id ?? 0,
+          categoryId: matchedCategory?.id,
         });
       }
     }
@@ -97,7 +97,7 @@ export default function EditCabinet() {
     try {
       await updateCabinet(formData.id, {
         numero: formData.id,
-        categoriaId: formData.categoryId,
+        categoria_id: formData.categoryId,
       });
 
       toast({
