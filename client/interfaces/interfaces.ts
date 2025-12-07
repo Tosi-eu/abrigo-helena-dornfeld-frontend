@@ -1,9 +1,5 @@
-import {
-  MovementType,
-  OperationType,
-  OriginType,
-  MedicineStockType,
-} from "@/enums/enums";
+
+import { MedicineStockType, MovementType, OperationType, OriginType } from "@/utils/enums";
 import { ReactNode } from "react";
 
 export interface Column {

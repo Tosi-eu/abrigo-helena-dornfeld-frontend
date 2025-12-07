@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast.hook";
 import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
 import Layout from "@/components/Layout";
 import { updateUser } from "@/api/requests";

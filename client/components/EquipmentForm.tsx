@@ -2,10 +2,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { InputFormProps } from "@/interfaces/interfaces";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast.hook";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
-import { InputStockType, StockTypeLabels } from "@/enums/enums";
+import { InputStockType, StockTypeLabels } from "@/utils/enums";
 
 export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
   const [formData, setFormData] = useState({

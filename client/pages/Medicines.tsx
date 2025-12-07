@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import { useEffect, useState } from "react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast.hook";
 import LoadingModal from "@/components/LoadingModal";
 import { getMedicines } from "@/api/requests";
 
@@ -18,8 +18,6 @@ export default function Medicines() {
     try {
       setLoading(true);
       const res = await getMedicines(pageToLoad, DEFAULT_LIMIT);
-
-      console.log(res)
 
       setMedicines(Array.isArray(res.data) ? res.data : []);
 

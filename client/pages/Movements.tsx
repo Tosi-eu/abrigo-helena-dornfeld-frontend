@@ -29,8 +29,6 @@ export default function InputMovements() {
   function normalizeMovement(item: any) {
     const isMedicine = item.medicamento_id !== null;
 
-    console.log(item)
-
     return {
       id: item.id,
       name: isMedicine

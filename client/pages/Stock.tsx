@@ -6,7 +6,7 @@ import { StockItem } from "@/interfaces/interfaces";
 import ReportModal from "@/components/ReportModal";
 import LoadingModal from "@/components/LoadingModal";
 import { getStock } from "@/api/requests";
-import { MedicineStockType, StockTypeLabels } from "@/enums/enums";
+import { MedicineStockType, StockTypeLabels } from "@/utils/enums";
 
 export default function Stock() {
   const navigate = useNavigate();
@@ -134,10 +134,6 @@ export default function Stock() {
 
         {!loading && (
           <>
-            <h2 className="text-lg font-semibold mt-6">
-              Visão Geral do Estoque
-            </h2>
-
             <EditableTable
               data={items}
               columns={columns}

@@ -17,6 +17,11 @@ Font.register({
   ],
 });
 
+interface ResidentesResponse {
+  detalhes: RowData[];
+  consumo_mensal: RowData[];
+}
+
 interface RowData {
   insumo?: string;
   principio_ativo?: string;
@@ -24,6 +29,9 @@ interface RowData {
   validade?: string;
   residente?: string;
   medicamento?: string;
+  casela?: number;
+  data?: string;
+  consumo_mensal?: string | number;
   armario?: number;
   medicamentos?: RowData[];
   insumos?: RowData[];
@@ -45,18 +53,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  headerInfo: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginBottom: 12,
-  },
-
-  headerRightText: {
-    fontSize: 10,
-    color: "#000",
-    textAlign: "right",
-  },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -64,9 +60,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 
-  logo: {
-    width: 90,
-  },
+  logo: { width: 90 },
 
   title: {
     fontSize: 20,
@@ -87,12 +81,13 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#e5e5e5",
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#000",
     fontWeight: "bold",
     textAlign: "center",
+    fontSize: 9, 
   },
 
   tableRow: {
@@ -106,10 +101,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
   },
 
+
   cell: {
     flex: 1,
     paddingHorizontal: 2,
     textAlign: "center",
+    fontSize: 9,    
+    whiteSpace: "nowrap", 
   },
 
   footer: {
@@ -121,48 +119,50 @@ const styles = StyleSheet.create({
   },
 });
 
-export function createStockPDF(tipo: string, data: RowData[]) {
-  const renderTable = (headers: string[], rows: RowData[]) => {
-    console.log(rows);
-    return (
-      <>
-        <View style={styles.tableHeader}>
-          {headers.map((h, i) => (
-            <Text key={i} style={styles.cell}>
-              {h}
-            </Text>
-          ))}
-        </View>
-
-        {rows.map((row, idx) => (
-          <View
-            key={idx}
-            style={[
-              styles.tableRow,
-              idx % 2 === 0 ? styles.striped : undefined,
-            ]}
-          >
-            {headers.map((h, i) => {
-              const key = h
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toLowerCase()
-                .replace(/\s+/g, "_");
-
-              let value: any = row[key as keyof RowData] ?? "";
-
-              return (
-                <Text key={i} style={styles.cell}>
-                  {value}
-                </Text>
-              );
-            })}
-          </View>
+function renderTable(headers: string[], rows: RowData[]) {
+  return (
+    <>
+      <View style={styles.tableHeader}>
+        {headers.map((h, i) => (
+          <Text key={i} style={styles.cell}>
+            {h}
+          </Text>
         ))}
-      </>
-    );
-  };
+      </View>
 
+      {rows.map((row, idx) => (
+        <View
+          key={idx}
+          style={[
+            styles.tableRow,
+            idx % 2 === 0 ? styles.striped : undefined,
+          ]}
+        >
+          {headers.map((h, i) => {
+            const key = h
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toLowerCase()
+              .replace(/\s+/g, "_");
+
+            let value: any = row[key as keyof RowData] ?? "";
+
+            return (
+              <Text key={i} style={styles.cell}>
+                {value}
+              </Text>
+            );
+          })}
+        </View>
+      ))}
+    </>
+  );
+}
+
+export function createStockPDF(
+  tipo: string,
+  data: RowData[] | ResidentesResponse
+) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -172,6 +172,40 @@ export function createStockPDF(tipo: string, data: RowData[]) {
           <Image src="http://localhost:8080/logo.png" style={styles.logo} />
           <Text style={styles.title}>ESTOQUE ATUAL</Text>
         </View>
+
+        {tipo === "residentes" && (
+          <>
+            <Text style={styles.sectionTitle}>
+              Medicamentos por Residente
+            </Text>
+
+            {renderTable(
+              [
+                "Residente",
+                "Casela",
+                "Medicamento",
+                "Principio Ativo",
+                "Quantidade",
+                "Validade",
+              ],
+              (data as ResidentesResponse).detalhes
+            )}
+
+            <Text style={styles.sectionTitle}>Consumo Mensal</Text>
+
+            {renderTable(
+              [
+                "Residente",
+                "Casela",
+                "Medicamento",
+                "Principio Ativo",
+                "Data",
+                "Consumo Mensal",
+              ],
+              (data as ResidentesResponse).consumo_mensal
+            )}
+          </>
+        )}
 
         {tipo === "medicamentos" && (
           <>
@@ -184,7 +218,7 @@ export function createStockPDF(tipo: string, data: RowData[]) {
                 "Validade",
                 "Residente",
               ],
-              data,
+              data as RowData[]
             )}
           </>
         )}
@@ -192,24 +226,7 @@ export function createStockPDF(tipo: string, data: RowData[]) {
         {tipo === "insumos" && (
           <>
             <Text style={styles.sectionTitle}>Insumos</Text>
-            {renderTable(["Insumo", "Quantidade", "Armario"], data)}
-          </>
-        )}
-
-        {tipo === "residentes" && (
-          <>
-            <Text style={styles.sectionTitle}>Medicamentos por Residente</Text>
-            {renderTable(
-              [
-                "Residente",
-                "Casela",
-                "Medicamento",
-                "Principio Ativo",
-                "Quantidade",
-                "Validade",
-              ],
-              data,
-            )}
+            {renderTable(["Insumo", "Quantidade", "Armario"], data as RowData[])}
           </>
         )}
 
@@ -224,13 +241,13 @@ export function createStockPDF(tipo: string, data: RowData[]) {
                 "Validade",
                 "Residente",
               ],
-              (data as any).medicamentos ?? [],
+              (data as any).medicamentos ?? []
             )}
 
             <Text style={styles.sectionTitle}>Insumos</Text>
             {renderTable(
               ["Insumo", "Quantidade", "Armario"],
-              (data as any).insumos ?? [],
+              (data as any).insumos ?? []
             )}
           </>
         )}
@@ -246,7 +263,7 @@ export function createStockPDF(tipo: string, data: RowData[]) {
                 "Data Movimentação",
                 "Quantidade",
               ],
-              (data as any).psicotropico ?? [],
+              (data as any).psicotropico ?? []
             )}
           </>
         )}

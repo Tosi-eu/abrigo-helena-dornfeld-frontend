@@ -1,9 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "/logo.png";
 import { LayoutProps } from "@/interfaces/interfaces";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth.hook";
 import { useState } from "react";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
+import { NotificationButton } from "@/components/NotificationButton";
+import { NotificationDrawer } from "./NotificationDrawer";
 
 export default function Layout({ children, title }: LayoutProps) {
   const location = useLocation();
@@ -92,6 +94,9 @@ export default function Layout({ children, title }: LayoutProps) {
       <main className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {children}
       </main>
+
+      <NotificationButton />  
+      <NotificationDrawer />  
 
       <LogoutConfirmDialog
         open={showLogoutModal}

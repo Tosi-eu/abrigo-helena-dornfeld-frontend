@@ -1,68 +1,112 @@
+import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
-import { useState, useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
-import { createMovement, createStockOut, getStock } from "@/api/requests";
-import { useNavigate } from "react-router-dom";
 import LoadingModal from "@/components/LoadingModal";
-import { useAuth } from "@/hooks/use-auth";
-import StockOutWizard from "@/components/StockOutWizard";
+import { toast } from "@/hooks/use-toast.hook";
+import { useAuth } from "@/hooks/use-auth.hook";
+import { useNavigate } from "react-router-dom";
+import {
+  createMovement,
+  createStockOut,
+  getStock as apiGetStock,
+} from "@/api/requests";
+
+import { AnimatePresence, motion } from "framer-motion";
+import Pagination from "@/components/Pagination";
+import StepItems from "@/components/ItemsStep";
+import QuantityStep from "@/components/QuantityStep";
+
+import { MovementType, OperationType, StockWizardSteps } from "@/utils/enums";
+import { StockItemRaw } from "@/interfaces/interfaces";
+import StepType from "@/components/StepType";
 
 export default function StockOut() {
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ nome: "", armario: "", origem: "" });
-
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+
+  const [items, setItems] = useState<StockItemRaw[]>([]);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 6;
+
+  const [filters, setFilters] = useState({
+    nome: "",
+    armario: "",
+    origem: "",
+  });
+
+  const [step, setStep] = useState<StockWizardSteps>(StockWizardSteps.TIPO);
+  const [operationType, setOperationType] =
+    useState<OperationType | "Selecione">("Selecione");
+  const [selected, setSelected] = useState<StockItemRaw | null>(null);
+  const [quantity, setQuantity] = useState("");
+
+  async function fetchStock() {
+    setLoading(true);
+
+    try {
+      const result = await apiGetStock(page, pageSize, operationType !== "Selecione" ? operationType : undefined);
+
+      setItems(result?.data ?? []);
+      setTotalPages(result?.data?.totalPages ?? 1);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Erro ao carregar estoque",
+        description: "Não foi possível carregar os dados.",
+        variant: "error",
+      });
+    }
+
+    setLoading(false);
+  }
+
   useEffect(() => {
-    const fetchStock = async () => {
-      setLoading(true);
-      try {
-        const data = await getStock();
-        setItems(data.data);
-      } catch (err) {
-        console.error("Erro ao buscar estoque:", err);
-        toast({
-          title: "Erro ao carregar estoque",
-          description: "Não foi possível carregar os dados do estoque.",
-          variant: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStock();
-  }, []);
+  }, [page, operationType]);
 
-  const handleStockOut = async (payload: any) => {
-    if (!payload) return;
+  const handleSelectType = (type: OperationType) => {
+    setOperationType(type);
+    setSelected(null);
+    setPage(1);
+    setStep(StockWizardSteps.ITENS);
+  };
+
+  const handleSelectItem = (item: StockItemRaw | null) => {
+    setSelected(item);
+    if (item) setStep(StockWizardSteps.QUANTIDADE);
+  };
+
+  const handleConfirm = async () => {
+    if (!selected) return;
+
+    const qty = Number(quantity);
+    if (!qty || qty <= 0) return;
 
     try {
       await createStockOut({
-        estoqueId: payload.estoqueId,
-        tipo: payload.tipoItem,
-        quantidade: Number(payload.quantity),
+        estoqueId: selected.estoque_id,
+        tipo: selected.tipo_item as OperationType,
+        quantidade: qty,
       });
 
       await createMovement({
-        tipo: "saida",
+        tipo: MovementType.OUT,
         login_id: user?.id,
-        armario_id: payload.armarioId,
-        casela_id: payload.caselaId ?? null,
-        quantidade: Number(payload.quantity),
-        validade: payload.validity,
-        ...(payload.tipoItem === "medicamento"
-          ? {
-              medicamento_id: payload.itemId,
-            }
-          : { insumo_id: payload.itemId }),
+        armario_id: selected.armario_id,
+        casela_id: selected.casela_id ?? null,
+        quantidade: qty,
+        validade: selected.validade,
+        ...(selected.tipo_item === "medicamento"
+          ? { medicamento_id: selected.item_id }
+          : { insumo_id: selected.item_id }),
       });
 
       toast({
-        title: "Saída registrada com sucesso!",
-        description: `${payload.tipoItem === "medicamento" ? "Medicamento" : "Insumo"} removido do estoque.`,
+        title: "Saída registrada!",
+        description: "Item removido do estoque.",
         variant: "success",
       });
 
@@ -70,26 +114,39 @@ export default function StockOut() {
     } catch (err: any) {
       toast({
         title: "Erro ao registrar saída",
-        description: err.message || "Erro inesperado ao processar a saída.",
+        description: err.message || "Erro inesperado.",
         variant: "error",
       });
     }
   };
 
+  const handleBack = () => {
+    if (step === StockWizardSteps.ITENS) {
+      setStep(StockWizardSteps.TIPO);
+    } else if (step === StockWizardSteps.QUANTIDADE) {
+      setStep(StockWizardSteps.ITENS);
+    }
+  };
+
+  const handleNext = () => {
+    if (step === StockWizardSteps.TIPO && operationType !== "Selecione") {
+      setStep(StockWizardSteps.ITENS);
+    } else if (step === StockWizardSteps.ITENS && selected) {
+      setStep(StockWizardSteps.QUANTIDADE);
+    }
+  };
+
   return (
     <Layout title="Saída de Estoque">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando dados..."
-      />
+      <LoadingModal open={loading} title="Aguarde" description="Carregando dados..." />
 
-      <div className="bg-gray-50 p-6 rounded-lg border border-gray-300 max-w-7xl mx-auto mt-6">
+      <div className="bg-white p-6 rounded-lg border border-gray-300 max-w-7xl mx-auto mt-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs text-gray-700 mb-1">Nome</label>
             <input
-              className="w-full border p-2 rounded-lg"
+              type="text"
+              className="w-full border border-gray-300 p-2 rounded-lg"
               value={filters.nome}
               onChange={(e) => setFilters({ ...filters, nome: e.target.value })}
             />
@@ -98,7 +155,8 @@ export default function StockOut() {
           <div>
             <label className="block text-xs text-gray-700 mb-1">Armário</label>
             <input
-              className="w-full border p-2 rounded-lg"
+              type="text"
+              className="w-full border border-gray-300 p-2 rounded-lg"
               value={filters.armario}
               onChange={(e) => setFilters({ ...filters, armario: e.target.value })}
             />
@@ -107,7 +165,8 @@ export default function StockOut() {
           <div>
             <label className="block text-xs text-gray-700 mb-1">Origem</label>
             <input
-              className="w-full border p-2 rounded-lg"
+              type="text"
+              className="w-full border border-gray-300 p-2 rounded-lg"
               value={filters.origem}
               onChange={(e) => setFilters({ ...filters, origem: e.target.value })}
             />
@@ -115,16 +174,90 @@ export default function StockOut() {
         </div>
       </div>
 
-      {!loading && (
-        <div className="max-w-8xl mx-auto mt-10">
-          <StockOutWizard
-            items={items}
-            filters={filters}
-            setFilters={setFilters}
-            onSubmit={handleStockOut}
-          />
+      <div className="relative overflow-hidden max-w-7xl mx-auto bg-white border border-slate-400 rounded-xl p-10 px-16 shadow-sm mt-10">
+        {step !== StockWizardSteps.TIPO && (
+          <button
+            onClick={handleBack}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-3 rounded-full border bg-white shadow"
+          >
+            ←
+          </button>
+        )}
+
+        {step !== StockWizardSteps.QUANTIDADE && (
+          <button
+            onClick={handleNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full border bg-white shadow"
+          >
+            →
+          </button>
+        )}
+
+        <div className="min-h-[380px] flex items-center justify-center">
+          <AnimatePresence mode="wait" initial={false}>
+            {step === StockWizardSteps.TIPO && (
+              <motion.div
+                key="tipo"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22 }}
+                className="w-full max-w-md"
+              >
+                <StepType value={operationType} onSelect={handleSelectType} />
+              </motion.div>
+            )}
+
+            {step === StockWizardSteps.ITENS && (
+              <motion.div
+                key="itens"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22 }}
+                className="w-full"
+              >
+                <StepItems
+                  items={items}
+                  allItemsCount={items.length}
+                  page={page}
+                  pageSize={pageSize}
+                  totalPages={totalPages}
+                  selected={selected}
+                  onSelectItem={handleSelectItem}
+                  onBack={() => setStep(StockWizardSteps.TIPO)}
+                  setPage={setPage}
+                />
+              </motion.div>
+            )}
+
+            {step === StockWizardSteps.QUANTIDADE && (
+              <motion.div
+                key="quantidade"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22 }}
+                className="w-full max-w-6xl"
+              >
+                <QuantityStep
+                  item={selected}
+                  quantity={quantity}
+                  setQuantity={setQuantity}
+                  onBack={() => setStep(StockWizardSteps.ITENS)}
+                  onConfirm={handleConfirm}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      )}
+
+        {step === StockWizardSteps.ITENS && (
+          <div className="mt-8 flex justify-center">
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          </div>
+        )}
+      </div>
     </Layout>
   );
 }

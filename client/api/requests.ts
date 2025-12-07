@@ -1,4 +1,5 @@
-import { OperationType } from "@/enums/enums";
+
+import { EventStatus, MovementType, OperationType } from "@/utils/enums";
 import { api } from "./canonical";
 
 export const getCabinets = () => api.get("/armarios");
@@ -46,7 +47,7 @@ export const getResidents = (page = 1, limit = 20) =>
 export const deleteResident = (casela: string | number) =>
   api.delete(`/residentes/${casela}`);
 
-export const getReport = (type: string) => api.get(`/relatorios?tipo=${type}`);
+export const getReport = (type: string) => api.get(`/relatorios?type=${type}`);
 
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
@@ -121,7 +122,7 @@ export const createStockIn = (payload: {
 }) => api.post("/estoque/entrada", payload);
 
 export const createMovement = (payload: {
-  tipo: "entrada" | "saida";
+  tipo: MovementType;
   login_id: number;
   armario_id: number;
   quantidade: number;
@@ -131,7 +132,42 @@ export const createMovement = (payload: {
   insumo_id?: number;
 }) => api.post("/movimentacoes", payload);
 
-export const getStock = (page = 1, limit = 5, type?: string) =>
+export const createNotificationEvent = (payload: {
+    medicamento_id: number,
+    residente_id: number,
+    destino: string,
+    data_prevista: Date,
+    criado_por: number,
+    status: EventStatus
+}) => api.post("/notificacao", payload);
+
+export const getNotifications = async (page = 1, limit = 10, status?: string) => {
+  try {
+    const res = await api.get("/notificacao", { params: { page, limit, status } });
+    const data = res.data;
+
+    return {
+      items: Array.isArray(data) ? data : [], 
+      total: typeof data.total === "number" ? data.total : 0,
+    };
+  } catch (err) {
+    console.error("Erro ao buscar notificações:", err);
+    return { items: [], total: 0 };
+  }
+}
+export const updateNotification = (id: number, data: { status: string }) =>
+  api.patch(`/notificacao/${id}`, data);
+
+export const patchNotificationEvent = (id: number, data: Partial<{
+  medicamento_id: number;
+  residente_id: number;
+  destino: string;
+  data_prevista: Date;
+  criado_por: number;
+  status: EventStatus;
+}>) => api.patch(`/notificacao/${id}`, data);
+
+export const getStock = (page = 1, limit = 6, type?: string) =>
   api.get(`/estoque?page=${page}&limit=${limit}${type ? `&type=${type}` : ""}`);
 
 export const getCabinetCategories = (page = 1, limit = 5) =>

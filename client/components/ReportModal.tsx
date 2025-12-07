@@ -7,7 +7,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Package, Stethoscope, Check, X, Loader2, User, Syringe } from "lucide-react";
+import {
+  Package,
+  Stethoscope,
+  Check,
+  X,
+  Loader2,
+  User,
+  Syringe,
+} from "lucide-react";
 import { createStockPDF } from "./StockReporter";
 import { pdf } from "@react-pdf/renderer";
 import { getReport } from "@/api/requests";
@@ -35,31 +43,31 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
     },
   ];
 
-  const handleSelectReport = (value: string) => setSelectedReports([value]);
+  const handleSelectReport = (value: string) => {
+    setSelectedReports([value]);
+  };
 
   const handleGenerate = async () => {
     if (!selectedReports.length) return;
     setStatus("loading");
 
     try {
-
-      console.log(selectedReports)
       const tipo = selectedReports[0];
 
-      const res = await getReport(tipo);
+      const data = await getReport(tipo);
 
-      const doc = createStockPDF(tipo, res);
+      const doc = createStockPDF(tipo, data);
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
 
+      const link = document.createElement("a");
       link.href = url;
       link.download = `relatorio-${tipo}.pdf`;
       link.click();
-
       URL.revokeObjectURL(url);
 
       setStatus("success");
+
       setTimeout(() => handleClose(), 2000);
     } catch (err) {
       console.error(err);

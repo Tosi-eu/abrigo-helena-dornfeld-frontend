@@ -38,7 +38,7 @@
     "shared/**/*",
     "vite.config.ts",
     "vite.config.server.ts",
-    "client/enums",
+    "client/utils",
     "Stock.tsx"
   ],
   "exclude": ["node_modules", "dist"]

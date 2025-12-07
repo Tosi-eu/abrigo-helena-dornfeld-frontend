@@ -1,4 +1,5 @@
-import { OperationType } from "@/enums/enums";
+import { OperationType } from "@/utils/enums";
+
 
 interface Props {
   value: OperationType | "Selecione";

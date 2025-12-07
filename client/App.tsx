@@ -30,6 +30,7 @@ import Inputs from "./pages/Inputs";
 
 import { AuthProvider } from "./context/auth-context";
 import PrivateRoute from "./pages/PrivateRoute";
+import { NotificationProvider } from "./context/notification.context";
 
 const queryClient = new QueryClient();
 
@@ -39,158 +40,160 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/user/login" replace />} />
-            <Route path="/user/login" element={<Auth />} />
+         <NotificationProvider>
+            <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/user/login" replace />} />
+              <Route path="/user/login" element={<Auth />} />
 
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/Movements"
-              element={
-                <PrivateRoute>
-                  <Movements />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/medicines"
-              element={
-                <PrivateRoute>
-                  <Medicines />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/medicines/register"
-              element={
-                <PrivateRoute>
-                  <SignUpMedicine />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/medicines/edit"
-              element={
-                <PrivateRoute>
-                  <EditMedicine />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/stock"
-              element={
-                <PrivateRoute>
-                  <Stock />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/stock/in"
-              element={
-                <PrivateRoute>
-                  <StockEntry />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/stock/out"
-              element={
-                <PrivateRoute>
-                  <StockOut />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/residents"
-              element={
-                <PrivateRoute>
-                  <Resident />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/residents/register"
-              element={
-                <PrivateRoute>
-                  <RegisterResident />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/residents/edit"
-              element={
-                <PrivateRoute>
-                  <EditResident />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/inputs"
-              element={
-                <PrivateRoute>
-                  <Inputs />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/inputs/register"
-              element={
-                <PrivateRoute>
-                  <RegisterInput />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/inputs/edit"
-              element={
-                <PrivateRoute>
-                  <EditInput />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/cabinets"
-              element={
-                <PrivateRoute>
-                  <Cabinets />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/cabinets/register"
-              element={
-                <PrivateRoute>
-                  <RegisterCabinet />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/cabinets/edit"
-              element={
-                <PrivateRoute>
-                  <EditCabinet />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/user/profile"
-              element={
-                <PrivateRoute>
-                  <Profile />
-                </PrivateRoute>
-              }
-            />
-            <Route path="/user/forgot-password" element={<ForgotPassword />} />
-          </Routes>
-        </BrowserRouter>
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute>
+                    <Dashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/Movements"
+                element={
+                  <PrivateRoute>
+                    <Movements />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/medicines"
+                element={
+                  <PrivateRoute>
+                    <Medicines />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/medicines/register"
+                element={
+                  <PrivateRoute>
+                    <SignUpMedicine />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/medicines/edit"
+                element={
+                  <PrivateRoute>
+                    <EditMedicine />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/stock"
+                element={
+                  <PrivateRoute>
+                    <Stock />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/stock/in"
+                element={
+                  <PrivateRoute>
+                    <StockEntry />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/stock/out"
+                element={
+                  <PrivateRoute>
+                    <StockOut />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/residents"
+                element={
+                  <PrivateRoute>
+                    <Resident />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/residents/register"
+                element={
+                  <PrivateRoute>
+                    <RegisterResident />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/residents/edit"
+                element={
+                  <PrivateRoute>
+                    <EditResident />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/inputs"
+                element={
+                  <PrivateRoute>
+                    <Inputs />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/inputs/register"
+                element={
+                  <PrivateRoute>
+                    <RegisterInput />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/inputs/edit"
+                element={
+                  <PrivateRoute>
+                    <EditInput />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/cabinets"
+                element={
+                  <PrivateRoute>
+                    <Cabinets />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/cabinets/register"
+                element={
+                  <PrivateRoute>
+                    <RegisterCabinet />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/cabinets/edit"
+                element={
+                  <PrivateRoute>
+                    <EditCabinet />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/user/profile"
+                element={
+                  <PrivateRoute>
+                    <Profile />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="/user/forgot-password" element={<ForgotPassword />} />
+            </Routes>
+          </BrowserRouter>
+         </NotificationProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

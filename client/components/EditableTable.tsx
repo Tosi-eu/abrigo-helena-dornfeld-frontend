@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EditableTableProps } from "@/interfaces/interfaces";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast.hook";
 import {
   Tooltip,
   TooltipContent,

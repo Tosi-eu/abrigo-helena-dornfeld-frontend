@@ -2,11 +2,10 @@ import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
 import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/EquipmentForm";
-import { OperationType } from "@/enums/enums";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast.hook";
 import { Input, Medicine, Patient, Cabinet } from "@/interfaces/interfaces";
 import LoadingModal from "@/components/LoadingModal";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth.hook";
 import {
   createMovement,
   createStockIn,
@@ -16,6 +15,7 @@ import {
   getResidents,
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
+import { OperationType } from "@/utils/enums";
 
 export default function StockIn() {
   const [operationType, setOperationType] = useState<

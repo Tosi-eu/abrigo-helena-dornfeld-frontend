@@ -22,8 +22,6 @@ export default function Resident() {
       setLoading(true);
       const res = await getResidents(pageNumber, 10);
 
-      console.log(res)
-
       setResidents(res.data);
       setPage(res.page);
       setHasNextPage(res.hasNext);

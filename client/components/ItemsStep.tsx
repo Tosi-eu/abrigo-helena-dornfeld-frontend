@@ -15,31 +15,42 @@ interface Props {
 
 export default function StepItems({
   items,
-  page,
-  totalPages,
   selected,
   onSelectItem,
-  onBack,
-  setPage,
 }: Props) {
+  const getCardWidth = (totalCards: number) => {
+    if (totalCards === 1) return "w-1/2";  
+    if (totalCards === 2) return "w-2/5";   
+    if (totalCards === 3) return "w[36%]";
+    return "w-1/3";                          
+  };
+
+  const cardWidthClass = getCardWidth(items.length);
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         {items.map((item) => {
           const isDisabled = item.quantidade === 0;
           const isSelected = selected?.estoque_id === item.estoque_id;
+
           return (
-            <StockCard
+            <div
+              className={`${cardWidthClass} flex justify-center`}
               key={`${item.estoque_id}-${item.tipo_item}`}
-              item={item}
-              selected={isSelected}
-              disabled={isDisabled}
-              tooltip={isDisabled ? "Este item está sem estoque" : undefined}
-              onSelect={() => onSelectItem(isSelected ? null : item)}
-            />
+            >
+              <StockCard
+                item={item}
+                selected={isSelected}
+                disabled={isDisabled}
+                tooltip={isDisabled ? "Este item está sem estoque" : undefined}
+                onSelect={() => onSelectItem(isSelected ? null : item)}
+              />
+            </div>
           );
         })}
       </div>
     </div>
   );
 }
+

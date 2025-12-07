@@ -50,3 +50,10 @@ export enum StockWizardSteps {
   QUANTIDADE = "quantidade"
 }
 
+export enum EventStatus {
+  PENDENTE = "pending",
+  ENVIADO = "sent",
+  CANCELADO = "cancelled"
+}
+
+
