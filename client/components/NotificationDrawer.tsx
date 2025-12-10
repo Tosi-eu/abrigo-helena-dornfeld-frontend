@@ -12,6 +12,7 @@ import CreateNotificationForm from "./CreateNotificationEvent";
 import { useNotifications } from "@/hooks/use-notification.hook";
 import { getNotifications, updateNotification } from "@/api/requests";
 import { EventStatus } from "@/utils/enums";
+import { AnimatePresence, motion } from "framer-motion";
 
 export function NotificationDrawer() {
   const { open, setOpen, triggerReload, setCount } = useNotifications();
@@ -53,14 +54,26 @@ export function NotificationDrawer() {
     }
   }, [open, triggerReload]);
 
-  console.log(items)
+  const handleRemove = async (id: number, status: "sent" | "cancelled", message: string) => {
+    try {
+      await updateNotification(id, { status });
+      toast({ title: message, variant: "success" });
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch {
+      toast({ title: "Erro", description: "Não foi possível atualizar a notificação.", variant: "error" });
+    }
+  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerContent className="p-6 w-[500px] ml-auto h-full border-l">
         <DrawerHeader>
           <DrawerTitle>
-            {mode === "list" ? "Notificações Pendentes" : editingNotification ? "Editar Notificação" : "Criar Notificação"}
+            {mode === "list"
+              ? "Notificações Pendentes"
+              : editingNotification
+              ? "Editar Notificação"
+              : "Criar Notificação"}
           </DrawerTitle>
         </DrawerHeader>
 
@@ -75,56 +88,61 @@ export function NotificationDrawer() {
                     Nenhuma notificação pendente.
                   </div>
                 ) : (
-                  <>
+                  <AnimatePresence>
                     {items.map((n) => (
-                      <NotificationCard
+                      <motion.div
                         key={n.id}
-                        residentName={n.residente_nome}
-                        medicineName={n.medicamento_nome}
-                        dateToGo={n.data_prevista}
-                        destiny={n.destino}
-                        createdBy={n.usuario?.login}
-                        onComplete={async () => {
-                          await updateNotification(n.id, { status: "sent" });
-                          toast({ title: "Notificação concluída", variant: "success" });
-                          setItems((prev) => prev.filter((item) => item.id !== n.id));
-                        }}
-                        onCancel={async () => {
-                          await updateNotification(n.id, { status: "cancelled" });
-                          toast({ title: "Notificação cancelada", variant: "success" });
-                          setItems((prev) => prev.filter((item) => item.id !== n.id));
-                        }}
-                        onRemove={() => setItems((prev) => prev.filter((item) => item.id !== n.id))}
-                        onEdit={() => {
-                          setMode("create");
-                          setEditingNotification({
-                            medicamento_id: n.medicamento_id,
-                            residente_id: n.residente_id,
-                            destino: n.destino,
-                            data_prevista: n.data_prevista,
-                            criado_por: n.usuario?.id,
-                            status: n.status,
-                            id: n.id,
-                          });
-                        }}
-                      />
-                    ))}
-
-                    {!loading && (
-                      <div className="text-center py-2">
-                        <button
-                          className="text-sky-600 hover:text-sky-700 font-medium"
-                          onClick={() => {
-                            const nextPage = page + 1;
-                            setPage(nextPage);
-                            fetchNotifications(nextPage, true);
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10, transition: { duration: 0.3 } }}
+                        layout
+                      >
+                        <NotificationCard
+                          residentName={n.residente_nome}
+                          medicineName={n.medicamento_nome}
+                          dateToGo={n.data_prevista}
+                          destiny={n.destino}
+                          createdBy={n.usuario?.login}
+                          onComplete={() =>
+                            handleRemove(n.id, "sent", "Notificação concluída")
+                          }
+                          onCancel={() =>
+                            handleRemove(n.id, "cancelled", "Notificação cancelada")
+                          }
+                          onRemove={() =>
+                            setItems((prev) => prev.filter((item) => item.id !== n.id))
+                          }
+                          onEdit={() => {
+                            setMode("create");
+                            setEditingNotification({
+                              medicamento_id: n.medicamento_id,
+                              residente_id: n.residente_id,
+                              destino: n.destino,
+                              data_prevista: n.data_prevista,
+                              criado_por: n.usuario?.id,
+                              status: n.status,
+                              id: n.id,
+                            });
                           }}
-                        >
-                          Mostrar mais registros
-                        </button>
-                      </div>
-                    )}
-                  </>
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
+
+                {!loading && items.length > 0 && (
+                  <div className="text-center py-2">
+                    <button
+                      className="text-sky-600 hover:text-sky-700 font-medium"
+                      onClick={() => {
+                        const nextPage = page + 1;
+                        setPage(nextPage);
+                        fetchNotifications(nextPage, true);
+                      }}
+                    >
+                      Mostrar mais registros
+                    </button>
+                  </div>
                 )}
               </div>
             )}

@@ -4,6 +4,8 @@ import { api } from "./canonical";
 
 export const getCabinets = () => api.get("/armarios");
 
+export const getNonMovementProducts = () => api.get("/estoque/produtos-parados");
+
 export const checkCabinetStock = (number: number) =>
   api.get(`/armarios/${number}/check`);
 
@@ -155,7 +157,8 @@ export const getNotifications = async (page = 1, limit = 10, status?: string) =>
     return { items: [], total: 0 };
   }
 }
-export const updateNotification = (id: number, data: { status: string }) =>
+
+export const updateNotification = (id: number, data: { status?: string, visto?: boolean }) =>
   api.patch(`/notificacao/${id}`, data);
 
 export const patchNotificationEvent = (id: number, data: Partial<{
@@ -166,6 +169,8 @@ export const patchNotificationEvent = (id: number, data: Partial<{
   criado_por: number;
   status: EventStatus;
 }>) => api.patch(`/notificacao/${id}`, data);
+
+export const getTodayNotifications = () => api.get("/notificacao/retirar-hoje");
 
 export const getStock = (page = 1, limit = 6, type?: string) =>
   api.get(`/estoque?page=${page}&limit=${limit}${type ? `&type=${type}` : ""}`);

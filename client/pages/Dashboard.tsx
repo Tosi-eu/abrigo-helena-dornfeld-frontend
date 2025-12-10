@@ -17,8 +17,9 @@ import {
 import EditableTable from "@/components/EditableTable";
 import LoadingModal from "@/components/LoadingModal";
 import { api } from "@/api/canonical";
-import { getMedicineRanking } from "@/api/requests";
+import { getMedicineRanking, getNonMovementProducts, getTodayNotifications, updateNotification } from "@/api/requests";
 import { StockStatusItem, CabinetStockItem, StockDistributionItem, RecentMovement, MedicineRankingItem, RawMovement } from "@/interfaces/interfaces";
+import NotificationReminderModal from "@/components/NotificationModal";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -42,7 +43,10 @@ export default function Dashboard() {
 
   const [mostMovData, setMostMovData] = useState<MedicineRankingItem[]>([]);
   const [leastMovData, setLeastMovData] = useState<MedicineRankingItem[]>([]);
+  const [nonMovementProducts, setNonMovementProducts] = useState<any[]>([]);
 
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifList, setNotifList] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -55,7 +59,7 @@ export default function Dashboard() {
           proportionRes,
           cabinetRes,
         ] = await Promise.all([
-          api.get("/estoque"),
+          api.get("/estoque?page=1&limit=400"),
 
           api.get("/movimentacoes/medicamentos", { params: { days: 7, page: 1, limit: 400 } }),
           api.get("/movimentacoes/insumos", { params: { days: 7, page: 1, limit: 400 } }),
@@ -64,9 +68,10 @@ export default function Dashboard() {
           api.get("/estoque", { params: { type: "armarios" } }),
         ]);
 
-        const [medMoreRes, medLessRes] = await Promise.all([
+        const [medMoreRes, medLessRes, nonMovementRes] = await Promise.all([
             getMedicineRanking("more"),
             getMedicineRanking("less"),
+            getNonMovementProducts()
         ]);
 
 
@@ -75,31 +80,31 @@ export default function Dashboard() {
 
         const recentMovements = [
           ...medicamentosMov.map((m: RawMovement) => ({
-            name: m.MedicamentoModel?.nome || "-",
+            name: m.MedicineModel?.nome || "-",
             type: m.tipo,
             operator: m.LoginModel?.login || "-",
-            casela: m.ResidenteModel?.num_casela ?? "-",
+            casela: m.ResidentModel?.num_casela ?? "-",
             quantity: m.quantidade,
-            patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
-            cabinet: m.ArmarioModel?.num_armario ?? "-",
+            patient: m.ResidentModel ? m.ResidentModel.nome : "-",
+            cabinet: m.CabinetModel?.num_armario ?? "-",
             date: m.data,
           })),
 
           ...insumosMov.map((m: RawMovement) => ({
-            name: m.InsumoModel?.nome || "-",
+            name: m.InputModel?.nome || "-",
             type: m.tipo,
             operator: m.LoginModel?.login || "-",
-            casela: m.ResidenteModel?.num_casela ?? "-",
+            casela: m.ResidentModel?.num_casela ?? "-",
             quantity: m.quantidade,
-            patient: m.ResidenteModel ? m.ResidenteModel.nome : "-",
-            cabinet: m.ArmarioModel?.num_armario ?? "-",
+            patient: m.ResidentModel ? m.ResidentModel.nome : "-",
+            cabinet: m.CabinetModel?.num_armario ?? "-",
             date: m.data,
           })),
         ].sort((a, b) => Number(new Date(b.date)) - Number(new Date(a.date)));
 
-    const noStockItems = stockList.data.filter(i => i.quantidade === 0);
+    const noStockItems = stockList.data.filter(i => i.st_quantidade === 'critical');
 
-    const belowMinItems = stockList.data.filter(i => i.st_quantidade === "low");
+    const itemsInStockWarning = stockList.data.filter(i => i.st_quantidade === "low");
 
     const expiredItems = stockList.data.filter(i => i.st_expiracao === "expired");
 
@@ -108,14 +113,15 @@ export default function Dashboard() {
     );
 
     setNoStock(noStockItems.length);
-    setBelowMin(belowMinItems.length);
+    setBelowMin(itemsInStockWarning.length);
     setExpired(expiredItems.length);
     setExpiringSoon(expiringSoonItems);
     setNoStockData(noStockItems);
-    setBelowMinData(belowMinItems);
+    setBelowMinData(itemsInStockWarning);
     setExpiredData(expiredItems);
     setExpiringSoonData(expiringSoonItems);
     setRecentMovements(recentMovements);
+    setNonMovementProducts(nonMovementRes);
 
     setMostMovData(
       medMoreRes.data.map(item => ({
@@ -162,15 +168,40 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
+  useEffect(() => {
+    async function fetchReminders() {
+      try {
+        const res = await getTodayNotifications();
+
+        const unseenNotifications = res.data.filter((n: any) => !n.visto);
+
+        if (unseenNotifications.length > 0) {
+          setNotifList(unseenNotifications);
+          setNotifOpen(true);
+
+          await Promise.all(
+            unseenNotifications.map((n: any) =>
+              updateNotification(n.id, { visto: true })
+            )
+          );
+        }
+      } catch (err) {
+        console.error("Erro ao buscar notificações do dia", err);
+      }
+    }
+
+    fetchReminders();
+  }, []);
+
   const stats = [
     {
-      label: "Sem Estoque",
+      label: "Abaixo do Estoque Mínimo",
       value: noStock,
       onClick: () =>
         navigate("/stock", { state: { filter: "noStock", data: noStockData } }),
     },
     {
-      label: "Próximo do Mínimo",
+      label: "Próximo do Estoque Mínimo",
       value: belowMin,
       onClick: () =>
         navigate("/stock", {
@@ -178,13 +209,13 @@ export default function Dashboard() {
         }),
     },
     {
-      label: "Vencidos",
+      label: "Produtos Vencidos",
       value: expired,
       onClick: () =>
         navigate("/stock", { state: { filter: "expired", data: expiredData } }),
     },
     {
-      label: "Vencendo em Breve",
+      label: "Produtos Vencendo Próximo",
       value: expiringSoon.length,
 
       onClick: () =>
@@ -253,30 +284,23 @@ export default function Dashboard() {
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200 bg-sky-50 flex justify-between items-center">
-                <h3 className="text-base font-semibold text-slate-800 text-center w-full">
-                  Medicamentos Próximos do Vencimento
+              <div className="p-4 border-b border-slate-200 bg-sky-50 text-center">
+                <h3 className="text-base font-semibold text-slate-800">
+                  Produtos com Maior Tempo sem Movimentação
                 </h3>
               </div>
 
-              {/* <EditableTable
+              <EditableTable
                 columns={[
-                  { key: "name", label: "Medicamento", editable: false },
-                  {
-                    key: "substance",
-                    label: "Princípio Ativo",
-                    editable: false,
-                  },
-                  { key: "quantity", label: "Quantidade", editable: false },
-                  {
-                    key: "expiry",
-                    label: "Validade",
-                    editable: false,
-                  },
+                  { key: "nome", label: "Nome", editable: false },
+                  { key: "detalhe", label: "Detalhe", editable: false },
+                  { key: "tipo_item", label: "Tipo", editable: false },
+                  { key: "dias_parados", label: "Dias Parados", editable: false },
+                  { key: "ultima_movimentacao", label: "Última Movimentação", editable: false },
                 ]}
-                data={null}
+                data={nonMovementProducts}
                 showAddons={false}
-              /> */}
+              />
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -288,7 +312,7 @@ export default function Dashboard() {
 
               <EditableTable
                 columns={[
-                  { key: "name", label: "Medicamento", editable: false },
+                  { key: "name", label: "Produto", editable: false },
                   { key: "type", label: "Tipo", editable: false },
                   { key: "operator", label: "Operador", editable: false },
                   { key: "casela", label: "Casela", editable: false },
@@ -473,6 +497,12 @@ export default function Dashboard() {
           </section>
         </div>
       )}
+
+      <NotificationReminderModal
+        open={notifOpen}
+        events={notifList}
+        onClose={() => setNotifOpen(false)}
+      />
     </Layout>
   );
 }

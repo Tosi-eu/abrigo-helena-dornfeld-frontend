@@ -34,8 +34,6 @@ export default function CreateNotificationForm({ editData, onCreated }: CreateNo
     id: undefined as number | undefined,
   });
 
-  console.log(editData) 
-
   useEffect(() => {
     if (editData) {
       setForm({

@@ -285,11 +285,11 @@ export interface RawMovement {
   quantidade: number;
   data: string;
 
-  MedicamentoModel?: {
+  MedicineModel?: {
     nome: string;
   };
 
-  InsumoModel?: {
+  InputModel?: {
     nome: string;
   };
 
@@ -297,12 +297,12 @@ export interface RawMovement {
     login: string;
   };
 
-  ResidenteModel?: {
+  ResidentModel?: {
     nome: string;
     num_casela: number;
   };
 
-  ArmarioModel?: {
+  CabinetModel?: {
     num_armario: number;
   };
 }

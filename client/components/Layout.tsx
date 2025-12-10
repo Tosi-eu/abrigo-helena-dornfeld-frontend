@@ -2,16 +2,21 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "/logo.png";
 import { LayoutProps } from "@/interfaces/interfaces";
 import { useAuth } from "@/hooks/use-auth.hook";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
 import { NotificationButton } from "@/components/NotificationButton";
 import { NotificationDrawer } from "./NotificationDrawer";
+import { getTodayNotifications } from "@/api/requests";
 
 export default function Layout({ children, title }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [reminderEvents, setReminderEvents] = useState<any[]>([]);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+
 
   const navigation = [
     { name: "Painel", href: "/dashboard" },
@@ -36,6 +41,24 @@ export default function Layout({ children, title }: LayoutProps) {
   const cancelLogout = () => {
     setShowLogoutModal(false);
   };
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const resp = await getTodayNotifications();
+        if (resp.count > 0) {
+          setReminderEvents(resp.data);
+          setNotificationCount(resp.count);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar notificações", err);
+      }
+    };
+
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-white text-slate-800">

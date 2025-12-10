@@ -15,7 +15,7 @@ import {
   getResidents,
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
-import { OperationType } from "@/utils/enums";
+import { MovementType, OperationType } from "@/utils/enums";
 
 export default function StockIn() {
   const [operationType, setOperationType] = useState<
@@ -100,7 +100,7 @@ export default function StockIn() {
       await createStockIn(payload);
 
       await createMovement({
-        tipo: "entrada",
+        tipo: MovementType.IN,
         login_id: user?.id!,
         medicamento_id: data.id,
         armario_id: data.cabinet,
@@ -140,7 +140,7 @@ export default function StockIn() {
       await createStockIn(payload);
 
       await createMovement({
-        tipo: "entrada",
+        tipo: MovementType.IN,
         login_id: user?.id!,
         insumo_id: data.inputId,
         armario_id: data.cabinetId,
