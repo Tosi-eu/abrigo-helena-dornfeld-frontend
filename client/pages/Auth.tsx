@@ -16,11 +16,26 @@ export default function Auth() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+        
+      if (!isValidEmail(login)) {
+          toast({
+            title: "E-mail inválido",
+            description: "Por favor, insira um e-mail válido.",
+            variant: "error",
+          });
+          setLoading(false);
+          return;
+        }
+
       if (isLogin) {
         await authLogin(login, password);
         toast({ title: "Login realizado!", variant: "success" });
