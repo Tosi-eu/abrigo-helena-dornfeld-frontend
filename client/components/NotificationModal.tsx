@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { BellRing } from "lucide-react";
+import { formatDateToPtBr } from "@/helpers/dates.helper";
 
 interface NotificationReminderModalProps {
   open: boolean;
@@ -22,15 +23,6 @@ interface NotificationReminderModalProps {
   }>;
   onClose: () => void;
 }
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
 
 const NotificationReminderModal: FC<NotificationReminderModalProps> = ({
   open,
@@ -74,7 +66,7 @@ const NotificationReminderModal: FC<NotificationReminderModalProps> = ({
 
                     <div className="text-sm text-slate-700">
                       <span className="font-semibold">Data prevista: </span>
-                      <span>{formatDate(ev.data_prevista)}</span>
+                      <span>{formatDateToPtBr(ev.data_prevista)}</span>
                     </div>
 
                   </div>

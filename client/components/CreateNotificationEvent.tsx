@@ -1,10 +1,10 @@
 import { createNotificationEvent, getMedicines, getResidents, patchNotificationEvent } from "@/api/requests";
+import { formatDateToPtBr } from "@/helpers/dates.helper";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNotifications } from "@/hooks/use-notification.hook";
 import { toast } from "@/hooks/use-toast.hook";
 import { EventStatus } from "@/utils/enums";
 import { parseDateFromString } from "@/utils/utils";
-import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
@@ -192,7 +192,7 @@ export default function CreateNotificationForm({ editData, onCreated }: CreateNo
         />
         {form.data_prevista && (
           <div className="text-sm text-slate-500 mt-1">
-            Selecionado: {format(form.data_prevista, "dd-MM-yyyy")}
+            Selecionado: {formatDateToPtBr(form.data_prevista)}
           </div>
         )}
       </div>
