@@ -12,11 +12,10 @@ export default function Layout({ children, title }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [reminderEvents, setReminderEvents] = useState<any[]>([]);
   const [notificationCount, setNotificationCount] = useState(0);
-  const [showReminderModal, setShowReminderModal] = useState(false);
-
 
   const navigation = [
     { name: "Painel", href: "/dashboard" },
@@ -29,18 +28,12 @@ export default function Layout({ children, title }: LayoutProps) {
     { name: "Perfil", href: "/user/profile" },
   ];
 
-  const handleLogout = () => {
-    setShowLogoutModal(true);
-  };
-
+  const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = () => {
     logout();
     navigate("/user/login");
   };
-
-  const cancelLogout = () => {
-    setShowLogoutModal(false);
-  };
+  const cancelLogout = () => setShowLogoutModal(false);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -54,72 +47,67 @@ export default function Layout({ children, title }: LayoutProps) {
         console.error("Erro ao buscar notificações", err);
       }
     };
-
-    if (user) {
-      fetchNotifications();
-    }
+    if (user) fetchNotifications();
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-800">
-      <header className="bg-sky-50 border-b border-slate-200 shadow-sm relative z-20">
-        <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link to="/dashboard">
-              <img
-                src={logo}
-                alt="Logo"
-                className="h-20 w-auto drop-shadow-sm"
-              />
-            </Link>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="backdrop-blur bg-white/70 border-b border-slate-200/70 sticky top-0 z-30">
+        <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <img src={logo} alt="Logo" className="h-12 w-auto" />
+          </Link>
 
-            <nav className="hidden md:flex items-center gap-6">
-              {navigation.map((item) => {
-                const isActive =
-                  location.pathname === item.href ||
-                  (item.href !== "/dashboard" &&
-                    location.pathname.startsWith(item.href));
+          <nav className="hidden md:flex items-center gap-2">
+            {navigation.map((item) => {
+              const isActive =
+                location.pathname === item.href ||
+                (item.href !== "/dashboard" &&
+                  location.pathname.startsWith(item.href));
 
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`text-base px-4 py-3 rounded-lg transition-all duration-200 ${
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all 
+                    ${
                       isActive
-                        ? "text-sky-700 bg-sky-100 font-semibold"
-                        : "text-slate-700 hover:text-sky-700 hover:bg-sky-50"
+                        ? "bg-sky-100 text-sky-700 shadow-sm"
+                        : "text-slate-600 hover:bg-sky-50 hover:text-sky-700"
                     }`}
-                  >
-                    {item.name}
-                  </Link>
-                );
-              })}
-
-              {user && (
-                <button
-                  onClick={handleLogout}
-                  className="ml-6 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
                 >
-                  Deslogar
-                </button>
-              )}
-            </nav>
-          </div>
+                  {item.name}
+                </Link>
+              );
+            })}
+
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="ml-4 text-sm px-3 py-2 rounded-xl border border-red-300 text-red-600 hover:bg-red-50 transition"
+              >
+                Sair
+              </button>
+            )}
+          </nav>
         </div>
       </header>
 
       {title && (
         <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-semibold text-slate-800">{title}</h1>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+            {title}
+          </h1>
         </div>
       )}
 
-      <main className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <main className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {children}
       </main>
 
-      <NotificationButton />  
-      <NotificationDrawer />  
+      <NotificationButton />
+      <NotificationDrawer />
 
       <LogoutConfirmDialog
         open={showLogoutModal}

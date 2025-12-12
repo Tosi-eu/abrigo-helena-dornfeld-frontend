@@ -31,44 +31,48 @@ const NotificationReminderModal: FC<NotificationReminderModalProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg rounded-2xl p-6">
+      <DialogContent
+        className="
+          max-w-lg rounded-2xl p-6 space-y-4
+          [&>button.absolute.right-4.top-4]:hidden
+        "
+      >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <BellRing className="w-5 h-5" style={{ color: "#0284c7" }} />
+          <DialogTitle className="flex items-center gap-2 text-xl text-slate-900">
+            <BellRing className="w-5 h-5 text-sky-600" />
             Notificações pendentes para hoje
           </DialogTitle>
         </DialogHeader>
 
-        <p className="text-slate-600 mt-1 mb-4">
+        <p className="text-slate-600">
           Existem receitas que precisam ser emitidas hoje:
         </p>
 
         <ScrollArea className="max-h-80 pr-2">
           <div className="space-y-3">
             {events.map((ev) => (
-              <Card key={ev.id} className="border-slate-200 shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex flex-col space-y-2">
+              <Card
+                key={ev.id}
+                className="border-slate-200 shadow-sm hover:shadow-md transition-shadow rounded-xl"
+              >
+                <CardContent className="p-4 space-y-2">
+                  <span className="font-semibold text-base text-slate-900">
+                    {ev.residente.nome}
+                  </span>
 
-                    <span className="font-bold text-lg text-slate-900">
-                      {ev.residente.nome}
-                    </span>
+                  <div className="text-sm text-slate-700">
+                    <span className="font-semibold">Medicamento: </span>
+                    {ev.medicamento.nome}
+                  </div>
 
-                    <div className="text-sm text-slate-700">
-                      <span className="font-semibold">Medicamento: </span>
-                      <span>{ev.medicamento.nome}</span>
-                    </div>
+                  <div className="text-sm text-slate-700">
+                    <span className="font-semibold">Destino: </span>
+                    {ev.destino}
+                  </div>
 
-                    <div className="text-sm text-slate-700">
-                      <span className="font-semibold">Destino: </span>
-                      <span>{ev.destino}</span>
-                    </div>
-
-                    <div className="text-sm text-slate-700">
-                      <span className="font-semibold">Data prevista: </span>
-                      <span>{formatDateToPtBr(ev.data_prevista)}</span>
-                    </div>
-
+                  <div className="text-sm text-slate-700">
+                    <span className="font-semibold">Data prevista: </span>
+                    {formatDateToPtBr(ev.data_prevista)}
                   </div>
                 </CardContent>
               </Card>
@@ -79,11 +83,7 @@ const NotificationReminderModal: FC<NotificationReminderModalProps> = ({
         <DialogFooter>
           <Button
             onClick={onClose}
-            className="w-full sm:w-auto"
-            style={{
-              backgroundColor: "#0284c7",
-              color: "white",
-            }}
+            className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white"
           >
             OK
           </Button>

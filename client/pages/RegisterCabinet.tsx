@@ -111,64 +111,70 @@ export default function RegisterCabinet() {
         description="Cadastrando armário..."
       />
 
-      <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800 mb-6">Cadastro de Armário</h2>
+    <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-800 mb-6 text-center">
+        Cadastro de Armário
+      </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Número do Armário */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Número do Armário</label>
-            <input
-              type="number"
-              value={id}
-              onChange={(e) => setId(e.target.value ===  "0" ? 0 : parseInt(e.target.value))}
-              className="w-full border rounded-lg p-2 text-sm"
-              placeholder="Ex: 4"
-              disabled={saving}
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Categoria */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Categoria</label>
+        <div className="flex flex-col justify-center">
+          <label className="block text-sm font-medium text-slate-700 mb-1 text-left">
+            Número do Armário
+          </label>
+          <input
+            type="number"
+            value={id}
+            onChange={(e) =>
+              setId(e.target.value === "0" ? 0 : parseInt(e.target.value))
+            }
+            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none text-left"
+            placeholder="Ex: 4"
+            disabled={saving}
+          />
+        </div>
 
-            <input
-              list="categories"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm"
-              placeholder="Selecione ou digite uma categoria"
-              disabled={saving}
-            />
+        <div className="flex flex-col justify-center">
+          <label className="block text-sm font-medium text-slate-700 mb-1 text-left">
+            Categoria
+          </label>
 
-            <datalist id="categories">
-              {categories.map((c) => (
-                <option key={c.id} value={c.nome} />
-              ))}
-            </datalist>
-          </div>
+          <input
+            list="categories"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none text-left"
+            placeholder="Selecione ou digite uma categoria"
+            disabled={saving}
+          />
 
-          {/* Botões */}
-          <div className="flex justify-between pt-4">
-            <button
-              type="button"
-              onClick={() => navigate("/cabinets")}
-              className="px-5 py-2 border rounded-lg text-sm"
-              disabled={saving}
-            >
-              Cancelar
-            </button>
+          <datalist id="categories">
+            {categories.map((c) => (
+              <option key={c.id} value={c.nome} />
+            ))}
+          </datalist>
+        </div>
 
-            <button
-              type="submit"
-              className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm disabled:opacity-50"
-              disabled={saving}
-            >
-              {saving ? "Cadastrando..." : "Cadastrar"}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="flex justify-center gap-4 pt-4">
+          <button
+            type="button"
+            onClick={() => navigate("/cabinets")}
+            className="px-5 py-2 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-100 transition disabled:opacity-50"
+            disabled={saving}
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-50"
+            disabled={saving}
+          >
+            {saving ? "Cadastrando..." : "Cadastrar"}
+          </button>
+        </div>
+      </form>
+    </div>
 
       <ConfirmationModal
         open={modalOpen}

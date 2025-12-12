@@ -18,28 +18,27 @@ export default function StepItems({
   selected,
   onSelectItem,
 }: Props) {
-  const getCardWidth = (totalCards: number) => {
-    if (totalCards === 1) return "w-1/2";  
-    if (totalCards === 2) return "w-2/5";   
-    if (totalCards === 3) return "w[36%]";
-    return "w-1/3";                          
-  };
-
-  const cardWidthClass = getCardWidth(items.length);
-
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap justify-center gap-4">
+    <div className="w-full space-y-4">
+      <div
+        className="
+          grid 
+          grid-cols-1 
+          sm:grid-cols-2 
+          lg:grid-cols-3 
+          xl:grid-cols-3
+          gap-6
+          justify-items-center
+        "
+      >
         {items.map((item) => {
           const isDisabled = item.quantidade === 0;
           const isSelected = selected?.estoque_id === item.estoque_id;
 
           return (
-            <div
-              className={`${cardWidthClass} flex justify-center`}
-              key={`${item.estoque_id}-${item.tipo_item}`}
-            >
+            <div className="w-full max-w-[380px] sm:max-w-[420px]">
               <StockCard
+                key={`${item.estoque_id}-${item.tipo_item}`}
                 item={item}
                 selected={isSelected}
                 disabled={isDisabled}
@@ -53,4 +52,3 @@ export default function StepItems({
     </div>
   );
 }
-

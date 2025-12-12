@@ -63,7 +63,6 @@ export default function Auth() {
                 Abrigo Helena Dornfeld
               </h1>
             </div>
-            <div />
           </div>
         </div>
       </header>
@@ -71,15 +70,16 @@ export default function Auth() {
       <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-slate-800 text-center mb-6">
+            <h2 className="text-2xl font-semibold text-slate-800 text-left mb-6">
               {isLogin ? "Acesso ao Sistema" : "Cadastro de Usuário"}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
+
+              <div className="flex flex-col justify-center">
                 <label
                   htmlFor="login"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 mb-2 text-left"
                 >
                   E-mail
                 </label>
@@ -88,17 +88,17 @@ export default function Auth() {
                   type="login"
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white"
                   placeholder="fulana_de_tal@gmail.com"
                   required
                   autoComplete="login"
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col justify-center">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 mb-2 text-left"
                 >
                   Senha
                 </label>
@@ -107,7 +107,7 @@ export default function Auth() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-left focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white"
                   placeholder="••••••••••••"
                   required
                   autoComplete={isLogin ? "current-password" : "new-password"}
@@ -115,8 +115,8 @@ export default function Auth() {
               </div>
 
               {isLogin && (
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-3">
+                <div className="flex items-center justify-between w-full mt-2">
+                  <label className="flex items-center gap-2">
                     <input
                       id="remember-me"
                       type="checkbox"
@@ -124,13 +124,12 @@ export default function Auth() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-300"
                     />
-                    <span className="text-sm text-slate-700">
-                      Lembrar de mim
-                    </span>
+                    <span className="text-sm text-slate-700">Lembrar de mim</span>
                   </label>
+
                   <Link
                     to="/user/forgot-password"
-                    className="text-sm text-sky-600 hover:underline mt-2 block text-center"
+                    className="text-sm text-sky-600 hover:text-sky-700 hover:underline"
                   >
                     Esqueci minha senha
                   </Link>
@@ -141,7 +140,7 @@ export default function Auth() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition-shadow shadow-sm disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50"
                 >
                   {isLogin ? "Entrar" : "Cadastrar"}
                 </button>
@@ -152,7 +151,7 @@ export default function Auth() {
               {isLogin ? "Não tem conta?" : "Já possui conta?"}{" "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-sky-600 hover:underline font-medium"
+                className="text-sky-600 hover:text-sky-700 hover:underline font-medium"
               >
                 {isLogin ? "Cadastre-se" : "Login"}
               </button>

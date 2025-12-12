@@ -134,31 +134,31 @@ export default function EditableTable({
   return (
     <>
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden font-[Inter]">
-        <div className="flex items-center justify-end px-4 py-3 border-b border-slate-200 bg-sky-50 text-sm">
+        <div className="flex items-center justify-end px-4 py-3 border-b border-slate-200 bg-sky-50">
           {showAddons && (
             <button
               onClick={handleAddRow}
-              className="flex items-center gap-1 text-sky-700 text-sm font-medium hover:text-sky-800 transition"
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-sky-700 hover:text-sky-800 hover:bg-sky-100 rounded-lg transition"
             >
-              <Plus size={16} /> Adicionar linha
+              <Plus size={16} /> Adicionar
             </button>
           )}
         </div>
 
-        <div className="overflow-x-auto relative">
-          <table className="w-full text-center border-collapse">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b-2 border-slate-300 bg-sky-100">
+              <tr className="bg-sky-100 border-b border-slate-200">
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className="px-4 py-3 text-sm font-semibold text-slate-800"
+                    className="px-4 py-3 text-center text-sm font-semibold text-slate-800"
                   >
                     {col.label}
                   </th>
                 ))}
                 {showAddons && (
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-800">
+                  <th className="px-4 py-3 text-sm font-semibold text-slate-800 text-center">
                     Ações
                   </th>
                 )}
@@ -172,35 +172,31 @@ export default function EditableTable({
                   className="border-b border-slate-200 hover:bg-sky-50 transition-colors"
                 >
                   {columns.map((col) => {
-                    let cellContent = row[col.key];
-
-                    if (col.key === "expiry") cellContent = renderExpiryTag(row);
-                    if (col.key === "quantity") cellContent = renderQuantityTag(row);
+                    let content = row[col.key];
+                    if (col.key === "expiry") content = renderExpiryTag(row);
+                    if (col.key === "quantity") content = renderQuantityTag(row);
 
                     return (
-                      <td
-                        key={col.key}
-                        className="px-4 py-3 text-xs text-slate-800"
-                      >
-                        {cellContent}
+                      <td key={col.key} className="px-4 py-3 text-sm text-slate-800 text-center">
+                        {content}
                       </td>
                     );
                   })}
 
                   {showAddons && (
-                    <td className="px-3 py-2 flex justify-center gap-3">
+                    <td className="px-4 py-3 flex justify-center gap-4">
                       <button
                         onClick={() => handleEditClick(row)}
-                        className="text-sky-700 hover:text-sky-900 transition-colors"
+                        className="text-sky-700 hover:text-sky-900 transition"
                       >
-                        <Pencil size={16} />
+                        <Pencil size={18} />
                       </button>
 
                       <button
                         onClick={() => confirmDelete(i)}
-                        className="text-red-600 hover:text-red-800 transition-colors"
+                        className="text-red-600 hover:text-red-800 transition"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </td>
                   )}
@@ -211,7 +207,7 @@ export default function EditableTable({
                 <tr>
                   <td
                     colSpan={columns.length + 1}
-                    className="text-center py-4 text-sm text-slate-600"
+                    className="text-center py-6 text-sm text-slate-600"
                   >
                     Nenhum item encontrado.
                   </td>
@@ -222,11 +218,11 @@ export default function EditableTable({
         </div>
 
         {(onNextPage || onPrevPage) && (
-          <div className="flex justify-center gap-4 py-4 border-t bg-white">
+          <div className="flex justify-center gap-4 py-4 bg-white border-t border-slate-200">
             <button
               onClick={onPrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg font-medium border ${
+              className={`px-4 py-2 rounded-lg font-medium border transition ${
                 currentPage === 1
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-white text-sky-700 hover:bg-sky-50"
@@ -238,7 +234,7 @@ export default function EditableTable({
             <button
               onClick={onNextPage}
               disabled={!hasNextPage}
-              className={`px-4 py-2 rounded-lg font-medium border ${
+              className={`px-4 py-2 rounded-lg font-medium border transition ${
                 !hasNextPage
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-white text-sky-700 hover:bg-sky-50"
@@ -248,14 +244,14 @@ export default function EditableTable({
             </button>
           </div>
         )}
-      </div>
 
-      <DeletePopUp
-        open={deleteIndex !== null}
-        onCancel={handleDeleteCancel}
-        onConfirm={handleDeleteConfirmed}
-        message="Tem certeza que deseja remover este item?"
-      />
+        <DeletePopUp
+          open={deleteIndex !== null}
+          onCancel={handleDeleteCancel}
+          onConfirm={handleDeleteConfirmed}
+          message="Tem certeza que deseja remover este item?"
+        />
+      </div>
     </>
   );
 }
@@ -267,10 +263,10 @@ const renderExpiryTag = (row: any) => {
   if (!status) return "-";
 
   const colorMap: Record<string, string> = {
-    expired: "bg-red-100 text-red-700 border border-red-300",
-    critical: "bg-orange-100 text-orange-700 border border-orange-300",
-    warning: "bg-yellow-100 text-yellow-700 border border-yellow-300",
-    healthy: "bg-green-100 text-green-700 border border-green-300",
+    expired: "bg-red-50 text-red-700 border border-red-200",
+    critical: "bg-orange-50 text-orange-700 border border-orange-200",
+    warning: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    healthy: "bg-green-50 text-green-700 border border-green-200",
   };
 
   return (
@@ -278,14 +274,12 @@ const renderExpiryTag = (row: any) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
+            className={`px-2 py-1 rounded-full text-[11px] font-medium ${colorMap[status]}`}
           >
             {row.expiry}
           </span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="text-xs">
-          {message}
-        </TooltipContent>
+        <TooltipContent>{message}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

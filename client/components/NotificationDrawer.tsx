@@ -83,11 +83,11 @@ export function NotificationDrawer() {
               <div className="text-center py-10 text-slate-500">Carregando...</div>
             ) : (
               <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-                {items.length === 0 ? (
-                  <div className="text-center text-slate-400 py-8">
-                    Nenhuma notificação pendente.
-                  </div>
-                ) : (
+              {items.length === 0 ? (
+                <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
+                  Nenhuma notificação pendente.
+                </div>
+              ) : (
                   <AnimatePresence>
                     {items.map((n) => (
                       <motion.div

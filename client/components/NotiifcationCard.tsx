@@ -10,8 +10,8 @@ interface NotificationCardProps {
   createdBy: string;
   onComplete?: () => Promise<void>;
   onCancel?: () => Promise<void>;
-  onEdit?: () => void; 
-  onRemove?: () => void; 
+  onEdit?: () => void;
+  onRemove?: () => void;
 }
 
 export function NotificationCard({
@@ -23,7 +23,7 @@ export function NotificationCard({
   onComplete,
   onCancel,
   onEdit,
-  onRemove
+  onRemove,
 }: NotificationCardProps) {
   const [visible, setVisible] = useState(true);
 
@@ -35,40 +35,78 @@ export function NotificationCard({
 
   return (
     <div
-      className={`transition-opacity duration-500 ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`transition-opacity duration-500 ${
+        visible ? "opacity-100" : "opacity-0"
+      }`}
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
-      <Card className="relative shadow-sm hover:shadow-md transition-shadow duration-200">
+      <Card className="relative shadow-sm hover:shadow-md border-slate-200 transition-all duration-200 rounded-xl">
         {onEdit && (
           <button
             onClick={onEdit}
-            className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100"
+            className="absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <Pencil className="w-4 h-4 text-slate-600" />
           </button>
         )}
 
-        <CardHeader>
-          <CardTitle>{residentName}</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-semibold text-slate-800">
+            {residentName}
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-slate-600">
-          <div>Medicamento: {medicineName}</div>
-          <div>Data prevista: {dateToGo}</div>
-          <div>Destino: {destiny}</div>
-          <div>Criado por: {createdBy}</div>
 
-          <div className="flex gap-2 mt-2">
+        <CardContent className="space-y-2 text-sm text-slate-700">
+          <ul className="space-y-1">
+            <li>
+              <span className="font-medium text-slate-800">Medicamento:</span>{" "}
+              {medicineName}
+            </li>
+            <li>
+              <span className="font-medium text-slate-800">Data prevista:</span>{" "}
+              {dateToGo}
+            </li>
+            <li>
+              <span className="font-medium text-slate-800">Destino:</span>{" "}
+              {destiny}
+            </li>
+            <li>
+              <span className="font-medium text-slate-800">Criado por:</span>{" "}
+              {createdBy}
+            </li>
+          </ul>
+
+          <div className="flex gap-3 pt-3">
             {onComplete && (
               <button
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition"
+                className="
+                  bg-green-600 
+                  hover:bg-green-700 
+                  text-white 
+                  px-4 py-2 
+                  rounded-lg 
+                  text-sm 
+                  font-medium 
+                  transition
+                "
                 onClick={() => handleAction(onComplete)}
               >
                 Concluir
               </button>
             )}
+
             {onCancel && (
               <button
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition"
+                className="
+                  bg-red-600 
+                  hover:bg-red-700 
+                  text-white 
+                  px-4 py-2 
+                  rounded-lg 
+                  text-sm 
+                  font-medium 
+                  transition
+                "
                 onClick={() => handleAction(onCancel)}
               >
                 Cancelar

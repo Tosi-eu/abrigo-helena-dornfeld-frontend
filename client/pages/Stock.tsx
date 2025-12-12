@@ -109,24 +109,42 @@ export default function Stock() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => navigate("/stock/in")}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
             disabled={loading}
+            className="
+              h-11 px-5 rounded-xl font-medium
+              bg-green-600 text-white
+              hover:bg-green-700 active:bg-green-800
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition
+            "
           >
             Entrada de Estoque
           </button>
 
           <button
             onClick={() => navigate("/stock/out")}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
             disabled={loading}
+            className="
+              h-11 px-5 rounded-xl font-medium
+              bg-red-600 text-white
+              hover:bg-red-700 active:bg-red-800
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition
+            "
           >
             Saída de Estoque
           </button>
 
           <button
             onClick={() => setReportModalOpen(true)}
-            className="px-6 py-3 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 transition"
             disabled={loading}
+            className="
+              h-11 px-5 rounded-xl font-medium
+              bg-sky-600 text-white
+              hover:bg-sky-700 active:bg-sky-800
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition
+            "
           >
             Gerar Relatório
           </button>

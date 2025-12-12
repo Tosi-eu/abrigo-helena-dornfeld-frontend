@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   PieChart,
   Pie,
@@ -14,8 +15,10 @@ import {
   Sector,
   CartesianGrid,
 } from "recharts";
-import EditableTable from "@/components/EditableTable";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LoadingModal from "@/components/LoadingModal";
+import EditableTable from "@/components/EditableTable";
 import { api } from "@/api/canonical";
 import { getMedicineRanking, getNonMovementProducts, getTodayNotifications, updateNotification } from "@/api/requests";
 import { StockStatusItem, CabinetStockItem, StockDistributionItem, RecentMovement, MedicineRankingItem, RawMovement } from "@/interfaces/interfaces";
@@ -195,13 +198,13 @@ export default function Dashboard() {
 
   const stats = [
     {
-      label: "Abaixo do Estoque Mínimo",
+      label: "Itens Abaixo do Estoque Mínimo",
       value: noStock,
       onClick: () =>
         navigate("/stock", { state: { filter: "noStock", data: noStockData } }),
     },
     {
-      label: "Próximo do Estoque Mínimo",
+      label: "Itens Próximos do Estoque Mínimo",
       value: belowMin,
       onClick: () =>
         navigate("/stock", {
@@ -209,13 +212,13 @@ export default function Dashboard() {
         }),
     },
     {
-      label: "Produtos Vencidos",
+      label: "Itens Vencidos",
       value: expired,
       onClick: () =>
         navigate("/stock", { state: { filter: "expired", data: expiredData } }),
     },
     {
-      label: "Produtos Vencendo Próximo",
+      label: "Itens com Vencimento Próximo",
       value: expiringSoon.length,
 
       onClick: () =>
@@ -262,238 +265,214 @@ export default function Dashboard() {
 
       {!loading && (
         <div className="space-y-10 pt-10">
+
           <section>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {stats.map((stat, index) => (
-                <div
+                <Card
                   key={index}
                   onClick={stat.onClick}
-                  className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col items-center justify-center cursor-pointer hover:shadow-md hover:scale-105 hover:bg-sky-50 transition-all duration-200"
-                  style={{ minHeight: 150 }}
+                  className="cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all"
                 >
-                  <div className="text-sm font-medium text-slate-600 mb-2 text-center">
-                    {stat.label}
-                  </div>
-                  <div className="text-[60px] font-bold text-sky-700 leading-none text-center">
-                    {stat.value}
-                  </div>
-                </div>
+                  <CardContent className="flex flex-col items-center py-8">
+                    <p className="text-sm text-muted-foreground mb-2 text-center">
+                      {stat.label}
+                    </p>
+                    <p className="text-5xl font-bold text-sky-700">
+                      {stat.value}
+                    </p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200 bg-sky-50 text-center">
-                <h3 className="text-base font-semibold text-slate-800">
-                  Produtos com Maior Tempo sem Movimentação
-                </h3>
-              </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Produtos com Maior Tempo Sem Movimentação
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EditableTable
+                  columns={[
+                    { key: "nome", label: "Nome" },
+                    { key: "detalhe", label: "Detalhe" },
+                    { key: "tipo_item", label: "Tipo" },
+                    { key: "dias_parados", label: "Dias Parados" },
+                    { key: "ultima_movimentacao", label: "Última Movimentação" },
+                  ]}
+                  data={nonMovementProducts}
+                  showAddons={false}
+                />
+              </CardContent>
+            </Card>
 
-              <EditableTable
-                columns={[
-                  { key: "nome", label: "Nome", editable: false },
-                  { key: "detalhe", label: "Detalhe", editable: false },
-                  { key: "tipo_item", label: "Tipo", editable: false },
-                  { key: "dias_parados", label: "Dias Parados", editable: false },
-                  { key: "ultima_movimentacao", label: "Última Movimentação", editable: false },
-                ]}
-                data={nonMovementProducts}
-                showAddons={false}
-              />
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200 bg-sky-50 flex justify-between items-center">
-                <h3 className="text-base font-semibold text-slate-800 text-center w-full">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">
                   Movimentações Recentes
-                </h3>
-              </div>
+                </CardTitle>
+              </CardHeader>
 
-              <EditableTable
-                columns={[
-                  { key: "name", label: "Produto", editable: false },
-                  { key: "type", label: "Tipo", editable: false },
-                  { key: "operator", label: "Operador", editable: false },
-                  { key: "casela", label: "Casela", editable: false },
-                  { key: "quantity", label: "Quantidade", editable: false },
-                  { key: "patient", label: "Paciente", editable: false },
-                  {
-                    key: "date",
-                    label: "Data da Movimentação",
-                    editable: false,
-                  },
-                ]}
-                data={recentMovements}
-                showAddons={false}
-              />
-            </div>
+              <CardContent>
+                <EditableTable
+                  columns={[
+                    { key: "name", label: "Produto" },
+                    { key: "type", label: "Tipo" },
+                    { key: "operator", label: "Operador" },
+                    { key: "casela", label: "Casela" },
+                    { key: "quantity", label: "Quantidade" },
+                    { key: "patient", label: "Paciente" },
+                    { key: "date", label: "Data da Movimentação" },
+                  ]}
+                  data={recentMovements}
+                  showAddons={false}
+                />
+              </CardContent>
+            </Card>
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-200 bg-sky-50 text-center">
-                  <h3 className="text-base font-semibold text-slate-800">
-                    Top 10 Medicamentos Mais Movimentados
-                  </h3>
-                </div>
-
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Top 10 Mais Movimentados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <EditableTable
                   columns={[
-                    { key: "name", label: "Nome", editable: false },
-                    { key: "substance", label: "Princípio Ativo", editable: false },
-                    { key: "total", label: "Total Movimentado", editable: false },
-                    { key: "entradas", label: "Entradas", editable: false },
-                    { key: "saidas", label: "Saídas", editable: false },
+                    { key: "name", label: "Nome" },
+                    { key: "substance", label: "Princípio Ativo" },
+                    { key: "total", label: "Total" },
+                    { key: "entradas", label: "Entradas" },
+                    { key: "saidas", label: "Saídas" },
                   ]}
                   data={mostMovData}
                   showAddons={false}
                 />
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-200 bg-sky-50 text-center">
-                  <h3 className="text-base font-semibold text-slate-800">
-                    Top 10 Medicamentos Menos Movimentados
-                  </h3>
-                </div>
-
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Top 10 Menos Movimentados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <EditableTable
                   columns={[
-                    { key: "name", label: "Nome", editable: false },
-                    { key: "substance", label: "Princípio Ativo", editable: false },
-                    { key: "total", label: "Total Movimentado", editable: false },
-                    { key: "entradas", label: "Entradas", editable: false },
-                    { key: "saidas", label: "Saídas", editable: false },
+                    { key: "name", label: "Nome" },
+                    { key: "substance", label: "Princípio Ativo" },
+                    { key: "total", label: "Total" },
+                    { key: "entradas", label: "Entradas" },
+                    { key: "saidas", label: "Saídas" },
                   ]}
                   data={leastMovData}
                   showAddons={false}
                 />
-              </div>
+              </CardContent>
+            </Card>
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
-              <h4 className="text-base font-semibold text-slate-800 text-center mb-6">
-                Quantidade de Itens por Armário
-              </h4>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Quantidade de Itens por Armário
+                </CardTitle>
+              </CardHeader>
 
-              <div className="w-full h-72 flex justify-left items-left">
-                <ResponsiveContainer width="92%" height="100%">
-                  <BarChart
-                    data={cabinetStockData}
-                    layout="vertical"
-                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                  >
-                    <XAxis
-                      type="number"
-                      tick={{ fontSize: 12, fill: "#1e293b" }}
-                      axisLine={{ stroke: "#475569", strokeWidth: 1.2 }}
-                      tickLine={{ stroke: "#475569" }}
-                    />
+              <CardContent>
+                <div className="w-full h-72 flex justify-center">
+                  <ResponsiveContainer width="90%" height="100%">
+                    <BarChart
+                      data={cabinetStockData}
+                      layout="vertical"
+                      margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
+                    >
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="cabinet" width={80} />
 
-                    <YAxis
-                      type="category"
-                      dataKey="cabinet"
-                      tick={{ fontSize: 13, fill: "#1e293b" }}
-                      width={90}
-                      axisLine={{ stroke: "#475569", strokeWidth: 1.2 }}
-                      tickLine={{ stroke: "#475569" }}
-                    />
+                      <CartesianGrid strokeDasharray="3 3" />
 
-                    <defs>
-                      <linearGradient id="barFill" x1="0" y1="0" x2="1" y2="0">
-                        <stop
-                          offset="0%"
-                          stopColor="#0284c7"
-                          stopOpacity={0.9}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#0369a1"
-                          stopOpacity={1}
-                        />
-                      </linearGradient>
-                    </defs>
+                      <defs>
+                        <linearGradient id="barFill" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#0284c7" />
+                          <stop offset="100%" stopColor="#0369a1" />
+                        </linearGradient>
+                      </defs>
 
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      horizontal={true}
-                      vertical={false}
-                      stroke="#cbd5e1"
-                    />
-
-                    <Bar
-                      dataKey="total"
-                      fill="url(#barFill)"
-                      barSize={28}
-                      radius={[0, 6, 6, 0]}
-                      isAnimationActive={true}
-                      animationBegin={100}
-                      animationDuration={1600}
-                      animationEasing="ease-in-out"
-                      label={{
-                        position: "right",
-                        fill: "#334155",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
-              <h4 className="text-base font-semibold text-slate-800 text-center mb-6">
-                Proporção de Estoque
-              </h4>
-              <div className="flex flex-col lg:flex-row justify-center items-center gap-6 w-full">
-                <div className="w-full lg:w-1/2 h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stockDistribution}
-                        dataKey="value"
-                        nameKey="name"
-                        outerRadius={80}
-                        activeIndex={activePieIndex ?? undefined}
-                        activeShape={renderActiveShape}
-                        onMouseEnter={(_, index) => setActivePieIndex(index)}
-                        onMouseLeave={() => setActivePieIndex(null)}
-                        isAnimationActive={true}
-                        animationDuration={1000}
-                        label={false}
-                      >
-                        {stockDistribution.map((_, i) => (
-                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: any, name: string, props: any) => {
-                          const { payload } = props;
-                          return [`${payload.rawValue}`, "Quantidade"];
+                      <Bar
+                        dataKey="total"
+                        fill="url(#barFill)"
+                        radius={[0, 6, 6, 0]}
+                        barSize={28}
+                        label={{
+                          position: "right",
+                          fontSize: 12,
+                          fontWeight: 600,
                         }}
                       />
-                    </PieChart>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">Proporção de Estoque</CardTitle>
+              </CardHeader>
 
-                <div className="flex flex-col text-sm text-slate-700 space-y-2">
-                  {stockDistribution.map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: COLORS[i] }}
-                      ></span>
-                      <span>
-                        {item.name}: <b>{item.value}%</b>
-                      </span>
-                    </div>
-                  ))}
+              <CardContent>
+                <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
+                  <div className="w-full lg:w-1/2 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stockDistribution}
+                          dataKey="value"
+                          outerRadius={80}
+                          activeIndex={activePieIndex ?? undefined}
+                          activeShape={renderActiveShape}
+                          onMouseEnter={(_, i) => setActivePieIndex(i)}
+                          onMouseLeave={() => setActivePieIndex(null)}
+                        >
+                          {stockDistribution.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Pie>
+
+                        <Tooltip
+                          formatter={(v: any, _n: string, p: any) => [
+                            p.payload.rawValue,
+                            "Quantidade",
+                          ]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-slate-700">
+                    {stockDistribution.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: COLORS[i] }}
+                        />
+                        <span>
+                          {item.name}: <b>{item.value}%</b>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </section>
         </div>
       )}

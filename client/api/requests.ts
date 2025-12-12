@@ -4,7 +4,7 @@ import { api } from "./canonical";
 
 export const getCabinets = () => api.get("/armarios");
 
-export const getNonMovementProducts = () => api.get("/estoque/produtos-parados");
+export const getNonMovementProducts = () => api.get("/movimentacoes/produtos-parados");
 
 export const checkCabinetStock = (number: number) =>
   api.get(`/armarios/${number}/check`);

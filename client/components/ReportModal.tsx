@@ -44,7 +44,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
   ];
 
   const handleSelectReport = (value: string) => {
-    setSelectedReports([value]);
+    setSelectedReports([value]); 
   };
 
   const handleGenerate = async () => {
@@ -55,8 +55,8 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       const tipo = selectedReports[0];
 
       const data = await getReport(tipo);
-
       const doc = createStockPDF(tipo, data);
+
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
 
@@ -67,7 +67,6 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       URL.revokeObjectURL(url);
 
       setStatus("success");
-
       setTimeout(() => handleClose(), 2000);
     } catch (err) {
       console.error(err);
@@ -85,56 +84,66 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="p-0 bg-white rounded-2xl shadow-xl max-w-6xl w-full flex flex-col items-center">
+      <DialogContent className="p-0 bg-white rounded-2xl shadow-xl max-w-3xl w-full flex flex-col items-center">
         <AnimatePresence mode="wait">
           {status === "idle" && (
             <motion.div
               key="idle"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="p-6 w-full flex flex-col items-center"
+              className="p-8 w-full flex flex-col items-center"
             >
-              <DialogHeader className="w-full relative mb-4">
-                <DialogTitle className="text-xl font-semibold text-gray-800 text-center">
+              <DialogHeader className="w-full mb-6 text-center">
+                <DialogTitle className="text-2xl font-bold text-gray-800">
                   Gerar Relatório
                 </DialogTitle>
               </DialogHeader>
 
               <div className="w-full flex flex-col gap-3">
-                {reportOptions.map(({ value, label, icon: Icon }) => (
-                  <div
-                    key={value}
-                    className={`border-2 rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
-                      selectedReports.includes(value)
-                        ? "border-sky-600 bg-sky-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    onClick={() => handleSelectReport(value)}
-                  >
-                    <Icon
-                      className={`w-6 h-6 ${
-                        selectedReports.includes(value)
-                          ? "text-sky-600"
-                          : "text-gray-500"
-                      }`}
-                    />
-                    <p
-                      className={`text-sm font-medium ${
-                        selectedReports.includes(value)
-                          ? "text-sky-700"
-                          : "text-gray-700"
-                      }`}
+                {reportOptions.map(({ value, label, icon: Icon }) => {
+                  const isSelected = selectedReports.includes(value);
+                  return (
+                    <motion.div
+                      key={value}
+                      whileHover={{ scale: 1.01 }}
+                      className={`border-2 rounded-xl px-5 py-4 flex items-center gap-4 cursor-pointer transition-all
+                        ${
+                          isSelected
+                            ? "border-sky-600 bg-sky-50 shadow-sm"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                      onClick={() => handleSelectReport(value)}
                     >
-                      {label}
-                    </p>
-                  </div>
-                ))}
+                      <Icon
+                        className={`w-6 h-6 ${
+                          isSelected ? "text-sky-600" : "text-gray-500"
+                        }`}
+                      />
+                      <p
+                        className={`text-sm font-medium ${
+                          isSelected ? "text-sky-700" : "text-gray-700"
+                        }`}
+                      >
+                        {label}
+                      </p>
+                    </motion.div>
+                  );
+                })}
 
                 <div className="mt-6 flex justify-center">
                   <Button
-                    className="px-6 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition disabled:opacity-50"
+                    className="
+                      px-8 py-2 
+                      bg-sky-600 
+                      text-white 
+                      rounded-lg 
+                      hover:bg-sky-700 
+                      transition
+                      disabled:opacity-50
+                    "
                     disabled={selectedReports.length === 0}
                     onClick={handleGenerate}
                   >
@@ -151,13 +160,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="p-10 flex flex-col items-center justify-center gap-3 h-60"
+              transition={{ duration: 0.25 }}
+              className="p-12 flex flex-col items-center justify-center gap-4 h-64"
             >
               <Loader2 className="w-12 h-12 animate-spin text-sky-600" />
-              <p className="text-gray-600 font-medium text-center">
-                Gerando...
-              </p>
+              <p className="text-gray-600 font-medium text-center">Gerando...</p>
             </motion.div>
           )}
 
@@ -167,12 +174,8 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               className="flex flex-col items-center justify-center h-72 w-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
             >
-              <Check
-                className="text-green-600"
-                style={{ width: iconSize, height: iconSize }}
-              />
+              <Check className="text-green-600" style={{ width: iconSize, height: iconSize }} />
               <p className="font-bold text-xl text-center mt-4">
                 Relatório gerado com sucesso!
               </p>
@@ -191,12 +194,8 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               className="flex flex-col items-center justify-center h-72 w-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
             >
-              <X
-                className="text-red-600"
-                style={{ width: iconSize, height: iconSize }}
-              />
+              <X className="text-red-600" style={{ width: iconSize, height: iconSize }} />
               <p className="font-bold text-xl text-center mt-4">
                 Falha ao gerar relatório!
               </p>

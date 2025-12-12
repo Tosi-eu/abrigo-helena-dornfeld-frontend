@@ -12,12 +12,12 @@ import {
 
 import { AnimatePresence, motion } from "framer-motion";
 import Pagination from "@/components/Pagination";
-import StepItems from "@/components/ItemsStep";
 import QuantityStep from "@/components/QuantityStep";
 
 import { MovementType, OperationType, StockWizardSteps } from "@/utils/enums";
 import { StockItemRaw } from "@/interfaces/interfaces";
 import StepType from "@/components/StepType";
+import StepItems from "@/components/StepItens";
 
 export default function StockOut() {
   const { user } = useAuth();

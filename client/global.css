@@ -19,7 +19,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 6.7%;
 
-    --primary: 262 51% 48%;
+    /* === UPDATED TO SKY-600 === */
+    --primary: 203 89% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96.9%;
@@ -36,18 +37,25 @@
 
     --border: 0 0% 91.4%;
     --input: 0 0% 91.4%;
-    --ring: 262 51% 48%;
+
+    /* === FOCUS RING (important!) === */
+    --ring: 203 89% 53%;
 
     --radius: 0.375rem;
 
     --sidebar-background: 0 0% 96.9%;
     --sidebar-foreground: 0 0% 28.2%;
-    --sidebar-primary: 0 0% 10%;
+
+    /* === UPDATED: sidebar now sky-600 === */
+    --sidebar-primary: 203 89% 53%;
     --sidebar-primary-foreground: 0 0% 98%;
+
     --sidebar-accent: 0 0% 95.9%;
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 91%;
-    --sidebar-ring: 262 51% 48%;
+    
+    /* === UPDATED sidebar ring === */
+    --sidebar-ring: 203 89% 53%;
   }
 
   .dark {
@@ -60,7 +68,8 @@
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 262 51% 48%;
+    /* === UPDATED TO SKY-600 === */
+    --primary: 203 89% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 17.5%;
@@ -77,16 +86,19 @@
 
     --border: 0 0% 17.5%;
     --input: 0 0% 17.5%;
-    --ring: 262 51% 48%;
 
+    /* === FOCUS RING DARK === */
+    --ring: 203 89% 53%;
+
+    /* === UPDATED SIDEBAR === */
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 95.9%;
-    --sidebar-primary: 262 51% 48%;
+    --sidebar-primary: 203 89% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 15.9%;
     --sidebar-accent-foreground: 0 0% 95.9%;
     --sidebar-border: 0 0% 15.9%;
-    --sidebar-ring: 262 51% 48%;
+    --sidebar-ring: 203 89% 53%;
   }
 }
 
@@ -121,4 +133,3 @@
 .animate-slide-left {
   animation: slide-left 0.25s ease-out;
 }
-
