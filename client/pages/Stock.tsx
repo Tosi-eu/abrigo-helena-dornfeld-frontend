@@ -150,6 +150,7 @@ export default function Stock() {
           </button>
         </div>
 
+       <div className="pt-12">
         {!loading && (
           <>
             <EditableTable
@@ -163,6 +164,7 @@ export default function Stock() {
             />
           </>
         )}
+       </div>
       </div>
 
       <ReportModal

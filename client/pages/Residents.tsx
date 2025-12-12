@@ -39,29 +39,31 @@ export default function Resident() {
 
   return (
     <Layout title="Residentes">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando residentes..."
-      />
+      <div className="pt-8">
+        <LoadingModal
+          open={loading}
+          title="Aguarde"
+          description="Carregando residentes..."
+        />
 
-      {!loading && error && (
-        <div className="text-center mt-10 text-red-500">{error}</div>
-      )}
+        {!loading && error && (
+          <div className="text-center mt-10 text-red-500">{error}</div>
+        )}
 
-      {!loading && !error && (
-        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <EditableTable
-            data={residents}
-            columns={columns}
-            entityType="residents"
-            currentPage={page}
-            hasNextPage={hasNextPage}
-            onNextPage={() => fetchResidents(page + 1)}
-            onPrevPage={() => fetchResidents(page - 1)}
-          />
-        </div>
-      )}
+        {!loading && !error && (
+          <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+            <EditableTable
+              data={residents}
+              columns={columns}
+              entityType="residents"
+              currentPage={page}
+              hasNextPage={hasNextPage}
+              onNextPage={() => fetchResidents(page + 1)}
+              onPrevPage={() => fetchResidents(page - 1)}
+            />
+          </div>
+        )}
+      </div>
     </Layout>
   );
 }

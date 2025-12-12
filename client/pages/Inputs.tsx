@@ -55,26 +55,29 @@ export default function Inputs() {
   };
 
   return (
-    <Layout title="Insumos">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando insumos..."
-      />
 
-      {!loading && (
-        <div className="space-y-6">
-          <EditableTable
-            data={data}
-            columns={columns}
-            entityType="inputs"
-            currentPage={page}
-            hasNextPage={hasNextPage}
-            onNextPage={handleNext}
-            onPrevPage={handlePrev}
+    <Layout title="Insumos">
+        <div className="pt-12">
+          <LoadingModal
+            open={loading}
+            title="Aguarde"
+            description="Carregando insumos..."
           />
+
+          {!loading && (
+          <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+            <EditableTable
+              data={data}
+              columns={columns}
+              entityType="inputs"
+              currentPage={page}
+              hasNextPage={hasNextPage}
+              onNextPage={handleNext}
+              onPrevPage={handlePrev}
+            />
+          </div>
+          )}
         </div>
-      )}
     </Layout>
   );
 }

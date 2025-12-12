@@ -76,7 +76,7 @@ export default function Profile() {
 
   return (
     <Layout title="Meu Perfil">
-      <div className="flex justify-center py-12 px-4">
+      <div className="flex justify-center py-24 px-4">
         <Card className="w-full max-w-md shadow-lg border border-slate-200">
           <CardHeader>
             <CardTitle className="text-center text-2xl font-semibold">
@@ -160,7 +160,7 @@ export default function Profile() {
         />
       </div>
 
-      <div className="text-center text-xs text-slate-400 mt-6">
+      <div className="text-center text-xs text-slate-400">
         © {new Date().getFullYear()} Abrigo Helena Dornfeld
       </div>
     </Layout>

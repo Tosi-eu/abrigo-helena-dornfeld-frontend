@@ -46,8 +46,9 @@ export default function Medicines() {
     fetchMedicines(1);
   }, []);
 
-  return (
-    <Layout title="Medicamentos">
+return (
+  <Layout title="Medicamentos">
+    <div className="pt-12">
       <LoadingModal
         open={loading}
         title="Aguarde"
@@ -55,22 +56,25 @@ export default function Medicines() {
       />
 
       {!loading && (
-        <EditableTable
-          data={medicines}
-          columns={[
-            { key: "nome", label: "Nome" },
-            { key: "principio_ativo", label: "Princípio Ativo" },
-            { key: "dosagem", label: "Dosagem" },
-            { key: "unidade_medida", label: "Unidade" },
-            { key: "estoque_minimo", label: "Estoque Mínimo" },
-          ]}
-          entityType="medicines"
-          currentPage={page}
-          hasNextPage={hasNext}
-          onNextPage={goNextPage}
-          onPrevPage={goPrevPage}
-        />
+        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <EditableTable
+            data={medicines}
+            columns={[
+              { key: "nome", label: "Nome" },
+              { key: "principio_ativo", label: "Princípio Ativo" },
+              { key: "dosagem", label: "Dosagem" },
+              { key: "unidade_medida", label: "Unidade" },
+              { key: "estoque_minimo", label: "Estoque Mínimo" },
+            ]}
+            entityType="medicines"
+            currentPage={page}
+            hasNextPage={hasNext}
+            onNextPage={goNextPage}
+            onPrevPage={goPrevPage}
+          />
+        </div>
       )}
-    </Layout>
-  );
+    </div>
+  </Layout>
+);
 }
