@@ -5,11 +5,15 @@ import { toast } from "@/hooks/use-toast.hook";
 import LoadingModal from "@/components/LoadingModal";
 import { updateInput } from "@/api/requests";
 
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+
 export default function EditInput() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -36,8 +40,6 @@ export default function EditInput() {
       nome: item.nome || "",
       descricao: item.descricao || "",
     });
-
-    setLoading(false);
   }, [location.state, navigate]);
 
   const handleChange = (field: string, value: string) => {
@@ -73,7 +75,7 @@ export default function EditInput() {
       navigate("/inputs");
     } catch (err) {
       toast({
-        title: "Erro",
+        title: "Erro ao atualizar",
         description: "Não foi possível atualizar o insumo.",
         variant: "error",
       });
@@ -81,16 +83,6 @@ export default function EditInput() {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <Layout title="Edição de Insumo">
-        <div className="flex justify-center items-center h-64 text-slate-500">
-          Carregando informações...
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout title="Edição de Insumo">
@@ -100,57 +92,57 @@ export default function EditInput() {
         description="Atualizando insumo..."
       />
 
-      <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800 mb-6">
-          Editar Insumo
-        </h2>
+      <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-lg text-slate-800">Editar Insumo</CardTitle>
+        </CardHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Nome do Insumo
-            </label>
-            <input
-              type="text"
-              value={formData.nome}
-              onChange={(e) => handleChange("nome", e.target.value)}
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none"
-              placeholder="Ex: Seringa 5ml"
-              required
-            />
-          </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Categoria
-            </label>
-            <input
-              type="text"
-              value={formData.descricao}
-              onChange={(e) => handleChange("descricao", e.target.value)}
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-300 focus:outline-none"
-              placeholder="Ex: Material de injeção"
-            />
-          </div>
+            <div className="space-y-1">
+              <Label>Nome do insumo</Label>
+              <Input
+                value={formData.nome}
+                onChange={(e) => handleChange("nome", e.target.value)}
+                placeholder="Ex: Seringa 5ml"
+                disabled={saving}
+              />
+            </div>
 
-          <div className="flex justify-between pt-4">
-            <button
-              type="button"
-              onClick={() => navigate("/inputs")}
-              className="px-5 py-2 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-100 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-50"
-            >
-              {saving ? "Salvando..." : "Salvar Alterações"}
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="space-y-1">
+              <Label>Descrição</Label>
+              <Input
+                value={formData.descricao}
+                onChange={(e) => handleChange("descricao", e.target.value)}
+                placeholder="Ex: Material de injeção"
+                disabled={saving}
+              />
+            </div>
+
+            <div className="flex justify-end pt-4 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/inputs")}
+                disabled={saving}
+                className="rounded-lg"
+              >
+                Cancelar
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
+              >
+                {saving ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            </div>
+
+          </form>
+        </CardContent>
+      </Card>
     </Layout>
   );
 }

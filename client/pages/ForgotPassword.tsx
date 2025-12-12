@@ -4,6 +4,11 @@ import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
 import { resetPassword } from "@/api/requests";
 
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -61,59 +66,59 @@ export default function ForgotPassword() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4">
-        <form
-          onSubmit={handleResetPassword}
-          className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm w-full max-w-md space-y-5"
-        >
-          <h2 className="text-2xl font-semibold text-slate-800 text-center">
-            Redefinir Senha
-          </h2>
+      <main className="flex-1 flex items-center justify-center px-4 py-10">
+        <Card className="w-full max-w-md shadow-sm border border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-center text-lg">
+              Redefinir Senha
+            </CardTitle>
+          </CardHeader>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              E-mail cadastrado
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg"
-              placeholder="email@exemplo.com"
-              required
-            />
-          </div>
+          <CardContent>
+            <form onSubmit={handleResetPassword} className="space-y-5">
+              <div className="flex flex-col gap-2">
+                <Label>E-mail cadastrado</Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="email@exemplo.com"
+                  disabled={loading}
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Nova Senha
-            </label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+              <div className="flex flex-col gap-2">
+                <Label>Nova senha</Label>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  disabled={loading}
+                  required
+                />
+              </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-50"
-          >
-            {loading ? "Processando..." : "Redefinir Senha"}
-          </button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-sky-600 hover:bg-sky-700"
+              >
+                {loading ? "Processando..." : "Redefinir Senha"}
+              </Button>
 
-          <button
-            type="button"
-            onClick={() => navigate("/user/login")}
-            className="w-full py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-          >
-            Voltar
-          </button>
-        </form>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/user/login")}
+                className="w-full"
+              >
+                Voltar
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

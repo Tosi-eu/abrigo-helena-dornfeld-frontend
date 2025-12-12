@@ -5,6 +5,18 @@ import { toast } from "@/hooks/use-toast.hook";
 import LoadingModal from "@/components/LoadingModal";
 import { createMedicine, getMedicines } from "@/api/requests";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+
 export default function SignUpMedicine() {
   const navigate = useNavigate();
 
@@ -22,9 +34,8 @@ export default function SignUpMedicine() {
   useEffect(() => {
     async function fetchMedicines() {
       try {
-        await getMedicines().then((data) => {
-          setMedicines(data.data);
-        });
+        const data = await getMedicines();
+        setMedicines(data.data);
       } catch (err) {
         console.error(err);
         toast({
@@ -111,9 +122,7 @@ export default function SignUpMedicine() {
       console.error(error);
       toast({
         title: "Erro ao cadastrar",
-        description:
-          error?.message ||
-          "Não foi possível registrar o medicamento. Tente novamente.",
+        description: error?.message || "Não foi possível registrar o medicamento.",
         variant: "error",
       });
     } finally {
@@ -129,125 +138,113 @@ export default function SignUpMedicine() {
         description="Cadastrando medicamento..."
       />
 
-      <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
-        <h2 className="text-lg font-semibold text-slate-800">
-          Cadastro de Medicamento
-        </h2>
+      <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-lg text-slate-800">
+            Cadastro de Medicamento
+          </CardTitle>
+        </CardHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Nome do medicamento
-            </label>
-            <input
-              list="lista-medicamentos"
-              value={formData.name}
-              onChange={(e) => handleMedicineSelect(e.target.value)}
-              placeholder="Digite o nome do medicamento"
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-              disabled={saving}
-            />
-            <datalist id="lista-medicamentos">
-              {medicines.map((m) => (
-                <option key={m.id} value={m.name} />
-              ))}
-            </datalist>
-          </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Princípio Ativo
-            </label>
-            <input
-              type="text"
-              value={formData.substance}
-              onChange={(e) =>
-                setFormData({ ...formData, substance: e.target.value })
-              }
-              placeholder="Paracetamol"
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-              disabled={saving}
-            />
-          </div>
+            <div className="space-y-1">
+              <Label>Nome do medicamento</Label>
+              <Input
+                list="lista-medicamentos"
+                value={formData.name}
+                onChange={(e) => handleMedicineSelect(e.target.value)}
+                placeholder="Digite o nome do medicamento"
+                disabled={saving}
+              />
+              <datalist id="lista-medicamentos">
+                {medicines.map((m) => (
+                  <option key={m.id} value={m.name} />
+                ))}
+              </datalist>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Dosagem
-              </label>
-              <input
-                type="text"
-                value={formData.dosageValue}
+            <div className="space-y-1">
+              <Label>Princípio ativo</Label>
+              <Input
+                value={formData.substance}
                 onChange={(e) =>
-                  setFormData({ ...formData, dosageValue: e.target.value })
+                  setFormData({ ...formData, substance: e.target.value })
                 }
-                placeholder="500"
-                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
+                placeholder="Paracetamol"
                 disabled={saving}
               />
             </div>
 
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Unidade
-              </label>
-              <select
-                value={formData.measurementUnit}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    measurementUnit: e.target.value || null,
-                  })
-                }
-                className="w-full border bg-white border-slate-300 rounded-lg p-2.5 text-sm"
-                disabled={saving}
-              >
-                <option value="" disabled hidden>
-                  Selecione
-                </option>
-                <option value="mg">mg</option>
-                <option value="ml">ml</option>
-                <option value="g">g</option>
-                <option value="mcg">mcg</option>
-              </select>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 space-y-1">
+                <Label>Dosagem</Label>
+                <Input
+                  value={formData.dosageValue}
+                  onChange={(e) =>
+                    setFormData({ ...formData, dosageValue: e.target.value })
+                  }
+                  placeholder="500"
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="flex-1 space-y-1">
+                <Label>Unidade</Label>
+                <Select
+                  value={formData.measurementUnit}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, measurementUnit: v })
+                  }
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="mg">mg</SelectItem>
+                    <SelectItem value="ml">ml</SelectItem>
+                    <SelectItem value="g">g</SelectItem>
+                    <SelectItem value="mcg">mcg</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Estoque mínimo
-            </label>
-            <input
-              type="text"
-              value={formData.minimumStock}
-              onChange={(e) =>
-                setFormData({ ...formData, minimumStock: e.target.value })
-              }
-              placeholder="10"
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-              disabled={saving}
-            />
-          </div>
+            <div className="space-y-1">
+              <Label>Estoque mínimo</Label>
+              <Input
+                value={formData.minimumStock}
+                onChange={(e) =>
+                  setFormData({ ...formData, minimumStock: e.target.value })
+                }
+                placeholder="10"
+                disabled={saving}
+              />
+            </div>
 
-          <div className="flex justify-between pt-4">
-            <button
-              type="button"
-              onClick={() => navigate("/medicines")}
-              className="px-5 py-2 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-100 transition"
-              disabled={saving}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-50"
-              disabled={saving}
-            >
-              {saving ? "Cadastrando..." : "Cadastrar"}
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="flex justify-end pt-4 gap-2">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => navigate("/medicines")}
+                disabled={saving}
+                className="rounded-lg"
+              >
+                Cancelar
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
+              >
+                {saving ? "Cadastrando..." : "Cadastrar"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </Layout>
   );
 }

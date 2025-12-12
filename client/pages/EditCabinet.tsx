@@ -3,8 +3,21 @@ import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
 import LoadingModal from "@/components/LoadingModal";
+
 import { getCabinets, updateCabinet, getCabinetCategories } from "@/api/requests";
 import { Cabinet } from "@/interfaces/interfaces";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectValue,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function EditCabinet() {
   const location = useLocation();
@@ -14,12 +27,16 @@ export default function EditCabinet() {
 
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
   const [categories, setCategories] = useState<{ id: number; nome: string }[]>([]);
-  const [formData, setFormData] = useState({ id: 0, categoryId: 0 });
   const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    id: 0,
+    categoryId: 0,
+  });
 
   useEffect(() => {
     getCabinets()
-      .then((data) => setCabinets(data))
+      .then(setCabinets)
       .catch(() =>
         toast({
           title: "Erro ao carregar armários",
@@ -50,7 +67,7 @@ export default function EditCabinet() {
 
         setFormData({
           id: cab.numero,
-          categoryId: matchedCategory?.id,
+          categoryId: matchedCategory?.id ?? 0,
         });
       }
     }
@@ -72,13 +89,10 @@ export default function EditCabinet() {
     });
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
+  const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "categoryId" ? Number(value) : value,
+      [field]: value,
     }));
   };
 
@@ -126,82 +140,93 @@ export default function EditCabinet() {
         description="Atualizando armário..."
       />
 
-      <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
-        <h2 className="text-lg font-semibold text-slate-800 mb-6">
-          Edição de Armário
-        </h2>
+      <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-lg text-slate-800">Editar Armário</CardTitle>
+        </CardHeader>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Selecionar Armário
-          </label>
+        <CardContent>
+          <form className="space-y-6"> 
+            <div className="space-y-1">
+              <Label>Armário</Label>
 
-          <select
-            value={formData.id || ""}
-            onChange={(e) => handleSelectChange(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-sm focus:ring-2 focus:ring-sky-300"
-          >
-            <option value="" disabled hidden>
-              Selecione
-            </option>
+              <Select
+                value={formData.id ? String(formData.id) : ""}
+                onValueChange={handleSelectChange}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Selecione o armário" />
+                </SelectTrigger>
 
-            {cabinets.map((c) => (
-              <option key={c.numero} value={c.numero}>
-                Armário {c.numero} ({c.categoria})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {formData.id !== 0 && (
-          <div className="space-y-5 pt-4 border-t border-slate-100">
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Número</label>
-              <input
-                type="number"
-                name="id"
-                value={formData.id}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2.5"
-              />
+                <SelectContent>
+                  {cabinets.map((c) => (
+                    <SelectItem key={c.numero} value={String(c.numero)}>
+                      Armário {c.numero} ({c.categoria})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Categoria</label>
-              <select
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2.5 bg-white"
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {formData.id !== 0 && (
+              <>
+                <div className="space-y-1">
+                  <Label>Número do armário</Label>
+                  <Input
+                    type="number"
+                    value={formData.id}
+                    onChange={(e) => handleChange("id", Number(e.target.value))}
+                    disabled={loading}
+                  />
+                </div>
 
-            <div className="flex justify-between pt-4">
-              <button
-                onClick={() => navigate("/cabinets")}
-                className="px-5 py-2 border rounded-lg text-sm"
-              >
-                Cancelar
-              </button>
+                <div className="space-y-1">
+                  <Label>Categoria</Label>
 
-              <button
-                onClick={handleSave}
-                className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm"
-                disabled={loading}
-              >
-                Salvar
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+                  <Select
+                    value={String(formData.categoryId)}
+                    onValueChange={(v) =>
+                      handleChange("categoryId", Number(v))
+                    }
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate("/cabinets")}
+                    disabled={loading}
+                    className="rounded-lg"
+                  >
+                    Cancelar
+                  </Button>
+
+                  <Button
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
+                  >
+                    {loading ? "Salvando..." : "Salvar Alterações"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </form>
+        </CardContent>
+      </Card>
     </Layout>
   );
 }
