@@ -28,8 +28,8 @@ export default function Profile() {
       const raw = localStorage.getItem("user");
       if (raw) {
         const u = JSON.parse(raw);
-        setCurrentEmail(u.login || "");
-        setNewEmail(u.login || "");
+        setCurrentEmail(u?.login || "");
+        setNewEmail(u?.login || "");
         setUserId(u.id || null);
       }
     } catch (e) {
@@ -48,20 +48,21 @@ export default function Profile() {
         throw new Error("Senha atual é obrigatória para autenticar");
       if (!newPassword) throw new Error("Informe a nova senha");
 
-      const { data } = await updateUser(userId, {
+      const data = await updateUser(userId, {
         login: newEmail,
         password: newPassword,
         currentLogin: currentEmail,
         currentPassword,
       });
 
+      console.log(data)
       localStorage.setItem("user", JSON.stringify(data));
 
       toast({ title: "Perfil atualizado", variant: "success" });
       setCurrentPassword("");
       setNewPassword("");
-      setCurrentEmail(data.login || "");
-      setNewEmail(data.login || "");
+      setCurrentEmail(data?.login || "");
+      setNewEmail(data?.login || "");
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "error" });
     } finally {

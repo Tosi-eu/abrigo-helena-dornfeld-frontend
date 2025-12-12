@@ -41,6 +41,7 @@ export default function Auth() {
         toast({ title: "Login realizado!", variant: "success" });
       } else {
         await register(login, password);
+        await authLogin(login, password);
         toast({ title: "Cadastro realizado!", variant: "success" });
       }
 
