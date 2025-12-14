@@ -19,17 +19,18 @@ import { StockItemRaw } from "@/interfaces/interfaces";
 import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
 
+const FETCH_LIMIT = 600; 
+const UI_PAGE_SIZE = 6;  
+
 export default function StockOut() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-
   const [items, setItems] = useState<StockItemRaw[]>([]);
 
-  const [page, setPage] = useState(1);
+  const [uiPage, setUiPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 6;
 
   const [filters, setFilters] = useState({
     nome: "",
@@ -47,10 +48,18 @@ export default function StockOut() {
     setLoading(true);
 
     try {
-      const result = await apiGetStock(page, pageSize, operationType !== "Selecione" ? operationType : undefined);
+      const result = await apiGetStock(
+        1,
+        FETCH_LIMIT,
+        operationType !== "Selecione" ? operationType : undefined
+      );
 
-      setItems(result?.data ?? []);
-      setTotalPages(result?.data?.totalPages ?? 1);
+      const allItems = result?.data ?? [];
+      setItems(allItems);
+
+      setTotalPages(
+        Math.max(1, Math.ceil(allItems.length / UI_PAGE_SIZE))
+      );
     } catch (err) {
       console.error(err);
       toast({
@@ -58,19 +67,25 @@ export default function StockOut() {
         description: "Não foi possível carregar os dados.",
         variant: "error",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   useEffect(() => {
     fetchStock();
-  }, [page, operationType]);
+  }, [operationType]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (uiPage - 1) * UI_PAGE_SIZE;
+    const end = start + UI_PAGE_SIZE;
+    return items.slice(start, end);
+  }, [items, uiPage]);
 
   const handleSelectType = (type: OperationType) => {
     setOperationType(type);
     setSelected(null);
-    setPage(1);
+    setUiPage(1);
     setStep(StockWizardSteps.ITENS);
   };
 
@@ -218,15 +233,15 @@ export default function StockOut() {
                 className="w-full"
               >
                 <StepItems
-                  items={items}
+                  items={paginatedItems}
                   allItemsCount={items.length}
-                  page={page}
-                  pageSize={pageSize}
+                  page={uiPage}
+                  pageSize={UI_PAGE_SIZE}
                   totalPages={totalPages}
                   selected={selected}
                   onSelectItem={handleSelectItem}
                   onBack={() => setStep(StockWizardSteps.TIPO)}
-                  setPage={setPage}
+                  setPage={setUiPage}
                 />
               </motion.div>
             )}
@@ -254,7 +269,11 @@ export default function StockOut() {
 
         {step === StockWizardSteps.ITENS && (
           <div className="mt-8 flex justify-center">
-            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+            <Pagination
+              page={uiPage}
+              totalPages={totalPages}
+              onChange={setUiPage}
+            />
           </div>
         )}
       </div>

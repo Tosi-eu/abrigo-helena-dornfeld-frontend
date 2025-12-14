@@ -111,11 +111,11 @@ export default function Stock() {
             onClick={() => navigate("/stock/in")}
             disabled={loading}
             className="
-              h-11 px-5 rounded-xl font-medium
+              h-12 px-6 rounded-lg font-semibold
               bg-green-600 text-white
-              hover:bg-green-700 active:bg-green-800
+              shadow-md hover:bg-green-700 hover:shadow-lg active:bg-green-800 active:shadow-xl
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition
+              transition-all ease-in-out duration-200
             "
           >
             Entrada de Estoque
@@ -125,11 +125,11 @@ export default function Stock() {
             onClick={() => navigate("/stock/out")}
             disabled={loading}
             className="
-              h-11 px-5 rounded-xl font-medium
+              h-12 px-6 rounded-lg font-semibold
               bg-red-600 text-white
-              hover:bg-red-700 active:bg-red-800
+              shadow-md hover:bg-red-700 hover:shadow-lg active:bg-red-800 active:shadow-xl
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition
+              transition-all ease-in-out duration-200
             "
           >
             Saída de Estoque
@@ -139,11 +139,11 @@ export default function Stock() {
             onClick={() => setReportModalOpen(true)}
             disabled={loading}
             className="
-              h-11 px-5 rounded-xl font-medium
+              h-12 px-6 rounded-lg font-semibold
               bg-sky-600 text-white
-              hover:bg-sky-700 active:bg-sky-800
+              shadow-md hover:bg-sky-700 hover:shadow-lg active:bg-sky-800 active:shadow-xl
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition
+              transition-all ease-in-out duration-200
             "
           >
             Gerar Relatório

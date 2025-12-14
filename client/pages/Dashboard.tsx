@@ -62,10 +62,10 @@ export default function Dashboard() {
           proportionRes,
           cabinetRes,
         ] = await Promise.all([
-          api.get("/estoque?page=1&limit=400"),
+          api.get("/estoque?page=1&limit=800"),
 
-          api.get("/movimentacoes/medicamentos", { params: { days: 7, page: 1, limit: 400 } }),
-          api.get("/movimentacoes/insumos", { params: { days: 7, page: 1, limit: 400 } }),
+          api.get("/movimentacoes/medicamentos", { params: { days: 7, page: 1, limit: 600 } }),
+          api.get("/movimentacoes/insumos", { params: { days: 7, page: 1, limit: 600 } }),
 
           api.get("/estoque/proporcao"),
           api.get("/estoque", { params: { type: "armarios" } }),
@@ -109,10 +109,10 @@ export default function Dashboard() {
 
     const itemsInStockWarning = stockList.data.filter(i => i.st_quantidade === "low");
 
-    const expiredItems = stockList.data.filter(i => i.st_expiracao === "expired");
+    const expiredItems = stockList.data.filter(i => i.st_expiracao === "expired" && i.quantidade > 0);
 
     const expiringSoonItems = stockList.data.filter(i =>
-      i.st_expiracao === "warning" || i.st_expiracao === "critical"
+      i.st_expiracao === "warning" || i.st_expiracao === "critical" && i.quantidade > 0
     );
 
     setNoStock(noStockItems.length);
