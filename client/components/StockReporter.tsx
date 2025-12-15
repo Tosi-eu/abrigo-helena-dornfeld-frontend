@@ -26,7 +26,7 @@ interface RowData {
   insumo?: string;
   principio_ativo?: string;
   quantidade?: number | string;
-  validade?: string;
+  validade: string;
   residente?: string;
   medicamento?: string;
   casela?: number;
@@ -226,7 +226,7 @@ export function createStockPDF(
         {tipo === "insumos" && (
           <>
             <Text style={styles.sectionTitle}>Insumos</Text>
-            {renderTable(["Insumo", "Quantidade", "Armario"], data as RowData[])}
+            {renderTable(["Insumo", "Quantidade", "Armario", "Validade"], data as RowData[])}
           </>
         )}
 

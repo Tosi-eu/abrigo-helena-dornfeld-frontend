@@ -2,7 +2,7 @@
 import { EventStatus, MovementType, OperationType } from "@/utils/enums";
 import { api } from "./canonical";
 
-export const getCabinets = () => api.get("/armarios");
+export const getCabinets = () => api.get("/armarios?page=1&limit=10");
 
 export const getNonMovementProducts = () => api.get("/movimentacoes/produtos-parados");
 

@@ -16,6 +16,8 @@ export function StockCard({
   const display = (v: any) =>
     v !== null && v !== undefined && v !== "" ? v : "N/A";
 
+  console.log(item)
+
   const fields: { label: string; value: string | number }[] = [
     { label: "Nome", value: display(item.nome) },
     { label: "Quantidade", value: display(item.quantidade) },

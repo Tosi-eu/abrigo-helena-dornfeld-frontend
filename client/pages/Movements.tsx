@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import LoadingModal from "@/components/LoadingModal";
 import { getInputMovements, getMedicineMovements } from "@/api/requests";
 import { Card } from "@/components/ui/card";
 
+const PAGE_LIMIT = 5;
+
 export default function InputMovements() {
   const [entriesPage, setEntriesPage] = useState(1);
   const [exitsPage, setExitsPage] = useState(1);
 
-  const [entries, setEntries] = useState<any[]>([]);
-  const [exits, setExits] = useState<any[]>([]);
-
-  const [entriesHasNext, setEntriesHasNext] = useState(false);
-  const [exitsHasNext, setExitsHasNext] = useState(false);
-
+  const [allMovements, setAllMovements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const columnsBase = [
@@ -48,53 +45,72 @@ export default function InputMovements() {
     };
   }
 
-  async function fetchEntries(page: number) {
+  async function fetchMovements() {
     const [insumos, medicamentos] = await Promise.all([
-      getInputMovements({ page }),
-      getMedicineMovements({ page }),
+      getInputMovements({ limit: 1000 }),
+      getMedicineMovements({ limit: 1000 }),
     ]);
 
-    const combined = [
+    const merged = [
       ...insumos.data.map(normalizeMovement),
       ...medicamentos.data.map(normalizeMovement),
     ];
 
-    setEntries(combined.filter((m) => m.type === "entrada"));
-    setEntriesHasNext(insumos.hasNext || medicamentos.hasNext);
-  }
+    merged.sort(
+      (a, b) =>
+        new Date(b.movementDate).getTime() -
+        new Date(a.movementDate).getTime()
+    );
 
-  async function fetchExits(page: number) {
-    const [insumos, medicamentos] = await Promise.all([
-      getInputMovements({ page }),
-      getMedicineMovements({ page }),
-    ]);
-
-    const combined = [
-      ...insumos.data.map(normalizeMovement),
-      ...medicamentos.data.map(normalizeMovement),
-    ];
-
-    setExits(combined.filter((m) => m.type === "saida"));
-    setExitsHasNext(insumos.hasNext || medicamentos.hasNext);
+    setAllMovements(merged);
   }
 
   useEffect(() => {
     setLoading(true);
+    fetchMovements().finally(() => setLoading(false));
+  }, []);
 
-    Promise.all([fetchEntries(entriesPage), fetchExits(exitsPage)]).finally(() =>
-      setLoading(false)
-    );
-  }, [entriesPage, exitsPage]);
+  const entriesAll = useMemo(
+    () => allMovements.filter((m) => m.type === "entrada"),
+    [allMovements]
+  );
+
+  const exitsAll = useMemo(
+    () => allMovements.filter((m) => m.type === "saida"),
+    [allMovements]
+  );
+
+  const entriesTotalPages = Math.max(
+    1,
+    Math.ceil(entriesAll.length / PAGE_LIMIT)
+  );
+
+  const exitsTotalPages = Math.max(
+    1,
+    Math.ceil(exitsAll.length / PAGE_LIMIT)
+  );
+
+  const entries = useMemo(() => {
+    const start = (entriesPage - 1) * PAGE_LIMIT;
+    return entriesAll.slice(start, start + PAGE_LIMIT);
+  }, [entriesAll, entriesPage]);
+
+  const exits = useMemo(() => {
+    const start = (exitsPage - 1) * PAGE_LIMIT;
+    return exitsAll.slice(start, start + PAGE_LIMIT);
+  }, [exitsAll, exitsPage]);
 
   return (
     <Layout title="Movimentações">
-      <LoadingModal open={loading} title="Aguarde" description="Carregando..." />
+      <LoadingModal
+        open={loading}
+        title="Aguarde"
+        description="Carregando..."
+      />
 
       {!loading && (
         <div className="w-full flex justify-center p-10">
-
           <Card className="w-full max-w-5xl bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg transition-shadow p-8 space-y-12">
-
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-slate-800">
                 Entradas de produtos
@@ -105,9 +121,15 @@ export default function InputMovements() {
                 columns={columnsBase}
                 entityType="entries"
                 currentPage={entriesPage}
-                hasNextPage={entriesHasNext}
-                onNextPage={() => setEntriesPage((p) => p + 1)}
-                onPrevPage={() => setEntriesPage((p) => Math.max(1, p - 1))}
+                hasNextPage={entriesPage < entriesTotalPages}
+                onNextPage={() =>
+                  setEntriesPage((p) =>
+                    Math.min(entriesTotalPages, p + 1)
+                  )
+                }
+                onPrevPage={() =>
+                  setEntriesPage((p) => Math.max(1, p - 1))
+                }
                 showAddons={false}
               />
             </div>
@@ -122,15 +144,19 @@ export default function InputMovements() {
                 columns={columnsBase}
                 entityType="exits"
                 currentPage={exitsPage}
-                hasNextPage={exitsHasNext}
-                onNextPage={() => setExitsPage((p) => p + 1)}
-                onPrevPage={() => setExitsPage((p) => Math.max(1, p - 1))}
+                hasNextPage={exitsPage < exitsTotalPages}
+                onNextPage={() =>
+                  setExitsPage((p) =>
+                    Math.min(exitsTotalPages, p + 1)
+                  )
+                }
+                onPrevPage={() =>
+                  setExitsPage((p) => Math.max(1, p - 1))
+                }
                 showAddons={false}
               />
             </div>
-
           </Card>
-
         </div>
       )}
     </Layout>
