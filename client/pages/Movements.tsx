@@ -1,17 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import LoadingModal from "@/components/LoadingModal";
 import { getInputMovements, getMedicineMovements } from "@/api/requests";
 import { Card } from "@/components/ui/card";
 
-const PAGE_LIMIT = 5;
+const TABLE_LIMIT = 10;
+const REQUEST_LIMIT = 5;
 
 export default function InputMovements() {
-  const [entriesPage, setEntriesPage] = useState(1);
-  const [exitsPage, setExitsPage] = useState(1);
+  const [entriesInsumoPage, setEntriesInsumoPage] = useState(1);
+  const [entriesMedicamentoPage, setEntriesMedicamentoPage] = useState(1);
+  const [entriesHasNext, setEntriesHasNext] = useState(false);
+  const [entries, setEntries] = useState<any[]>([]);
+  const entriesRequestId = useRef(0);
 
-  const [allMovements, setAllMovements] = useState<any[]>([]);
+  const [exitsInsumoPage, setExitsInsumoPage] = useState(1);
+  const [exitsMedicamentoPage, setExitsMedicamentoPage] = useState(1);
+  const [exitsHasNext, setExitsHasNext] = useState(false);
+  const [exits, setExits] = useState<any[]>([]);
+  const exitsRequestId = useRef(0);
+
   const [loading, setLoading] = useState(true);
 
   const columnsBase = [
@@ -30,75 +39,93 @@ export default function InputMovements() {
     return {
       id: item.id,
       name: isMedicine
-        ? item.MedicineModel?.nome ?? "-"
-        : item.InputModel?.nome ?? "-",
+        ? (item.MedicineModel?.nome ?? "-")
+        : (item.InputModel?.nome ?? "-"),
       additionalData: isMedicine
-        ? item.MedicineModel?.principio_ativo ?? ""
-        : item.InputModel?.descricao ?? "",
+        ? (item.MedicineModel?.principio_ativo ?? "")
+        : (item.InputModel?.descricao ?? ""),
       quantity: item.quantidade,
       operator: item.LoginModel?.login ?? "",
       movementDate: item.data,
       cabinet: item.CabinetModel?.num_armario ?? item.armario_id ?? "",
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
-      validade: item.validade,
     };
   }
 
-  async function fetchMovements() {
+  async function fetchEntries() {
+    const requestId = ++entriesRequestId.current;
+
     const [insumos, medicamentos] = await Promise.all([
-      getInputMovements({ limit: 1000 }),
-      getMedicineMovements({ limit: 1000 }),
+      getInputMovements({
+        type: "entrada",
+        limit: REQUEST_LIMIT,
+        page: entriesInsumoPage,
+      }),
+      getMedicineMovements({
+        type: "entrada",
+        limit: REQUEST_LIMIT,
+        page: entriesMedicamentoPage,
+      }),
     ]);
+
+    if (requestId !== entriesRequestId.current) return;
 
     const merged = [
       ...insumos.data.map(normalizeMovement),
       ...medicamentos.data.map(normalizeMovement),
-    ];
-
-    merged.sort(
+    ].sort(
       (a, b) =>
-        new Date(b.movementDate).getTime() -
-        new Date(a.movementDate).getTime()
+        new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
     );
 
-    setAllMovements(merged);
+    setEntries(merged.slice(0, TABLE_LIMIT));
+    setEntriesHasNext(
+      insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
+    );
+  }
+
+  async function fetchExits() {
+    const requestId = ++exitsRequestId.current;
+
+    const [insumos, medicamentos] = await Promise.all([
+      getInputMovements({
+        type: "saida",
+        limit: REQUEST_LIMIT,
+        page: exitsInsumoPage,
+      }),
+      getMedicineMovements({
+        type: "saida",
+        limit: REQUEST_LIMIT,
+        page: exitsMedicamentoPage,
+      }),
+    ]);
+
+    if (requestId !== exitsRequestId.current) return;
+
+    const merged = [
+      ...insumos.data.map(normalizeMovement),
+      ...medicamentos.data.map(normalizeMovement),
+    ].sort(
+      (a, b) =>
+        new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
+    );
+
+    setExits(merged.slice(0, TABLE_LIMIT));
+    setExitsHasNext(
+      insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
+    );
   }
 
   useEffect(() => {
     setLoading(true);
-    fetchMovements().finally(() => setLoading(false));
-  }, []);
+    fetchEntries().finally(() => setLoading(false));
+  }, [entriesInsumoPage, entriesMedicamentoPage]);
 
-  const entriesAll = useMemo(
-    () => allMovements.filter((m) => m.type === "entrada"),
-    [allMovements]
-  );
-
-  const exitsAll = useMemo(
-    () => allMovements.filter((m) => m.type === "saida"),
-    [allMovements]
-  );
-
-  const entriesTotalPages = Math.max(
-    1,
-    Math.ceil(entriesAll.length / PAGE_LIMIT)
-  );
-
-  const exitsTotalPages = Math.max(
-    1,
-    Math.ceil(exitsAll.length / PAGE_LIMIT)
-  );
-
-  const entries = useMemo(() => {
-    const start = (entriesPage - 1) * PAGE_LIMIT;
-    return entriesAll.slice(start, start + PAGE_LIMIT);
-  }, [entriesAll, entriesPage]);
-
-  const exits = useMemo(() => {
-    const start = (exitsPage - 1) * PAGE_LIMIT;
-    return exitsAll.slice(start, start + PAGE_LIMIT);
-  }, [exitsAll, exitsPage]);
+  useEffect(() => {
+    setLoading(true);
+    fetchExits().finally(() => setLoading(false));
+  }, [exitsInsumoPage, exitsMedicamentoPage]);
 
   return (
     <Layout title="Movimentações">
@@ -110,49 +137,48 @@ export default function InputMovements() {
 
       {!loading && (
         <div className="w-full flex justify-center p-10">
-          <Card className="w-full max-w-5xl bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg transition-shadow p-8 space-y-12">
+          <Card className="w-full max-w-5xl bg-white border shadow-md p-8 space-y-12">
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Entradas de produtos
-              </h2>
+              <h2 className="text-lg font-semibold">Entradas</h2>
 
               <EditableTable
                 data={entries}
                 columns={columnsBase}
                 entityType="entries"
-                currentPage={entriesPage}
-                hasNextPage={entriesPage < entriesTotalPages}
-                onNextPage={() =>
-                  setEntriesPage((p) =>
-                    Math.min(entriesTotalPages, p + 1)
-                  )
-                }
-                onPrevPage={() =>
-                  setEntriesPage((p) => Math.max(1, p - 1))
-                }
+                currentPage={Math.max(
+                  entriesInsumoPage,
+                  entriesMedicamentoPage,
+                )}
+                hasNextPage={entriesHasNext}
+                onNextPage={() => {
+                  setEntriesInsumoPage((p) => p + 1);
+                  setEntriesMedicamentoPage((p) => p + 1);
+                }}
+                onPrevPage={() => {
+                  setEntriesInsumoPage((p) => Math.max(1, p - 1));
+                  setEntriesMedicamentoPage((p) => Math.max(1, p - 1));
+                }}
                 showAddons={false}
               />
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Saídas de produtos
-              </h2>
+              <h2 className="text-lg font-semibold">Saídas</h2>
 
               <EditableTable
                 data={exits}
                 columns={columnsBase}
                 entityType="exits"
-                currentPage={exitsPage}
-                hasNextPage={exitsPage < exitsTotalPages}
-                onNextPage={() =>
-                  setExitsPage((p) =>
-                    Math.min(exitsTotalPages, p + 1)
-                  )
-                }
-                onPrevPage={() =>
-                  setExitsPage((p) => Math.max(1, p - 1))
-                }
+                currentPage={Math.max(exitsInsumoPage, exitsMedicamentoPage)}
+                hasNextPage={exitsHasNext}
+                onNextPage={() => {
+                  setExitsInsumoPage((p) => p + 1);
+                  setExitsMedicamentoPage((p) => p + 1);
+                }}
+                onPrevPage={() => {
+                  setExitsInsumoPage((p) => Math.max(1, p - 1));
+                  setExitsMedicamentoPage((p) => Math.max(1, p - 1));
+                }}
                 showAddons={false}
               />
             </div>

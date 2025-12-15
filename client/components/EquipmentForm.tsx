@@ -58,7 +58,6 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
-
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
         <h2 className="text-lg font-semibold text-slate-800">
           Informações do Insumo
@@ -66,13 +65,17 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Nome do Insumo</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Nome do Insumo
+        </label>
         <select
           value={formData.inputId}
           onChange={(e) => handleInputChange(Number(e.target.value))}
           className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
         >
-          <option value={0} disabled hidden>Selecione</option>
+          <option value={0} disabled hidden>
+            Selecione
+          </option>
           {inputs.map((input) => (
             <option key={input.id} value={input.id}>
               {input.name}
@@ -83,12 +86,17 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Quantidade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Quantidade
+          </label>
           <input
             type="number"
             value={formData.quantity}
             onChange={(e) =>
-              setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })
+              setFormData({
+                ...formData,
+                quantity: parseInt(e.target.value) || 0,
+              })
             }
             placeholder="10"
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
@@ -96,7 +104,9 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
         </div>
 
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Validade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Validade
+          </label>
           <DatePicker
             selected={formData.validity}
             onChange={(date: Date | null) =>
@@ -119,7 +129,9 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
           }
           className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
         >
-          <option value={0} disabled hidden>Selecione</option>
+          <option value={0} disabled hidden>
+            Selecione
+          </option>
           {cabinets.map((cab) => (
             <option key={cab.numero} value={cab.numero}>
               {cab.numero}
@@ -129,16 +141,23 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Tipo de Estoque</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Tipo de Estoque
+        </label>
 
         <select
           value={formData.stockType}
           onChange={(e) =>
-            setFormData({ ...formData, stockType: e.target.value as InputStockType })
+            setFormData({
+              ...formData,
+              stockType: e.target.value as InputStockType,
+            })
           }
           className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
         >
-          <option value="" disabled hidden>Selecione</option>
+          <option value="" disabled hidden>
+            Selecione
+          </option>
 
           {Object.values(InputStockType).map((type) => (
             <option key={type} value={type}>

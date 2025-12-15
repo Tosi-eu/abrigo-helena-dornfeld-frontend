@@ -1,6 +1,5 @@
 import { OperationType } from "@/utils/enums";
 
-
 interface Props {
   value: OperationType | "Selecione";
   onSelect: (t: OperationType) => void;
@@ -9,7 +8,9 @@ interface Props {
 export default function StepType({ value, onSelect }: Props) {
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium text-slate-700">Tipo de saída</label>
+      <label className="block text-sm font-medium text-slate-700">
+        Tipo de saída
+      </label>
       <select
         value={value}
         onChange={(e) => onSelect(e.target.value as OperationType)}

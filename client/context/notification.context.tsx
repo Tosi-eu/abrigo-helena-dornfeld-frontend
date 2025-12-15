@@ -9,7 +9,8 @@ interface NotificationContextValue {
   triggerReload: boolean;
 }
 
-export const NotificationContext = createContext<NotificationContextValue | null>(null);
+export const NotificationContext =
+  createContext<NotificationContextValue | null>(null);
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);

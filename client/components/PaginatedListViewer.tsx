@@ -6,7 +6,11 @@ interface PaginatedListProps<T> {
   renderItem: (item: T) => React.ReactNode;
 }
 
-export function PaginatedListViewer<T>({ items, perPage = 5, renderItem }: PaginatedListProps<T>) {
+export function PaginatedListViewer<T>({
+  items,
+  perPage = 5,
+  renderItem,
+}: PaginatedListProps<T>) {
   const [page, setPage] = useState(1);
 
   const start = (page - 1) * perPage;
@@ -31,7 +35,9 @@ export function PaginatedListViewer<T>({ items, perPage = 5, renderItem }: Pagin
             ←
           </button>
 
-          <span className="text-sm text-gray-600">Página {page} de {totalPages}</span>
+          <span className="text-sm text-gray-600">
+            Página {page} de {totalPages}
+          </span>
 
           <button
             disabled={page === totalPages}

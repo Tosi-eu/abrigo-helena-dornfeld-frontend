@@ -6,7 +6,9 @@ export async function tap<T>(fn: () => Promise<T> | T): Promise<T> {
   }
 }
 
-export function parseDateFromString(dateStr: string | null | undefined): Date | null {
+export function parseDateFromString(
+  dateStr: string | null | undefined,
+): Date | null {
   if (!dateStr) return null;
 
   const [day, month, year] = dateStr.split("/").map(Number);
@@ -14,4 +16,3 @@ export function parseDateFromString(dateStr: string | null | undefined): Date | 
 
   return new Date(year, month - 1, day);
 }
-

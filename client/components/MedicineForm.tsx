@@ -5,13 +5,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  MedicineStockType,
-  OriginType,
-  StockTypeLabels,
-} from "@/utils/enums";
+import { MedicineStockType, OriginType, StockTypeLabels } from "@/utils/enums";
 
-export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: MedicineFormProps) {
+export function MedicineForm({
+  medicines,
+  caselas,
+  cabinets,
+  onSubmit,
+}: MedicineFormProps) {
   const [formData, setFormData] = useState({
     id: null as number | null,
     quantity: "",
@@ -76,7 +77,6 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
-
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
         <h2 className="text-lg font-semibold text-slate-800">
           Informações do Medicamento
@@ -94,7 +94,9 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
           }
           className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
         >
-          <option value="" disabled hidden>Selecione</option>
+          <option value="" disabled hidden>
+            Selecione
+          </option>
 
           {medicines.map((m) => (
             <option key={m.id} value={m.id}>
@@ -106,7 +108,9 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Quantidade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Quantidade
+          </label>
           <input
             type="number"
             value={formData.quantity}
@@ -117,10 +121,14 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
         </div>
 
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Validade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Validade
+          </label>
           <DatePicker
             selected={formData.expirationDate}
-            onChange={(date: Date | null) => updateField("expirationDate", date)}
+            onChange={(date: Date | null) =>
+              updateField("expirationDate", date)
+            }
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
             placeholderText="Selecione a data"
@@ -141,7 +149,9 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
           }
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
         >
-          <option value="" disabled hidden>Selecione</option>
+          <option value="" disabled hidden>
+            Selecione
+          </option>
 
           {Object.values(MedicineStockType).map((t) => (
             <option key={t} value={t}>
@@ -159,15 +169,21 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
             onChange={(e) => handleCaselaChange(Number(e.target.value))}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
           >
-            <option value="" disabled hidden>Selecione</option>
+            <option value="" disabled hidden>
+              Selecione
+            </option>
             {caselas.map((c) => (
-              <option key={c.casela} value={c.casela}>{c.casela}</option>
+              <option key={c.casela} value={c.casela}>
+                {c.casela}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Residente</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Residente
+          </label>
           <input
             type="text"
             value={formData.resident}
@@ -180,15 +196,21 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Armário</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Armário
+          </label>
           <select
             value={formData.cabinet ?? ""}
             onChange={(e) => updateField("cabinet", Number(e.target.value))}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
           >
-            <option value="" disabled hidden>Selecione</option>
+            <option value="" disabled hidden>
+              Selecione
+            </option>
             {cabinets.map((c) => (
-              <option key={c.numero} value={c.numero}>{c.numero}</option>
+              <option key={c.numero} value={c.numero}>
+                {c.numero}
+              </option>
             ))}
           </select>
         </div>
@@ -197,10 +219,14 @@ export function MedicineForm({ medicines, caselas, cabinets, onSubmit }: Medicin
           <label className="text-sm font-semibold text-slate-700">Origem</label>
           <select
             value={formData.origin}
-            onChange={(e) => updateField("origin", e.target.value as OriginType)}
+            onChange={(e) =>
+              updateField("origin", e.target.value as OriginType)
+            }
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
           >
-            <option value="" disabled hidden>Selecione</option>
+            <option value="" disabled hidden>
+              Selecione
+            </option>
             {Object.values(OriginType).map((o) => (
               <option key={o} value={o}>
                 {o.charAt(0) + o.slice(1).toLowerCase()}

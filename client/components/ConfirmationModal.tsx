@@ -41,7 +41,8 @@ const ConfirmationModal: FC<ConfirmCategoryModalProps> = ({
           Criar nova categoria?
         </h3>
         <p className="text-slate-700 mb-6">
-          Você digitou: <span className="font-medium text-slate-900">{categoryName}</span>
+          Você digitou:{" "}
+          <span className="font-medium text-slate-900">{categoryName}</span>
         </p>
 
         <div className="flex justify-end gap-3">
@@ -60,7 +61,7 @@ const ConfirmationModal: FC<ConfirmCategoryModalProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

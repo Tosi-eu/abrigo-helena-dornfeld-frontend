@@ -94,12 +94,13 @@ export default function EditInput() {
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
-          <CardTitle className="text-lg text-slate-800">Editar Insumo</CardTitle>
+          <CardTitle className="text-lg text-slate-800">
+            Editar Insumo
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-
             <div className="space-y-1">
               <Label>Nome do insumo</Label>
               <Input
@@ -139,7 +140,6 @@ export default function EditInput() {
                 {saving ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
-
           </form>
         </CardContent>
       </Card>

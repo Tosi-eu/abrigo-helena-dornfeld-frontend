@@ -4,7 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
 import LoadingModal from "@/components/LoadingModal";
 
-import { getCabinets, updateCabinet, getCabinetCategories } from "@/api/requests";
+import {
+  getCabinets,
+  updateCabinet,
+  getCabinetCategories,
+} from "@/api/requests";
 import { Cabinet } from "@/interfaces/interfaces";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -26,7 +30,9 @@ export default function EditCabinet() {
   const item = location.state?.item as Cabinet | undefined;
 
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
-  const [categories, setCategories] = useState<{ id: number; nome: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: number; nome: string }[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -42,7 +48,7 @@ export default function EditCabinet() {
           title: "Erro ao carregar armários",
           description: "Não foi possível buscar os armários do servidor.",
           variant: "error",
-        })
+        }),
       );
   }, []);
 
@@ -54,7 +60,7 @@ export default function EditCabinet() {
           title: "Erro",
           description: "Não foi possível carregar as categorias.",
           variant: "error",
-        })
+        }),
       );
   }, []);
 
@@ -63,7 +69,9 @@ export default function EditCabinet() {
       const cab = cabinets.find((c) => c.numero === item.numero);
 
       if (cab) {
-        const matchedCategory = categories.find((c) => c.nome === cab.categoria);
+        const matchedCategory = categories.find(
+          (c) => c.nome === cab.categoria,
+        );
 
         setFormData({
           id: cab.numero,
@@ -142,11 +150,13 @@ export default function EditCabinet() {
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
-          <CardTitle className="text-lg text-slate-800">Editar Armário</CardTitle>
+          <CardTitle className="text-lg text-slate-800">
+            Editar Armário
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
-          <form className="space-y-6"> 
+          <form className="space-y-6">
             <div className="space-y-1">
               <Label>Armário</Label>
 
@@ -185,9 +195,7 @@ export default function EditCabinet() {
 
                   <Select
                     value={String(formData.categoryId)}
-                    onValueChange={(v) =>
-                      handleChange("categoryId", Number(v))
-                    }
+                    onValueChange={(v) => handleChange("categoryId", Number(v))}
                   >
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Selecione a categoria" />

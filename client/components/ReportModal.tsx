@@ -44,7 +44,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
   ];
 
   const handleSelectReport = (value: string) => {
-    setSelectedReports([value]); 
+    setSelectedReports([value]);
   };
 
   const handleGenerate = async () => {
@@ -164,7 +164,9 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               className="p-12 flex flex-col items-center justify-center gap-4 h-64"
             >
               <Loader2 className="w-12 h-12 animate-spin text-sky-600" />
-              <p className="text-gray-600 font-medium text-center">Gerando...</p>
+              <p className="text-gray-600 font-medium text-center">
+                Gerando...
+              </p>
             </motion.div>
           )}
 
@@ -175,7 +177,10 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <Check className="text-green-600" style={{ width: iconSize, height: iconSize }} />
+              <Check
+                className="text-green-600"
+                style={{ width: iconSize, height: iconSize }}
+              />
               <p className="font-bold text-xl text-center mt-4">
                 Relatório gerado com sucesso!
               </p>
@@ -195,7 +200,10 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <X className="text-red-600" style={{ width: iconSize, height: iconSize }} />
+              <X
+                className="text-red-600"
+                style={{ width: iconSize, height: iconSize }}
+              />
               <p className="font-bold text-xl text-center mt-4">
                 Falha ao gerar relatório!
               </p>

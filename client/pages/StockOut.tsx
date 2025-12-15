@@ -19,8 +19,8 @@ import { StockItemRaw } from "@/interfaces/interfaces";
 import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
 
-const FETCH_LIMIT = 600; 
-const UI_PAGE_SIZE = 6;  
+const FETCH_LIMIT = 600;
+const UI_PAGE_SIZE = 6;
 
 export default function StockOut() {
   const { user } = useAuth();
@@ -39,8 +39,9 @@ export default function StockOut() {
   });
 
   const [step, setStep] = useState<StockWizardSteps>(StockWizardSteps.TIPO);
-  const [operationType, setOperationType] =
-    useState<OperationType | "Selecione">("Selecione");
+  const [operationType, setOperationType] = useState<
+    OperationType | "Selecione"
+  >("Selecione");
   const [selected, setSelected] = useState<StockItemRaw | null>(null);
   const [quantity, setQuantity] = useState("");
 
@@ -51,15 +52,13 @@ export default function StockOut() {
       const result = await apiGetStock(
         1,
         FETCH_LIMIT,
-        operationType !== "Selecione" ? operationType : undefined
+        operationType !== "Selecione" ? operationType : undefined,
       );
 
       const allItems = result?.data ?? [];
       setItems(allItems);
 
-      setTotalPages(
-        Math.max(1, Math.ceil(allItems.length / UI_PAGE_SIZE))
-      );
+      setTotalPages(Math.max(1, Math.ceil(allItems.length / UI_PAGE_SIZE)));
     } catch (err) {
       console.error(err);
       toast({
@@ -153,7 +152,11 @@ export default function StockOut() {
 
   return (
     <Layout title="Saída de Estoque">
-      <LoadingModal open={loading} title="Aguarde" description="Carregando dados..." />
+      <LoadingModal
+        open={loading}
+        title="Aguarde"
+        description="Carregando dados..."
+      />
 
       <div className="bg-white p-6 rounded-lg border border-gray-300 max-w-7xl mx-auto mt-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -173,7 +176,9 @@ export default function StockOut() {
               type="text"
               className="w-full border border-gray-300 p-2 rounded-lg"
               value={filters.armario}
-              onChange={(e) => setFilters({ ...filters, armario: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, armario: e.target.value })
+              }
             />
           </div>
 
@@ -183,7 +188,9 @@ export default function StockOut() {
               type="text"
               className="w-full border border-gray-300 p-2 rounded-lg"
               value={filters.origem}
-              onChange={(e) => setFilters({ ...filters, origem: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, origem: e.target.value })
+              }
             />
           </div>
         </div>

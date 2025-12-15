@@ -22,12 +22,18 @@ export function NotificationDrawer() {
   const [loading, setLoading] = useState(false);
 
   const [mode, setMode] = useState<"list" | "create">("list");
-  const [editingNotification, setEditingNotification] = useState<any | null>(null);
+  const [editingNotification, setEditingNotification] = useState<any | null>(
+    null,
+  );
 
   const fetchNotifications = async (p = 1, append = false) => {
     setLoading(true);
     try {
-      const { items: data, total } = await getNotifications(p, 5, EventStatus.PENDENTE);
+      const { items: data, total } = await getNotifications(
+        p,
+        5,
+        EventStatus.PENDENTE,
+      );
       setItems((prev) => (append ? [...prev, ...data] : data));
       setCount(total);
     } catch {
@@ -54,13 +60,21 @@ export function NotificationDrawer() {
     }
   }, [open, triggerReload]);
 
-  const handleRemove = async (id: number, status: "sent" | "cancelled", message: string) => {
+  const handleRemove = async (
+    id: number,
+    status: "sent" | "cancelled",
+    message: string,
+  ) => {
     try {
       await updateNotification(id, { status });
       toast({ title: message, variant: "success" });
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch {
-      toast({ title: "Erro", description: "Não foi possível atualizar a notificação.", variant: "error" });
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a notificação.",
+        variant: "error",
+      });
     }
   };
 
@@ -72,29 +86,35 @@ export function NotificationDrawer() {
             {mode === "list"
               ? "Notificações Pendentes"
               : editingNotification
-              ? "Editar Notificação"
-              : "Criar Notificação"}
+                ? "Editar Notificação"
+                : "Criar Notificação"}
           </DrawerTitle>
         </DrawerHeader>
 
         {mode === "list" && (
           <>
             {loading && items.length === 0 ? (
-              <div className="text-center py-10 text-slate-500">Carregando...</div>
+              <div className="text-center py-10 text-slate-500">
+                Carregando...
+              </div>
             ) : (
               <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-              {items.length === 0 ? (
-                <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
-                  Nenhuma notificação pendente.
-                </div>
-              ) : (
+                {items.length === 0 ? (
+                  <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
+                    Nenhuma notificação pendente.
+                  </div>
+                ) : (
                   <AnimatePresence>
                     {items.map((n) => (
                       <motion.div
                         key={n.id}
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10, transition: { duration: 0.3 } }}
+                        exit={{
+                          opacity: 0,
+                          y: -10,
+                          transition: { duration: 0.3 },
+                        }}
                         layout
                       >
                         <NotificationCard
@@ -107,10 +127,16 @@ export function NotificationDrawer() {
                             handleRemove(n.id, "sent", "Notificação concluída")
                           }
                           onCancel={() =>
-                            handleRemove(n.id, "cancelled", "Notificação cancelada")
+                            handleRemove(
+                              n.id,
+                              "cancelled",
+                              "Notificação cancelada",
+                            )
                           }
                           onRemove={() =>
-                            setItems((prev) => prev.filter((item) => item.id !== n.id))
+                            setItems((prev) =>
+                              prev.filter((item) => item.id !== n.id),
+                            )
                           }
                           onEdit={() => {
                             setMode("create");
@@ -181,7 +207,9 @@ export function NotificationDrawer() {
                 type="submit"
                 className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg w-full"
               >
-                {editingNotification ? "Salvar Alterações" : "Criar Notificação"}
+                {editingNotification
+                  ? "Salvar Alterações"
+                  : "Criar Notificação"}
               </button>
             </DrawerFooter>
           </>

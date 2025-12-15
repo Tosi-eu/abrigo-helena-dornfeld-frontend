@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 9, 
+    fontSize: 9,
   },
 
   tableRow: {
@@ -101,13 +101,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
   },
 
-
   cell: {
     flex: 1,
     paddingHorizontal: 2,
     textAlign: "center",
-    fontSize: 9,    
-    whiteSpace: "nowrap", 
+    fontSize: 9,
+    whiteSpace: "nowrap",
   },
 
   footer: {
@@ -133,10 +132,7 @@ function renderTable(headers: string[], rows: RowData[]) {
       {rows.map((row, idx) => (
         <View
           key={idx}
-          style={[
-            styles.tableRow,
-            idx % 2 === 0 ? styles.striped : undefined,
-          ]}
+          style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
         >
           {headers.map((h, i) => {
             const key = h
@@ -161,7 +157,7 @@ function renderTable(headers: string[], rows: RowData[]) {
 
 export function createStockPDF(
   tipo: string,
-  data: RowData[] | ResidentesResponse
+  data: RowData[] | ResidentesResponse,
 ) {
   return (
     <Document>
@@ -175,9 +171,7 @@ export function createStockPDF(
 
         {tipo === "residentes" && (
           <>
-            <Text style={styles.sectionTitle}>
-              Medicamentos por Residente
-            </Text>
+            <Text style={styles.sectionTitle}>Medicamentos por Residente</Text>
 
             {renderTable(
               [
@@ -188,7 +182,7 @@ export function createStockPDF(
                 "Quantidade",
                 "Validade",
               ],
-              (data as ResidentesResponse).detalhes
+              (data as ResidentesResponse).detalhes,
             )}
 
             <Text style={styles.sectionTitle}>Consumo Mensal</Text>
@@ -202,7 +196,7 @@ export function createStockPDF(
                 "Data",
                 "Consumo Mensal",
               ],
-              (data as ResidentesResponse).consumo_mensal
+              (data as ResidentesResponse).consumo_mensal,
             )}
           </>
         )}
@@ -218,7 +212,7 @@ export function createStockPDF(
                 "Validade",
                 "Residente",
               ],
-              data as RowData[]
+              data as RowData[],
             )}
           </>
         )}
@@ -226,7 +220,10 @@ export function createStockPDF(
         {tipo === "insumos" && (
           <>
             <Text style={styles.sectionTitle}>Insumos</Text>
-            {renderTable(["Insumo", "Quantidade", "Armario", "Validade"], data as RowData[])}
+            {renderTable(
+              ["Insumo", "Quantidade", "Armario", "Validade"],
+              data as RowData[],
+            )}
           </>
         )}
 
@@ -241,13 +238,13 @@ export function createStockPDF(
                 "Validade",
                 "Residente",
               ],
-              (data as any).medicamentos ?? []
+              (data as any).medicamentos ?? [],
             )}
 
             <Text style={styles.sectionTitle}>Insumos</Text>
             {renderTable(
               ["Insumo", "Quantidade", "Armario"],
-              (data as any).insumos ?? []
+              (data as any).insumos ?? [],
             )}
           </>
         )}
@@ -263,7 +260,7 @@ export function createStockPDF(
                 "Data Movimentação",
                 "Quantidade",
               ],
-              (data as any).psicotropico ?? []
+              (data as any).psicotropico ?? [],
             )}
           </>
         )}

@@ -4,7 +4,13 @@ import { useToast } from "@/hooks/use-toast.hook";
 import Layout from "@/components/Layout";
 import { updateUser } from "@/api/requests";
 
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -55,7 +61,7 @@ export default function Profile() {
         currentPassword,
       });
 
-      console.log(data)
+      console.log(data);
       localStorage.setItem("user", JSON.stringify(data));
 
       toast({ title: "Perfil atualizado", variant: "success" });
@@ -134,7 +140,11 @@ export default function Profile() {
               </div>
 
               <CardFooter className="flex gap-2 px-0">
-                <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-700" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full bg-sky-600 hover:bg-sky-700"
+                  disabled={loading}
+                >
                   Salvar
                 </Button>
 

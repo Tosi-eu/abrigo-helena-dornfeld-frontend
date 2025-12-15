@@ -1,5 +1,9 @@
-
-import { MedicineStockType, MovementType, OperationType, OriginType } from "@/utils/enums";
+import {
+  MedicineStockType,
+  MovementType,
+  OperationType,
+  OriginType,
+} from "@/utils/enums";
 import { ReactNode } from "react";
 
 export interface Column {
@@ -13,8 +17,8 @@ export interface Column {
 export interface EditableTableProps {
   data: Record<string, any>[];
   columns: Column[];
-  entityType?: string;      
-  showAddons?: boolean;  
+  entityType?: string;
+  showAddons?: boolean;
   onAdd?: (newRow: Record<string, any>) => void;
   onEdit?: (updatedRow: Record<string, any>, index: number) => void;
   onDelete?: (index: number) => void;
@@ -68,8 +72,8 @@ export interface Cabinet {
 }
 
 export interface CabinetCategory {
-    id:number;
-    nome: string;
+  id: number;
+  nome: string;
 }
 
 export interface Input {

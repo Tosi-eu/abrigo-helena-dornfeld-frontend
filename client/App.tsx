@@ -40,8 +40,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-         <NotificationProvider>
-            <BrowserRouter>
+        <NotificationProvider>
+          <BrowserRouter>
             <Routes>
               <Route path="/" element={<Navigate to="/user/login" replace />} />
               <Route path="/user/login" element={<Auth />} />
@@ -190,10 +190,13 @@ const App = () => (
                   </PrivateRoute>
                 }
               />
-              <Route path="/user/forgot-password" element={<ForgotPassword />} />
+              <Route
+                path="/user/forgot-password"
+                element={<ForgotPassword />}
+              />
             </Routes>
           </BrowserRouter>
-         </NotificationProvider>
+        </NotificationProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

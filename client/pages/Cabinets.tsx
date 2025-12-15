@@ -34,15 +34,15 @@ export default function Cabinets() {
 
   return (
     <Layout title="Armários">
-        <div className="pt-12">
-          <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-            <EditableTable
-              data={cabinets}
-              columns={columns}
-              entityType="cabinets"
-            />
-          </div>
+      <div className="pt-12">
+        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <EditableTable
+            data={cabinets}
+            columns={columns}
+            entityType="cabinets"
+          />
         </div>
+      </div>
     </Layout>
   );
 }

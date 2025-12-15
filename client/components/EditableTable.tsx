@@ -174,10 +174,14 @@ export default function EditableTable({
                   {columns.map((col) => {
                     let content = row[col.key];
                     if (col.key === "expiry") content = renderExpiryTag(row);
-                    if (col.key === "quantity") content = renderQuantityTag(row);
+                    if (col.key === "quantity")
+                      content = renderQuantityTag(row);
 
                     return (
-                      <td key={col.key} className="px-4 py-3 text-sm text-slate-800 text-center">
+                      <td
+                        key={col.key}
+                        className="px-4 py-3 text-sm text-slate-800 text-center"
+                      >
                         {content}
                       </td>
                     );

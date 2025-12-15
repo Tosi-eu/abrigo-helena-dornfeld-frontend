@@ -122,7 +122,8 @@ export default function SignUpMedicine() {
       console.error(error);
       toast({
         title: "Erro ao cadastrar",
-        description: error?.message || "Não foi possível registrar o medicamento.",
+        description:
+          error?.message || "Não foi possível registrar o medicamento.",
         variant: "error",
       });
     } finally {
@@ -147,7 +148,6 @@ export default function SignUpMedicine() {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-
             <div className="space-y-1">
               <Label>Nome do medicamento</Label>
               <Input

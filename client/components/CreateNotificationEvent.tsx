@@ -1,4 +1,9 @@
-import { createNotificationEvent, getMedicines, getResidents, patchNotificationEvent } from "@/api/requests";
+import {
+  createNotificationEvent,
+  getMedicines,
+  getResidents,
+  patchNotificationEvent,
+} from "@/api/requests";
 import { formatDateToPtBr } from "@/helpers/dates.helper";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNotifications } from "@/hooks/use-notification.hook";
@@ -14,7 +19,10 @@ interface CreateNotificationFormProps {
   onCreated?: () => void;
 }
 
-export default function CreateNotificationForm({ editData, onCreated }: CreateNotificationFormProps) {
+export default function CreateNotificationForm({
+  editData,
+  onCreated,
+}: CreateNotificationFormProps) {
   const { reload } = useNotifications();
   const { user } = useAuth();
 
@@ -125,14 +133,19 @@ export default function CreateNotificationForm({ editData, onCreated }: CreateNo
       className="space-y-4 pb-20"
     >
       <div className="flex flex-col">
-        <label htmlFor="medicamento" className="mb-1 text-sm font-medium text-slate-700">
+        <label
+          htmlFor="medicamento"
+          className="mb-1 text-sm font-medium text-slate-700"
+        >
           Medicamento
         </label>
         <select
           id="medicamento"
           className="border rounded p-2 w-full bg-white"
           value={form.medicamento_id}
-          onChange={(e) => setForm({ ...form, medicamento_id: Number(e.target.value) })}
+          onChange={(e) =>
+            setForm({ ...form, medicamento_id: Number(e.target.value) })
+          }
         >
           <option value={0}>Selecione o Medicamento</option>
           {medicamentos.map((m) => (
@@ -144,14 +157,19 @@ export default function CreateNotificationForm({ editData, onCreated }: CreateNo
       </div>
 
       <div className="flex flex-col">
-        <label htmlFor="residente" className="mb-1 text-sm font-medium text-slate-700">
+        <label
+          htmlFor="residente"
+          className="mb-1 text-sm font-medium text-slate-700"
+        >
           Residente
         </label>
         <select
           id="residente"
           className="border rounded p-2 w-full bg-white"
           value={form.residente_id}
-          onChange={(e) => setForm({ ...form, residente_id: Number(e.target.value) })}
+          onChange={(e) =>
+            setForm({ ...form, residente_id: Number(e.target.value) })
+          }
         >
           <option value={0}>Selecione o Residente</option>
           {residentes.map((r) => (
@@ -163,7 +181,10 @@ export default function CreateNotificationForm({ editData, onCreated }: CreateNo
       </div>
 
       <div className="flex flex-col">
-        <label htmlFor="destino" className="mb-1 text-sm font-medium text-slate-700">
+        <label
+          htmlFor="destino"
+          className="mb-1 text-sm font-medium text-slate-700"
+        >
           Destino
         </label>
         <select
@@ -178,7 +199,10 @@ export default function CreateNotificationForm({ editData, onCreated }: CreateNo
       </div>
 
       <div className="flex flex-col">
-        <label htmlFor="data_prevista" className="mb-1 text-sm font-medium text-slate-700">
+        <label
+          htmlFor="data_prevista"
+          className="mb-1 text-sm font-medium text-slate-700"
+        >
           Data Prevista
         </label>
         <DatePicker

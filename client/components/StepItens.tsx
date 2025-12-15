@@ -13,11 +13,7 @@ interface Props {
   setPage: (p: number) => void;
 }
 
-export default function StepItems({
-  items,
-  selected,
-  onSelectItem,
-}: Props) {
+export default function StepItems({ items, selected, onSelectItem }: Props) {
   return (
     <div className="w-full space-y-4">
       <div

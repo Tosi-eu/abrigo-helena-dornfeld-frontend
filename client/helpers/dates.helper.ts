@@ -1,8 +1,10 @@
-export function formatDateToPtBr(input: string | Date | undefined | null): string {
+export function formatDateToPtBr(
+  input: string | Date | undefined | null,
+): string {
   if (!input) return "";
 
   if (input instanceof Date && !isNaN(input.getTime())) {
-    const iso = input.toISOString().split("T")[0]; 
+    const iso = input.toISOString().split("T")[0];
     const [year, month, day] = iso.split("-");
     return `${day}/${month}/${year}`;
   }

@@ -15,7 +15,7 @@ export default function RegisterInput() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    minimum: ""
+    minimum: "",
   });
 
   const [saving, setSaving] = useState(false);
@@ -38,7 +38,7 @@ export default function RegisterInput() {
       await createInput(
         formData.name,
         formData.description,
-        parseInt(formData.minimum || "0", 10)
+        parseInt(formData.minimum || "0", 10),
       );
 
       toast({
@@ -71,12 +71,13 @@ export default function RegisterInput() {
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
-          <CardTitle className="text-lg text-slate-800">Cadastro de Insumo</CardTitle>
+          <CardTitle className="text-lg text-slate-800">
+            Cadastro de Insumo
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-
             <div className="space-y-1">
               <Label>Nome do insumo</Label>
               <Input

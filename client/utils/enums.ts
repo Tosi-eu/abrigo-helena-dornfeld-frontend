@@ -8,7 +8,7 @@ export enum OriginType {
   AUTOCUSTO = "Autocusto",
   UBS = "UBS",
   FARMACIA_POPULAR = "Farmácia Popular",
-  COMPRA_DOACAO = "Compra/Doação"
+  COMPRA_DOACAO = "Compra/Doação",
 }
 
 export enum StockCategory {
@@ -19,12 +19,12 @@ export enum StockCategory {
 export enum MedicineStockType {
   GERAL = "geral",
   INDIVIDUAL = "individual",
-  CARRINHO = "carrinho_emergencia"
+  CARRINHO = "carrinho_emergencia",
 }
 
 export enum InputStockType {
   GERAL = "geral",
-  CARRINHO = "carrinho_emergencia"
+  CARRINHO = "carrinho_emergencia",
 }
 
 export enum TransactionType {
@@ -42,18 +42,16 @@ export enum StockTypeLabels {
   geral = "Estoque geral",
   individual = "Estoque individual",
   carrinho_emergencia = "Carrinho de emergência",
-};
+}
 
 export enum StockWizardSteps {
   TIPO = "tipo",
   ITENS = "itens",
-  QUANTIDADE = "quantidade"
+  QUANTIDADE = "quantidade",
 }
 
 export enum EventStatus {
   PENDENTE = "pending",
   ENVIADO = "sent",
-  CANCELADO = "cancelled"
+  CANCELADO = "cancelled",
 }
-
-

@@ -17,24 +17,23 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-        
       if (!isValidEmail(login)) {
-          toast({
-            title: "E-mail inválido",
-            description: "Por favor, insira um e-mail válido.",
-            variant: "error",
-          });
-          setLoading(false);
-          return;
-        }
+        toast({
+          title: "E-mail inválido",
+          description: "Por favor, insira um e-mail válido.",
+          variant: "error",
+        });
+        setLoading(false);
+        return;
+      }
 
       if (isLogin) {
         await authLogin(login, password);
@@ -76,7 +75,6 @@ export default function Auth() {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-
               <div className="flex flex-col justify-center">
                 <label
                   htmlFor="login"
@@ -125,7 +123,9 @@ export default function Auth() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-300"
                     />
-                    <span className="text-sm text-slate-700">Lembrar de mim</span>
+                    <span className="text-sm text-slate-700">
+                      Lembrar de mim
+                    </span>
                   </label>
 
                   <Link

@@ -107,7 +107,6 @@ export default function EditMedicine() {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-
             <div className="space-y-1">
               <Label>Nome do medicamento</Label>
               <Input
@@ -133,9 +132,7 @@ export default function EditMedicine() {
                 <Label>Dosagem</Label>
                 <Input
                   value={formData.dosagem}
-                  onChange={(e) =>
-                    handleChange("dosagem", e.target.value)
-                  }
+                  onChange={(e) => handleChange("dosagem", e.target.value)}
                   disabled={saving}
                 />
               </div>
@@ -191,7 +188,6 @@ export default function EditMedicine() {
                 {saving ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
-
           </form>
         </CardContent>
       </Card>

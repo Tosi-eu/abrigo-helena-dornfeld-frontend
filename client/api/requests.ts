@@ -1,10 +1,10 @@
-
 import { EventStatus, MovementType, OperationType } from "@/utils/enums";
 import { api } from "./canonical";
 
 export const getCabinets = () => api.get("/armarios?page=1&limit=10");
 
-export const getNonMovementProducts = () => api.get("/movimentacoes/produtos-parados");
+export const getNonMovementProducts = () =>
+  api.get("/movimentacoes/produtos-parados");
 
 export const checkCabinetStock = (number: number) =>
   api.get(`/armarios/${number}/check`);
@@ -19,16 +19,27 @@ export const getMedicines = (page = 1, limit = 10) =>
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
 
-export const getInputMovements = ({ page = 1, limit = 10, days = 0 }: {
+export const getInputMovements = ({
+  page = 1,
+  limit = 10,
+  type = "",
+  days = 0,
+}: {
   page?: number;
   limit?: number;
   days?: number;
+  type?: string;
 }) =>
   api.get("/movimentacoes/insumos", {
-    params: { page, limit, days },
+    params: { page, limit, type, days },
   });
 
-export const getMedicineMovements = ({ page = 1, limit = 10, days = 0, type }: {
+export const getMedicineMovements = ({
+  page = 1,
+  limit = 10,
+  days = 0,
+  type,
+}: {
   page?: number;
   limit?: number;
   days?: number;
@@ -85,8 +96,16 @@ export const updateUser = (
 export const createCabinet = (numero: number, categoria_id: number) =>
   api.post("/armarios", { numero, categoria_id });
 
-export const createInput = (nome: string, descricao?: string, estoque_minimo?: number) =>
-  api.post("/insumos", { nome, descricao: descricao ?? null, estoque_minimo: estoque_minimo ?? 0 });
+export const createInput = (
+  nome: string,
+  descricao?: string,
+  estoque_minimo?: number,
+) =>
+  api.post("/insumos", {
+    nome,
+    descricao: descricao ?? null,
+    estoque_minimo: estoque_minimo ?? 0,
+  });
 
 export const createMedicine = (
   nome: string,
@@ -135,40 +154,51 @@ export const createMovement = (payload: {
 }) => api.post("/movimentacoes", payload);
 
 export const createNotificationEvent = (payload: {
-    medicamento_id: number,
-    residente_id: number,
-    destino: string,
-    data_prevista: Date,
-    criado_por: number,
-    status: EventStatus
-}) => api.post("/notificacao", payload);
-
-export const getNotifications = async (page = 1, limit = 10, status?: string) => {
-  try {
-    const res = await api.get("/notificacao", { params: { page, limit, status } });
-    const data = res.data;
-
-    return {
-      items: Array.isArray(data) ? data : [], 
-      total: typeof data.total === "number" ? data.total : 0,
-    };
-  } catch (err) {
-    console.error("Erro ao buscar notificações:", err);
-    return { items: [], total: 0 };
-  }
-}
-
-export const updateNotification = (id: number, data: { status?: string, visto?: boolean }) =>
-  api.patch(`/notificacao/${id}`, data);
-
-export const patchNotificationEvent = (id: number, data: Partial<{
   medicamento_id: number;
   residente_id: number;
   destino: string;
   data_prevista: Date;
   criado_por: number;
   status: EventStatus;
-}>) => api.patch(`/notificacao/${id}`, data);
+}) => api.post("/notificacao", payload);
+
+export const getNotifications = async (
+  page = 1,
+  limit = 10,
+  status?: string,
+) => {
+  try {
+    const res = await api.get("/notificacao", {
+      params: { page, limit, status },
+    });
+    const data = res.data;
+
+    return {
+      items: Array.isArray(data) ? data : [],
+      total: typeof data.total === "number" ? data.total : 0,
+    };
+  } catch (err) {
+    console.error("Erro ao buscar notificações:", err);
+    return { items: [], total: 0 };
+  }
+};
+
+export const updateNotification = (
+  id: number,
+  data: { status?: string; visto?: boolean },
+) => api.patch(`/notificacao/${id}`, data);
+
+export const patchNotificationEvent = (
+  id: number,
+  data: Partial<{
+    medicamento_id: number;
+    residente_id: number;
+    destino: string;
+    data_prevista: Date;
+    criado_por: number;
+    status: EventStatus;
+  }>,
+) => api.patch(`/notificacao/${id}`, data);
 
 export const getTodayNotifications = () => api.get("/notificacao/retirar-hoje");
 
@@ -183,7 +213,11 @@ export const getCabinetCategories = (page = 1, limit = 5) =>
 export const createCabinetCategory = (nome: string) =>
   api.post("/categoria-armario", { nome });
 
-export const getMedicineRanking = (type: "more" | "less", page = 1, limit = 10) =>
+export const getMedicineRanking = (
+  type: "more" | "less",
+  page = 1,
+  limit = 10,
+) =>
   api.get("/movimentacoes/medicamentos/ranking", {
     params: { type, page, limit },
   });

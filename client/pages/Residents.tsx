@@ -24,7 +24,7 @@ export default function Resident() {
       const res = await getResidents(pageNumber, 10);
 
       setResidents(res.data);
-      setHasNextPage(res.hasNext); 
+      setHasNextPage(res.hasNext);
       setPage(pageNumber);
     } catch (err: any) {
       console.error("Erro ao buscar residentes:", err);
@@ -48,9 +48,7 @@ export default function Resident() {
         />
 
         {!loading && error && (
-          <div className="text-center mt-10 text-red-500">
-            {error}
-          </div>
+          <div className="text-center mt-10 text-red-500">{error}</div>
         )}
 
         {!loading && !error && (

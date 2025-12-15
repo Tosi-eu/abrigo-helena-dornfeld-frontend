@@ -150,21 +150,21 @@ export default function Stock() {
           </button>
         </div>
 
-       <div className="pt-12">
-        {!loading && (
-          <>
-            <EditableTable
-              data={items}
-              columns={columns}
-              showAddons={false}
-              currentPage={page}
-              hasNextPage={hasNext}
-              onNextPage={() => setPage((p) => p + 1)}
-              onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-            />
-          </>
-        )}
-       </div>
+        <div className="pt-12">
+          {!loading && (
+            <>
+              <EditableTable
+                data={items}
+                columns={columns}
+                showAddons={false}
+                currentPage={page}
+                hasNextPage={hasNext}
+                onNextPage={() => setPage((p) => p + 1)}
+                onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+              />
+            </>
+          )}
+        </div>
       </div>
 
       <ReportModal

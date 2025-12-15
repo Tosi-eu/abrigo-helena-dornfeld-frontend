@@ -16,7 +16,7 @@ export function StockCard({
   const display = (v: any) =>
     v !== null && v !== undefined && v !== "" ? v : "N/A";
 
-  console.log(item)
+  console.log(item);
 
   const fields: { label: string; value: string | number }[] = [
     { label: "Nome", value: display(item.nome) },
@@ -36,7 +36,8 @@ export function StockCard({
 
   fields.push({ label: "Armário", value: display(item.armario_id) });
   fields.push({ label: "Casela", value: display(item.casela_id) });
-  if (item.origem) fields.push({ label: "Origem", value: display(item.origem) });
+  if (item.origem)
+    fields.push({ label: "Origem", value: display(item.origem) });
 
   const mid = Math.ceil(fields.length / 2);
   const left = fields.slice(0, mid);

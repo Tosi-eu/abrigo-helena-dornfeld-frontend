@@ -44,7 +44,7 @@ export default function StockIn() {
     const fetchInputs = async () => {
       try {
         const result = await getInputs();
-        setInputs(result?.data ?? []); 
+        setInputs(result?.data ?? []);
       } catch (err) {
         console.error("Erro ao buscar inputs:", err);
         setInputs([]);
@@ -115,8 +115,7 @@ export default function StockIn() {
         variant: "success",
       });
 
-       navigate("/stock");
-        
+      navigate("/stock");
     } catch (err: any) {
       toast({
         title: "Erro ao registrar",
@@ -127,7 +126,6 @@ export default function StockIn() {
   };
 
   const handleInputSubmit = async (data) => {
-
     try {
       const payload = {
         tipo: data.stockType,
@@ -145,7 +143,7 @@ export default function StockIn() {
         insumo_id: data.inputId,
         armario_id: data.cabinetId,
         quantidade: data.quantity,
-        validade: data.validity
+        validade: data.validity,
       });
 
       toast({
@@ -155,7 +153,6 @@ export default function StockIn() {
       });
 
       navigate("/stock");
-
     } catch (err: any) {
       toast({
         title: "Erro ao registrar entrada",
