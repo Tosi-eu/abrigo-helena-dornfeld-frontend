@@ -55,7 +55,7 @@ export default function Layout({ children, title }: LayoutProps) {
       <header className="backdrop-blur bg-white/70 border-b border-slate-200/70 sticky top-0 z-30">
         <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo} alt="Logo" className="h-12 w-auto" />
+            <img src={logo} alt="Logo" className="h-16 w-auto" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">

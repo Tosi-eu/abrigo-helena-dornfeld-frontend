@@ -17,7 +17,7 @@ export default function Stock() {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const limit = 5;
+  const limit = 8;
   const [hasNext, setHasNext] = useState(false);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
