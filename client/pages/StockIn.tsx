@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
 import { MedicineForm } from "@/components/MedicineForm";
-import { InputForm } from "@/components/EquipmentForm";
+import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
 import { Input, Medicine, Patient, Cabinet } from "@/interfaces/interfaces";
 import LoadingModal from "@/components/LoadingModal";
@@ -46,6 +46,8 @@ useEffect(() => {
         fetchAllPaginated(getInputs),
         fetchAllPaginated(getResidents),
         fetchAllPaginated(getCabinets)]);
+      
+      console.log(cabinets)
 
       setMedicines(medicines as Medicine[]);
       setInputs(inputs as Input[]);

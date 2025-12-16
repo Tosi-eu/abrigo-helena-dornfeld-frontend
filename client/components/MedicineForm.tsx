@@ -3,9 +3,30 @@ import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
+
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import { MedicineStockType, OriginType, StockTypeLabels } from "@/utils/enums";
+import {
+  MedicineStockType,
+  OriginType,
+  StockTypeLabels,
+} from "@/utils/enums";
+
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function MedicineForm({
   medicines,
@@ -24,7 +45,11 @@ export function MedicineForm({
     origin: "" as OriginType | "",
   });
 
+  const [medicineOpen, setMedicineOpen] = useState(false);
+
   const navigate = useNavigate();
+
+  const selectedMedicine = medicines.find((m) => m.id === formData.id);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -37,6 +62,11 @@ export function MedicineForm({
       casela: value,
       resident: selected ? selected.name : "",
     }));
+  };
+
+  const handleMedicineSelect = (id: number) => {
+    updateField("id", id);
+    setMedicineOpen(false);
   };
 
   const handleSubmit = () => {
@@ -87,23 +117,46 @@ export function MedicineForm({
         <label className="text-sm font-semibold text-slate-700">
           Medicamento
         </label>
-        <select
-          value={formData.id ?? ""}
-          onChange={(e) =>
-            updateField("id", e.target.value ? Number(e.target.value) : null)
-          }
-          className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
-        >
-          <option value="" disabled hidden>
-            Selecione
-          </option>
 
-          {medicines.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name} {m.dosage} {m.measurementUnit}
-            </option>
-          ))}
-        </select>
+        <Popover open={medicineOpen} onOpenChange={setMedicineOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className="w-full justify-between bg-white"
+            >
+              {selectedMedicine
+                ? `${selectedMedicine.name} ${selectedMedicine.dosage} ${selectedMedicine.measurementUnit}`
+                : "Selecione o medicamento"}
+              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-full p-0">
+            <Command>
+              <CommandInput placeholder="Buscar medicamento..." />
+              <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>
+
+              <CommandGroup>
+                {medicines.map((m) => (
+                  <CommandItem
+                    key={m.id}
+                    value={`${m.name} ${m.dosage} ${m.measurementUnit}`}
+                    onSelect={() => handleMedicineSelect(m.id)}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        formData.id === m.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {m.name} {m.dosage} {m.measurementUnit}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -115,8 +168,7 @@ export function MedicineForm({
             type="number"
             value={formData.quantity}
             onChange={(e) => updateField("quantity", e.target.value)}
-            placeholder="10"
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
           />
         </div>
 
@@ -126,13 +178,10 @@ export function MedicineForm({
           </label>
           <DatePicker
             selected={formData.expirationDate}
-            onChange={(date: Date | null) =>
-              updateField("expirationDate", date)
-            }
+            onChange={(date: Date | null) => updateField("expirationDate", date)}
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
-            placeholderText="Selecione a data"
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:outline-none"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
           />
         </div>
       </div>
@@ -141,18 +190,16 @@ export function MedicineForm({
         <label className="text-sm font-semibold text-slate-700">
           Tipo de estoque
         </label>
-
         <select
           value={formData.stockType}
           onChange={(e) =>
             updateField("stockType", e.target.value as MedicineStockType)
           }
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
         >
           <option value="" disabled hidden>
             Selecione
           </option>
-
           {Object.values(MedicineStockType).map((t) => (
             <option key={t} value={t}>
               {StockTypeLabels[t]}
@@ -167,7 +214,7 @@ export function MedicineForm({
           <select
             value={formData.casela ?? ""}
             onChange={(e) => handleCaselaChange(Number(e.target.value))}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
             <option value="" disabled hidden>
               Selecione
@@ -188,8 +235,7 @@ export function MedicineForm({
             type="text"
             value={formData.resident}
             readOnly
-            placeholder="Nome do residente"
-            className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm text-slate-600"
+            className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm"
           />
         </div>
       </div>
@@ -202,7 +248,7 @@ export function MedicineForm({
           <select
             value={formData.cabinet ?? ""}
             onChange={(e) => updateField("cabinet", Number(e.target.value))}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
             <option value="" disabled hidden>
               Selecione
@@ -216,13 +262,15 @@ export function MedicineForm({
         </div>
 
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Origem</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Origem
+          </label>
           <select
             value={formData.origin}
             onChange={(e) =>
               updateField("origin", e.target.value as OriginType)
             }
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-sky-400 focus:outline-none"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
             <option value="" disabled hidden>
               Selecione
@@ -239,8 +287,8 @@ export function MedicineForm({
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
         <button
           type="button"
-          className="px-5 py-2 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-100 transition"
           onClick={() => navigate("/stock")}
+          className="px-5 py-2 border border-slate-400 rounded-lg text-sm"
         >
           Cancelar
         </button>
@@ -248,7 +296,7 @@ export function MedicineForm({
         <button
           type="button"
           onClick={handleSubmit}
-          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition"
+          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm"
         >
           Confirmar
         </button>

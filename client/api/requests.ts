@@ -1,7 +1,10 @@
 import { EventStatus, MovementType, OperationType } from "@/utils/enums";
 import { api } from "./canonical";
 
-export const getCabinets = () => api.get("/armarios?page=1&limit=10");
+export const getCabinets = (page = 1, limit = 10) =>
+  api.get("/armarios", {
+    params: { page, limit },
+  });
 
 export const getNonMovementProducts = () =>
   api.get("/movimentacoes/produtos-parados");
