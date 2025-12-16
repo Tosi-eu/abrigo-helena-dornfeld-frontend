@@ -16,6 +16,7 @@ import {
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
 import { MovementType, OperationType } from "@/utils/enums";
+import { fetchAllPaginated } from "@/helpers/pagination.helper";
 
 export default function StockIn() {
   const [operationType, setOperationType] = useState<
@@ -30,60 +31,40 @@ export default function StockIn() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMedicines = async () => {
-      try {
-        const result = await getMedicines();
-        setMedicines(result?.data ?? []);
-      } catch (err) {
-        console.error("Erro ao buscar medicines:", err);
-        setMedicines([]);
-      }
-    };
+useEffect(() => {
+  const fetchAll = async () => {
+    setLoading(true);
 
-    const fetchInputs = async () => {
-      try {
-        const result = await getInputs();
-        setInputs(result?.data ?? []);
-      } catch (err) {
-        console.error("Erro ao buscar inputs:", err);
-        setInputs([]);
-      }
-    };
+    try {
+      const [
+        medicines,
+        inputs,
+        residents,
+        cabinets,
+      ] = await Promise.all([
+        fetchAllPaginated(getMedicines),
+        fetchAllPaginated(getInputs),
+        fetchAllPaginated(getResidents),
+        fetchAllPaginated(getCabinets)]);
 
-    const fetchCaselas = async () => {
-      try {
-        const result = await getResidents();
-        setCaselas(result.data ?? []);
-      } catch (err) {
-        console.error("Erro ao buscar caselas:", err);
-        setCaselas([]);
-      }
-    };
-
-    const fetchCabinets = async () => {
-      try {
-        const result = await getCabinets();
-        setCabinets(result?.data ?? result ?? []);
-      } catch (err) {
-        console.error("Erro ao buscar armários:", err);
-        setCabinets([]);
-      }
-    };
-
-    const fetchAll = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchMedicines(),
-        fetchInputs(),
-        fetchCaselas(),
-        fetchCabinets(),
-      ]);
+      setMedicines(medicines as Medicine[]);
+      setInputs(inputs as Input[]);
+      setCaselas(residents as Patient[]);
+      setCabinets(cabinets as Cabinet[]);
+    } catch (err) {
+      console.error("Erro ao carregar dados da tela de entrada:", err);
+      setMedicines([]);
+      setInputs([]);
+      setCaselas([]);
+      setCabinets([]);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
-    fetchAll();
-  }, []);
+  fetchAll();
+}, []);
+
 
   const handleMedicineSubmit = async (data) => {
     try {

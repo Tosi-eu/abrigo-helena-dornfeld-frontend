@@ -18,6 +18,7 @@ import { MovementType, OperationType, StockWizardSteps } from "@/utils/enums";
 import { StockItemRaw } from "@/interfaces/interfaces";
 import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
+import { fetchAllPaginated } from "@/helpers/pagination.helper";
 
 const FETCH_LIMIT = 600;
 const UI_PAGE_SIZE = 6;
@@ -49,15 +50,17 @@ export default function StockOut() {
     setLoading(true);
 
     try {
-      const result = await apiGetStock(
-        1,
-        FETCH_LIMIT,
-        operationType !== "Selecione" ? operationType : undefined,
+      const allItems = await fetchAllPaginated(
+        (page, limit) =>
+          apiGetStock(
+            page,
+            limit,
+            operationType !== "Selecione" ? operationType : undefined,
+          ),
+        100,
       );
 
-      const allItems = result?.data ?? [];
-      setItems(allItems);
-
+      setItems(allItems as StockItemRaw[]);
       setTotalPages(Math.max(1, Math.ceil(allItems.length / UI_PAGE_SIZE)));
     } catch (err) {
       console.error(err);
