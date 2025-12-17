@@ -153,7 +153,6 @@ export default function StockOut() {
 
   return (
     <Layout title="Saída de Estoque">
-      
       <div className="bg-white p-6 rounded-lg border border-gray-300 max-w-7xl mx-auto mt-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>

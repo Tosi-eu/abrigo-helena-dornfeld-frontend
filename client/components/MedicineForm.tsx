@@ -6,11 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  MedicineStockType,
-  OriginType,
-  StockTypeLabels,
-} from "@/utils/enums";
+import { MedicineStockType, OriginType, StockTypeLabels } from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -147,7 +143,7 @@ export function MedicineForm({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        formData.id === m.id ? "opacity-100" : "opacity-0"
+                        formData.id === m.id ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {m.name} {m.dosage} {m.measurementUnit}
@@ -178,7 +174,9 @@ export function MedicineForm({
           </label>
           <DatePicker
             selected={formData.expirationDate}
-            onChange={(date: Date | null) => updateField("expirationDate", date)}
+            onChange={(date: Date | null) =>
+              updateField("expirationDate", date)
+            }
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
@@ -262,9 +260,7 @@ export function MedicineForm({
         </div>
 
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Origem
-          </label>
+          <label className="text-sm font-semibold text-slate-700">Origem</label>
           <select
             value={formData.origin}
             onChange={(e) =>

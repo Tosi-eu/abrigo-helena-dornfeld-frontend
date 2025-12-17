@@ -45,7 +45,6 @@ export default function RegisterResident() {
 
   return (
     <Layout title="Cadastro de Residente e Casela">
-
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800">

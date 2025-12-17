@@ -129,7 +129,6 @@ export default function InputMovements() {
 
   return (
     <Layout title="Movimentações">
-      
       {!loading && (
         <div className="w-full flex justify-center p-10">
           <Card className="w-full max-w-5xl bg-white border shadow-md p-8 space-y-12">

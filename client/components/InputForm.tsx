@@ -79,7 +79,7 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
     });
   };
 
-  console.log(cabinets)
+  console.log(cabinets);
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
@@ -124,7 +124,7 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
                         "mr-2 h-4 w-4",
                         formData.inputId === input.id
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-0",
                       )}
                     />
                     {input.name}

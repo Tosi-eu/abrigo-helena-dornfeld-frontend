@@ -3,7 +3,6 @@ import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
 
-
 import {
   getCabinets,
   updateCabinet,
@@ -142,7 +141,6 @@ export default function EditCabinet() {
 
   return (
     <Layout title="Editar Armário">
-
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800">

@@ -30,42 +30,37 @@ export default function StockIn() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-useEffect(() => {
-  const fetchAll = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
 
-    try {
-      const [
-        medicines,
-        inputs,
-        residents,
-        cabinets,
-      ] = await Promise.all([
-        fetchAllPaginated(getMedicines),
-        fetchAllPaginated(getInputs),
-        fetchAllPaginated(getResidents),
-        fetchAllPaginated(getCabinets)]);
-      
-      console.log(cabinets)
+      try {
+        const [medicines, inputs, residents, cabinets] = await Promise.all([
+          fetchAllPaginated(getMedicines),
+          fetchAllPaginated(getInputs),
+          fetchAllPaginated(getResidents),
+          fetchAllPaginated(getCabinets),
+        ]);
 
-      setMedicines(medicines as Medicine[]);
-      setInputs(inputs as Input[]);
-      setCaselas(residents as Patient[]);
-      setCabinets(cabinets as Cabinet[]);
-    } catch (err) {
-      console.error("Erro ao carregar dados da tela de entrada:", err);
-      setMedicines([]);
-      setInputs([]);
-      setCaselas([]);
-      setCabinets([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+        console.log(cabinets);
 
-  fetchAll();
-}, []);
+        setMedicines(medicines as Medicine[]);
+        setInputs(inputs as Input[]);
+        setCaselas(residents as Patient[]);
+        setCabinets(cabinets as Cabinet[]);
+      } catch (err) {
+        console.error("Erro ao carregar dados da tela de entrada:", err);
+        setMedicines([]);
+        setInputs([]);
+        setCaselas([]);
+        setCabinets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchAll();
+  }, []);
 
   const handleMedicineSubmit = async (data) => {
     try {
@@ -162,7 +157,6 @@ useEffect(() => {
 
   return (
     <Layout title="Entrada de Estoque">
-
       {!loading && (
         <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
           <h2 className="text-lg font-semibold text-slate-800">

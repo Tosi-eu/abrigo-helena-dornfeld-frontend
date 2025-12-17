@@ -1,5 +1,8 @@
 export async function fetchAllPaginated<T>(
-  fetchFn: (page: number, limit: number) => Promise<{
+  fetchFn: (
+    page: number,
+    limit: number,
+  ) => Promise<{
     data: T[];
     hasNext: boolean;
   }>,

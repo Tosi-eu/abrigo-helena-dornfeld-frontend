@@ -81,7 +81,6 @@ export default function EditResident() {
 
   return (
     <Layout title="Editar Residente">
-
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800">

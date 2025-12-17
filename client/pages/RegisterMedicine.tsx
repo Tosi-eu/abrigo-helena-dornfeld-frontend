@@ -132,7 +132,6 @@ export default function SignUpMedicine() {
 
   return (
     <Layout title="Cadastro de Medicamento">
-      
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800">
