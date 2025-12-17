@@ -9,14 +9,14 @@ const TABLE_LIMIT = 10;
 const REQUEST_LIMIT = 5;
 
 export default function InputMovements() {
-  const [entriesInsumoPage, setEntriesInsumoPage] = useState(1);
-  const [entriesMedicamentoPage, setEntriesMedicamentoPage] = useState(1);
+  const [entriesInputPage, setEntriesInputPage] = useState(1);
+  const [entriesMedicinePage, setEntriesMedicinePage] = useState(1);
   const [entriesHasNext, setEntriesHasNext] = useState(false);
   const [entries, setEntries] = useState<any[]>([]);
   const entriesRequestId = useRef(0);
 
-  const [exitsInsumoPage, setExitsInsumoPage] = useState(1);
-  const [exitsMedicamentoPage, setExitsMedicamentoPage] = useState(1);
+  const [exitsInputPage, setExitsInputPage] = useState(1);
+  const [exitsMedicinePage, setExitsMedicinePage] = useState(1);
   const [exitsHasNext, setExitsHasNext] = useState(false);
   const [exits, setExits] = useState<any[]>([]);
   const exitsRequestId = useRef(0);
@@ -60,12 +60,12 @@ export default function InputMovements() {
       getInputMovements({
         type: "entrada",
         limit: REQUEST_LIMIT,
-        page: entriesInsumoPage,
+        page: entriesInputPage,
       }),
       getMedicineMovements({
         type: "entrada",
         limit: REQUEST_LIMIT,
-        page: entriesMedicamentoPage,
+        page: entriesMedicinePage,
       }),
     ]);
 
@@ -92,12 +92,12 @@ export default function InputMovements() {
       getInputMovements({
         type: "saida",
         limit: REQUEST_LIMIT,
-        page: exitsInsumoPage,
+        page: exitsInputPage,
       }),
       getMedicineMovements({
         type: "saida",
         limit: REQUEST_LIMIT,
-        page: exitsMedicamentoPage,
+        page: exitsMedicinePage,
       }),
     ]);
 
@@ -120,12 +120,12 @@ export default function InputMovements() {
   useEffect(() => {
     setLoading(true);
     fetchEntries().finally(() => setLoading(false));
-  }, [entriesInsumoPage, entriesMedicamentoPage]);
+  }, [entriesInputPage, entriesMedicinePage]);
 
   useEffect(() => {
     setLoading(true);
     fetchExits().finally(() => setLoading(false));
-  }, [exitsInsumoPage, exitsMedicamentoPage]);
+  }, [exitsInputPage, exitsMedicinePage]);
 
   return (
     <Layout title="Movimentações">
@@ -140,17 +140,17 @@ export default function InputMovements() {
                 columns={columnsBase}
                 entityType="entries"
                 currentPage={Math.max(
-                  entriesInsumoPage,
-                  entriesMedicamentoPage,
+                  entriesInputPage,
+                  entriesMedicinePage,
                 )}
                 hasNextPage={entriesHasNext}
                 onNextPage={() => {
-                  setEntriesInsumoPage((p) => p + 1);
-                  setEntriesMedicamentoPage((p) => p + 1);
+                  setEntriesInputPage((p) => p + 1);
+                  setEntriesMedicinePage((p) => p + 1);
                 }}
                 onPrevPage={() => {
-                  setEntriesInsumoPage((p) => Math.max(1, p - 1));
-                  setEntriesMedicamentoPage((p) => Math.max(1, p - 1));
+                  setEntriesInputPage((p) => Math.max(1, p - 1));
+                  setEntriesMedicinePage((p) => Math.max(1, p - 1));
                 }}
                 showAddons={false}
               />
@@ -163,15 +163,15 @@ export default function InputMovements() {
                 data={exits}
                 columns={columnsBase}
                 entityType="exits"
-                currentPage={Math.max(exitsInsumoPage, exitsMedicamentoPage)}
+                currentPage={Math.max(exitsInputPage, exitsMedicinePage)}
                 hasNextPage={exitsHasNext}
                 onNextPage={() => {
-                  setExitsInsumoPage((p) => p + 1);
-                  setExitsMedicamentoPage((p) => p + 1);
+                  setExitsInputPage((p) => p + 1);
+                  setExitsMedicinePage((p) => p + 1);
                 }}
                 onPrevPage={() => {
-                  setExitsInsumoPage((p) => Math.max(1, p - 1));
-                  setExitsMedicamentoPage((p) => Math.max(1, p - 1));
+                  setExitsInputPage((p) => Math.max(1, p - 1));
+                  setExitsMedicinePage((p) => Math.max(1, p - 1));
                 }}
                 showAddons={false}
               />
