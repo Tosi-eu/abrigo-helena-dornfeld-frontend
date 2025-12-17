@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
+
 import { updateResident } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -81,11 +81,6 @@ export default function EditResident() {
 
   return (
     <Layout title="Editar Residente">
-      <LoadingModal
-        open={saving}
-        title="Aguarde"
-        description="Atualizando residente..."
-      />
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import { useToast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
 import { getInputs } from "@/api/requests";
 
 export default function Inputs() {
@@ -45,12 +44,7 @@ export default function Inputs() {
   return (
     <Layout title="Insumos">
       <div className="pt-12">
-        <LoadingModal
-          open={loading}
-          title="Aguarde"
-          description="Carregando insumos..."
-        />
-
+        
         {!loading && (
           <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
             <EditableTable

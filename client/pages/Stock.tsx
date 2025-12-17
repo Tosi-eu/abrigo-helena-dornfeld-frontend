@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
 import ReportModal from "@/components/ReportModal";
-import LoadingModal from "@/components/LoadingModal";
 import { getStock } from "@/api/requests";
 import { MedicineStockType, StockTypeLabels } from "@/utils/enums";
 
@@ -99,11 +98,6 @@ export default function Stock() {
 
   return (
     <Layout title="Estoque de Medicamentos e Insumos">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando estoque..."
-      />
 
       <div className="space-y-6">
         <div className="flex flex-wrap gap-3">

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
-import LoadingModal from "@/components/LoadingModal";
 import { getResidents } from "@/api/requests";
 
 export default function Resident() {
@@ -41,12 +40,7 @@ export default function Resident() {
   return (
     <Layout title="Residentes">
       <div className="pt-8">
-        <LoadingModal
-          open={loading}
-          title="Aguarde"
-          description="Carregando residentes..."
-        />
-
+        
         {!loading && error && (
           <div className="text-center mt-10 text-red-500">{error}</div>
         )}

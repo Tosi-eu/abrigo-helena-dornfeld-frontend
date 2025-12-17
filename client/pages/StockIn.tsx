@@ -4,7 +4,6 @@ import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
 import { Input, Medicine, Patient, Cabinet } from "@/interfaces/interfaces";
-import LoadingModal from "@/components/LoadingModal";
 import { useAuth } from "@/hooks/use-auth.hook";
 import {
   createMovement,
@@ -163,11 +162,6 @@ useEffect(() => {
 
   return (
     <Layout title="Entrada de Estoque">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando dados..."
-      />
 
       {!loading && (
         <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">

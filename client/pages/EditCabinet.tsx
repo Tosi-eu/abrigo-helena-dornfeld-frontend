@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
+
 
 import {
   getCabinets,
@@ -142,11 +142,6 @@ export default function EditCabinet() {
 
   return (
     <Layout title="Editar Armário">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Atualizando armário..."
-      />
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>

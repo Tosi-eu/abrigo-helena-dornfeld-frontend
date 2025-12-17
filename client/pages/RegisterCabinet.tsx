@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
+
 import {
   createCabinet,
   createCabinetCategory,
@@ -114,11 +114,6 @@ export default function RegisterCabinet() {
 
   return (
     <Layout title="Cadastrar Armário">
-      <LoadingModal
-        open={saving}
-        title="Aguarde"
-        description="Cadastrando armário..."
-      />
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>

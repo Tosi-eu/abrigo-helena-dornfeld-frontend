@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
-import LoadingModal from "@/components/LoadingModal";
 import { getMedicines } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
-
-const DEFAULT_LIMIT = 10;
+import { DEFAULT_PAGE_SIZE } from "@/helpers/pagination.helper";
 
 export default function Medicines() {
   const [medicines, setMedicines] = useState<any[]>([]);
@@ -18,7 +16,7 @@ export default function Medicines() {
     try {
       setLoading(true);
 
-      const res = await getMedicines(pageNumber, DEFAULT_LIMIT);
+      const res = await getMedicines(pageNumber, DEFAULT_PAGE_SIZE);
 
       setMedicines(Array.isArray(res.data) ? res.data : []);
       setPage(res.page ?? pageNumber);
@@ -42,14 +40,9 @@ export default function Medicines() {
   return (
     <Layout title="Medicamentos">
       <div className="pt-12">
-        <LoadingModal
-          open={loading}
-          title="Aguarde"
-          description="Carregando medicamentos..."
-        />
 
         {!loading && (
-          <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <div className="max-w-4xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
             <EditableTable
               data={medicines}
               columns={[

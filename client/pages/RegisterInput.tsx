@@ -2,7 +2,7 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
+
 import { createInput } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -63,11 +63,6 @@ export default function RegisterInput() {
 
   return (
     <Layout title="Cadastro de Insumo">
-      <LoadingModal
-        open={saving}
-        title="Aguarde"
-        description="Cadastrando insumo..."
-      />
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>

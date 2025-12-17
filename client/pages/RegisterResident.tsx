@@ -2,7 +2,6 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
 import { createResident } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -46,11 +45,6 @@ export default function RegisterResident() {
 
   return (
     <Layout title="Cadastro de Residente e Casela">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Cadastrando residente..."
-      />
 
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>

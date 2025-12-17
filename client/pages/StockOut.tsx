@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
-import LoadingModal from "@/components/LoadingModal";
 import { toast } from "@/hooks/use-toast.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +19,6 @@ import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
 import { fetchAllPaginated } from "@/helpers/pagination.helper";
 
-const FETCH_LIMIT = 600;
 const UI_PAGE_SIZE = 6;
 
 export default function StockOut() {
@@ -155,12 +153,7 @@ export default function StockOut() {
 
   return (
     <Layout title="Saída de Estoque">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando dados..."
-      />
-
+      
       <div className="bg-white p-6 rounded-lg border border-gray-300 max-w-7xl mx-auto mt-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>

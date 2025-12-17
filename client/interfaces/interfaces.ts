@@ -225,12 +225,6 @@ export interface MedicineFormProps {
   }) => void;
 }
 
-export interface LoadingModalProps {
-  open: boolean;
-  title?: string;
-  description?: string;
-}
-
 export interface RecentMovement {
   name: string;
   type: string;

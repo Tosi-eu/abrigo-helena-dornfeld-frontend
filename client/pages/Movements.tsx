@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
-import LoadingModal from "@/components/LoadingModal";
+
 import { getInputMovements, getMedicineMovements } from "@/api/requests";
 import { Card } from "@/components/ui/card";
 
@@ -129,12 +129,7 @@ export default function InputMovements() {
 
   return (
     <Layout title="Movimentações">
-      <LoadingModal
-        open={loading}
-        title="Aguarde"
-        description="Carregando..."
-      />
-
+      
       {!loading && (
         <div className="w-full flex justify-center p-10">
           <Card className="w-full max-w-5xl bg-white border shadow-md p-8 space-y-12">

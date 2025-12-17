@@ -2,7 +2,6 @@ import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
-import LoadingModal from "@/components/LoadingModal";
 import { createMedicine, getMedicines } from "@/api/requests";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -133,12 +132,7 @@ export default function SignUpMedicine() {
 
   return (
     <Layout title="Cadastro de Medicamento">
-      <LoadingModal
-        open={saving}
-        title="Aguarde"
-        description="Cadastrando medicamento..."
-      />
-
+      
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800">
