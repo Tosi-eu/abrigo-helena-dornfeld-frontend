@@ -24,13 +24,13 @@ import {
 } from "@/helpers/pagination.helper";
 
 import EditableTable from "@/components/EditableTable";
-import { api } from "@/api/canonical";
 import {
   getInputMovements,
   getMedicineMovements,
   getMedicineRanking,
   getNonMovementProducts,
   getStock,
+  getStockProportions,
   getTodayNotifications,
   updateNotification,
 } from "@/api/requests";
@@ -58,9 +58,7 @@ export default function Dashboard() {
   const [cabinetStockData, setCabinetStockData] = useState<CabinetStockItem[]>(
     [],
   );
-  const [drawerStockData, setDrawerStockData] = useState<DrawerStockItem[]>(
-    [],
-  );
+  const [drawerStockData, setDrawerStockData] = useState<DrawerStockItem[]>([]);
   const [noStockData, setNoStockData] = useState<StockStatusItem[]>([]);
   const [belowMinData, setBelowMinData] = useState<StockStatusItem[]>([]);
   const [expiredData, setExpiredData] = useState<StockStatusItem[]>([]);
@@ -93,7 +91,7 @@ export default function Dashboard() {
           insumosMov,
           proportionRes,
           cabinetRes,
-          drawerRes
+          drawerRes,
         ] = await Promise.all([
           fetchAllPaginated((page, limit) =>
             getStock(page, limit).then((res) => res),
@@ -107,7 +105,7 @@ export default function Dashboard() {
             getInputMovements({ page, limit, days: 7 }).then((res) => res),
           ),
 
-          api.get("/estoque/proporcao").then((res) => res),
+          getStockProportions().then((res) => res),
           getStock(1, 10, "armarios"),
           getStock(1, 100, "gavetas"),
         ]);
@@ -227,12 +225,11 @@ export default function Dashboard() {
         }));
         setCabinetStockData(formattedCabinetData);
 
-      const formattedDrawerData = drawerRes.data.map((drawer: any) => ({
-        drawer: drawer.gaveta_id,
-        total: Number(drawer.total_geral) || 0,
-      }));
-      setDrawerStockData(formattedDrawerData);
-      
+        const formattedDrawerData = drawerRes.data.map((drawer: any) => ({
+          drawer: drawer.gaveta_id,
+          total: Number(drawer.total_geral) || 0,
+        }));
+        setDrawerStockData(formattedDrawerData);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
@@ -481,72 +478,96 @@ export default function Dashboard() {
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-            <CardHeader>
-              <CardTitle className="text-center">Quantidade de Itens por Armário</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-72 flex justify-center">
-                <ResponsiveContainer width="90%" height="100%">
-                  <BarChart
-                    data={cabinetStockData}
-                    layout="vertical"
-                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                  >
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="cabinet" width={80} />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <defs>
-                      <linearGradient id="barFillCabinet" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#0284c7" />
-                        <stop offset="100%" stopColor="#0369a1" />
-                      </linearGradient>
-                    </defs>
-                    <Bar
-                      dataKey="total"
-                      fill="url(#barFillCabinet)"
-                      radius={[0, 6, 6, 0]}
-                      barSize={28}
-                      label={{ position: "right", fontSize: 12, fontWeight: 600 }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Quantidade de Itens por Armário
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full h-72 flex justify-center">
+                  <ResponsiveContainer width="90%" height="100%">
+                    <BarChart
+                      data={cabinetStockData}
+                      layout="vertical"
+                      margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
+                    >
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="cabinet" width={80} />
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <defs>
+                        <linearGradient
+                          id="barFillCabinet"
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="0"
+                        >
+                          <stop offset="0%" stopColor="#0284c7" />
+                          <stop offset="100%" stopColor="#0369a1" />
+                        </linearGradient>
+                      </defs>
+                      <Bar
+                        dataKey="total"
+                        fill="url(#barFillCabinet)"
+                        radius={[0, 6, 6, 0]}
+                        barSize={28}
+                        label={{
+                          position: "right",
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">Quantidade de Itens por Gaveta</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-72 flex justify-center">
-                <ResponsiveContainer width="90%" height="100%">
-                  <BarChart
-                    data={drawerStockData}
-                    layout="vertical"
-                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                  >
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="drawer" width={80} />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <defs>
-                      <linearGradient id="barFillDrawer" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#34d399" />
-                        <stop offset="100%" stopColor="#059669" />
-                      </linearGradient>
-                    </defs>
-                    <Bar
-                      dataKey="total"
-                      fill="url(#barFillDrawer)"
-                      radius={[0, 6, 6, 0]}
-                      barSize={28}
-                      label={{ position: "right", fontSize: 12, fontWeight: 600 }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Quantidade de Itens por Gaveta
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full h-72 flex justify-center">
+                  <ResponsiveContainer width="90%" height="100%">
+                    <BarChart
+                      data={drawerStockData}
+                      layout="vertical"
+                      margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
+                    >
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="drawer" width={80} />
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <defs>
+                        <linearGradient
+                          id="barFillDrawer"
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="0"
+                        >
+                          <stop offset="0%" stopColor="#34d399" />
+                          <stop offset="100%" stopColor="#059669" />
+                        </linearGradient>
+                      </defs>
+                      <Bar
+                        dataKey="total"
+                        fill="url(#barFillDrawer)"
+                        radius={[0, 6, 6, 0]}
+                        barSize={28}
+                        label={{
+                          position: "right",
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">

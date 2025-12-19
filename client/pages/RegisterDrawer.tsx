@@ -129,7 +129,9 @@ export default function RegisterDrawer() {
                 type="number"
                 value={numero}
                 onChange={(e) =>
-                  setNumero(e.target.value === "0" ? 0 : parseInt(e.target.value))
+                  setNumero(
+                    e.target.value === "0" ? 0 : parseInt(e.target.value),
+                  )
                 }
                 placeholder="Ex: 4"
                 disabled={saving}

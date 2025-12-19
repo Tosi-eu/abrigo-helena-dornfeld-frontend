@@ -72,7 +72,11 @@ export default function EditableTable({
 
   const handleEditClick = (row: any) => {
     let type = typeMap[row?.type];
-    if (["inputs", "medicines", "residents", "cabinets", "drawers"].includes(entityType)) {
+    if (
+      ["inputs", "medicines", "residents", "cabinets", "drawers"].includes(
+        entityType,
+      )
+    ) {
       type = entityType;
     }
 

@@ -128,7 +128,9 @@ export function MedicineForm({
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Medicamento</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Medicamento
+        </label>
         <Popover open={medicineOpen} onOpenChange={setMedicineOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -156,7 +158,7 @@ export function MedicineForm({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        formData.id === m.id ? "opacity-100" : "opacity-0"
+                        formData.id === m.id ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {m.name} {m.dosage} {m.measurementUnit}
@@ -170,7 +172,9 @@ export function MedicineForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Quantidade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Quantidade
+          </label>
           <input
             type="number"
             value={formData.quantity}
@@ -179,10 +183,14 @@ export function MedicineForm({
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Validade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Validade
+          </label>
           <DatePicker
             selected={formData.expirationDate}
-            onChange={(date: Date | null) => updateField("expirationDate", date)}
+            onChange={(date: Date | null) =>
+              updateField("expirationDate", date)
+            }
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
@@ -191,15 +199,23 @@ export function MedicineForm({
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Tipo de estoque</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Tipo de estoque
+        </label>
         <select
           value={formData.stockType}
-          onChange={(e) => updateField("stockType", e.target.value as MedicineStockType)}
+          onChange={(e) =>
+            updateField("stockType", e.target.value as MedicineStockType)
+          }
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
         >
-          <option value="" disabled hidden>Selecione</option>
+          <option value="" disabled hidden>
+            Selecione
+          </option>
           {Object.values(MedicineStockType).map((t) => (
-            <option key={t} value={t}>{StockTypeLabels[t]}</option>
+            <option key={t} value={t}>
+              {StockTypeLabels[t]}
+            </option>
           ))}
         </select>
       </div>
@@ -212,14 +228,20 @@ export function MedicineForm({
             onChange={(e) => handleCaselaChange(Number(e.target.value))}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
-            <option value="" disabled hidden>Selecione</option>
+            <option value="" disabled hidden>
+              Selecione
+            </option>
             {caselas.map((c) => (
-              <option key={c.casela} value={c.casela}>{c.casela}</option>
+              <option key={c.casela} value={c.casela}>
+                {c.casela}
+              </option>
             ))}
           </select>
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Residente</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Residente
+          </label>
           <input
             type="text"
             value={formData.resident}
@@ -235,7 +257,11 @@ export function MedicineForm({
             {isEmergencyCart ? "Gaveta" : "Armário"}
           </label>
           <select
-            value={isEmergencyCart ? formData.drawerId ?? "" : formData.cabinetId ?? ""}
+            value={
+              isEmergencyCart
+                ? (formData.drawerId ?? "")
+                : (formData.cabinetId ?? "")
+            }
             onChange={(e) =>
               isEmergencyCart
                 ? updateField("drawerId", Number(e.target.value))
@@ -243,9 +269,13 @@ export function MedicineForm({
             }
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
-            <option value="" disabled hidden>Selecione</option>
+            <option value="" disabled hidden>
+              Selecione
+            </option>
             {storageOptions.map((s) => (
-              <option key={s.numero} value={s.numero}>{s.numero}</option>
+              <option key={s.numero} value={s.numero}>
+                {s.numero}
+              </option>
             ))}
           </select>
         </div>
@@ -254,12 +284,18 @@ export function MedicineForm({
           <label className="text-sm font-semibold text-slate-700">Origem</label>
           <select
             value={formData.origin}
-            onChange={(e) => updateField("origin", e.target.value as OriginType)}
+            onChange={(e) =>
+              updateField("origin", e.target.value as OriginType)
+            }
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
-            <option value="" disabled hidden>Selecione</option>
+            <option value="" disabled hidden>
+              Selecione
+            </option>
             {Object.values(OriginType).map((o) => (
-              <option key={o} value={o}>{o.charAt(0) + o.slice(1).toLowerCase()}</option>
+              <option key={o} value={o}>
+                {o.charAt(0) + o.slice(1).toLowerCase()}
+              </option>
             ))}
           </select>
         </div>

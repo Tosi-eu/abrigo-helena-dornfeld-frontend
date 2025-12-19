@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
-import { getDrawers } from "@/api/requests"; 
+import { getDrawers } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
 
 const DEFAULT_LIMIT = 10;
@@ -50,7 +50,7 @@ export default function Drawers() {
             <EditableTable
               data={drawers}
               columns={columns}
-              entityType="drawers" 
+              entityType="drawers"
               currentPage={page}
               hasNextPage={hasNextPage}
               onNextPage={() => {

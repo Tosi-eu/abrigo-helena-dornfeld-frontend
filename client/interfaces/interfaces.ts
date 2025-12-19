@@ -325,9 +325,9 @@ export interface RawMovement {
 }
 
 export interface Drawer {
-  numero: number;      
-  categoria_id: number;   
-  categoria: string;     
+  numero: number;
+  categoria_id: number;
+  categoria: string;
 }
 
 export interface DrawerCategory {

@@ -3,11 +3,7 @@ import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
 
-import {
-  getDrawers,
-  updateDrawer,
-  getDrawerCategories,
-} from "@/api/requests";
+import { getDrawers, updateDrawer, getDrawerCategories } from "@/api/requests";
 import { Drawer } from "@/interfaces/interfaces";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -29,7 +25,9 @@ export default function EditDrawer() {
   const item = location.state?.item as Drawer | undefined;
 
   const [drawers, setDrawers] = useState<Drawer[]>([]);
-  const [categories, setCategories] = useState<{ id: number; nome: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: number; nome: string }[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -171,7 +169,9 @@ export default function EditDrawer() {
                   <Input
                     type="number"
                     value={formData.numero}
-                    onChange={(e) => handleChange("numero", Number(e.target.value))}
+                    onChange={(e) =>
+                      handleChange("numero", Number(e.target.value))
+                    }
                     disabled={true}
                   />
                 </div>
@@ -181,7 +181,9 @@ export default function EditDrawer() {
 
                   <Select
                     value={String(formData.categoriaId)}
-                    onValueChange={(v) => handleChange("categoriaId", Number(v))}
+                    onValueChange={(v) =>
+                      handleChange("categoriaId", Number(v))
+                    }
                   >
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Selecione a categoria" />

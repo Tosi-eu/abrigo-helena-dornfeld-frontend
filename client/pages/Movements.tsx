@@ -39,11 +39,9 @@ export default function InputMovements() {
 
     return {
       id: item.id,
-      name: isMedicine
-        ? (item.MedicineModel?.nome)
-        : (item.InputModel?.nome),
+      name: isMedicine ? item.MedicineModel?.nome : item.InputModel?.nome,
       additionalData: isMedicine
-        ? (item.MedicineModel?.principio_ativo)
+        ? item.MedicineModel?.principio_ativo
         : (item.InputModel?.descricao ?? "-"),
       quantity: item.quantidade,
       operator: item.LoginModel?.login,
@@ -141,10 +139,7 @@ export default function InputMovements() {
                 data={entries}
                 columns={columnsBase}
                 entityType="entries"
-                currentPage={Math.max(
-                  entriesInputPage,
-                  entriesMedicinePage,
-                )}
+                currentPage={Math.max(entriesInputPage, entriesMedicinePage)}
                 hasNextPage={entriesHasNext}
                 onNextPage={() => {
                   setEntriesInputPage((p) => p + 1);

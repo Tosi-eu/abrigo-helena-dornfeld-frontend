@@ -22,6 +22,8 @@ export const getMedicines = (page = 1, limit = 10) =>
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
 
+export const getStockProportions = () => api.get("/estoque/proporcao");
+
 export const getInputMovements = ({
   page = 1,
   limit = 10,

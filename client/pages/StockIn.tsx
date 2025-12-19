@@ -3,7 +3,13 @@ import { useState, useEffect } from "react";
 import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
-import { Input, Medicine, Patient, Cabinet, Drawer } from "@/interfaces/interfaces";
+import {
+  Input,
+  Medicine,
+  Patient,
+  Cabinet,
+  Drawer,
+} from "@/interfaces/interfaces";
 import { useAuth } from "@/hooks/use-auth.hook";
 import {
   createMovement,
@@ -37,13 +43,14 @@ export default function StockIn() {
       setLoading(true);
 
       try {
-        const [medicines, inputs, residents, cabinets, drawers] = await Promise.all([
-          fetchAllPaginated(getMedicines),
-          fetchAllPaginated(getInputs),
-          fetchAllPaginated(getResidents),
-          fetchAllPaginated(getCabinets),
-          fetchAllPaginated(getDrawers),
-        ]);
+        const [medicines, inputs, residents, cabinets, drawers] =
+          await Promise.all([
+            fetchAllPaginated(getMedicines),
+            fetchAllPaginated(getInputs),
+            fetchAllPaginated(getResidents),
+            fetchAllPaginated(getCabinets),
+            fetchAllPaginated(getDrawers),
+          ]);
 
         setMedicines(medicines as Medicine[]);
         setInputs(inputs as Input[]);
@@ -71,7 +78,7 @@ export default function StockIn() {
         medicamento_id: data.id,
         quantidade: data.quantity,
         armario_id: data.cabinet ?? null,
-        gaveta_id: data.drawerId ?? null, 
+        gaveta_id: data.drawerId ?? null,
         casela_id: data.casela ?? null,
         validade: data.expirationDate ?? null,
         origem: data.origin ?? null,
@@ -85,17 +92,17 @@ export default function StockIn() {
         armario_id: data.cabinet ?? null,
         quantidade: data.quantity,
         casela_id: data.casela ?? null,
-        gaveta_id: data.drawerId ?? null, 
+        gaveta_id: data.drawerId ?? null,
         medicamento_id: data.id,
         validade: data.expirationDate,
-      })
+      });
       await createMovement({
         tipo: MovementType.IN,
         login_id: user?.id,
         armario_id: data.cabinet ?? null,
         quantidade: data.quantity,
         casela_id: data.casela ?? null,
-        gaveta_id: data.drawerId ?? null, 
+        gaveta_id: data.drawerId ?? null,
         medicamento_id: data.id,
         validade: data.expirationDate,
       });
@@ -123,7 +130,7 @@ export default function StockIn() {
         insumo_id: data.inputId,
         quantidade: data.quantity,
         armario_id: data.cabinetId ?? null,
-        gaveta_id: data.drawerId ?? null, 
+        gaveta_id: data.drawerId ?? null,
         validade: data.validity,
       };
 
@@ -134,7 +141,7 @@ export default function StockIn() {
         login_id: user?.id!,
         insumo_id: data.inputId,
         armario_id: data.cabinetId ?? null,
-        gaveta_id: data.drawerId ?? null, 
+        gaveta_id: data.drawerId ?? null,
         quantidade: data.quantity,
         validade: data.validity,
       });

@@ -24,7 +24,12 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProps) {
+export function InputForm({
+  inputs,
+  cabinets,
+  drawers,
+  onSubmit,
+}: InputFormProps) {
   const [formData, setFormData] = useState({
     inputId: null as number | null,
     category: "",
@@ -95,11 +100,15 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
-        <h2 className="text-lg font-semibold text-slate-800">Informações do Insumo</h2>
+        <h2 className="text-lg font-semibold text-slate-800">
+          Informações do Insumo
+        </h2>
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Nome do Insumo</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Nome do Insumo
+        </label>
         <Popover open={inputOpen} onOpenChange={setInputOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
@@ -113,11 +122,15 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
               <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
               <CommandGroup>
                 {inputs.map((i) => (
-                  <CommandItem key={i.id} value={i.name} onSelect={() => handleInputSelect(i.id)}>
+                  <CommandItem
+                    key={i.id}
+                    value={i.name}
+                    onSelect={() => handleInputSelect(i.id)}
+                  >
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        formData.inputId === i.id ? "opacity-100" : "opacity-0"
+                        formData.inputId === i.id ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {i.name}
@@ -131,7 +144,9 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Quantidade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Quantidade
+          </label>
           <input
             type="number"
             value={formData.quantity}
@@ -140,7 +155,9 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Validade</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Validade
+          </label>
           <DatePicker
             selected={formData.validity}
             onChange={(date: Date | null) => updateField("validity", date)}
@@ -152,23 +169,37 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Tipo de Estoque</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Tipo de Estoque
+        </label>
         <select
           value={formData.stockType}
-          onChange={(e) => updateField("stockType", e.target.value as InputStockType)}
+          onChange={(e) =>
+            updateField("stockType", e.target.value as InputStockType)
+          }
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
         >
-          <option value="" disabled hidden>Selecione</option>
+          <option value="" disabled hidden>
+            Selecione
+          </option>
           {Object.values(InputStockType).map((t) => (
-            <option key={t} value={t}>{StockTypeLabels[t]}</option>
+            <option key={t} value={t}>
+              {StockTypeLabels[t]}
+            </option>
           ))}
         </select>
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">{isEmergencyCart ? "Gaveta" : "Armário"}</label>
+        <label className="text-sm font-semibold text-slate-700">
+          {isEmergencyCart ? "Gaveta" : "Armário"}
+        </label>
         <select
-          value={isEmergencyCart ? formData.drawerId ?? "" : formData.cabinetId ?? ""}
+          value={
+            isEmergencyCart
+              ? (formData.drawerId ?? "")
+              : (formData.cabinetId ?? "")
+          }
           onChange={(e) =>
             isEmergencyCart
               ? updateField("drawerId", Number(e.target.value))
@@ -176,10 +207,12 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
           }
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
         >
-          <option value="" disabled hidden>Selecione</option>
+          <option value="" disabled hidden>
+            Selecione
+          </option>
           {storageOptions.map((s) => (
-            <option key={ s.numero } value={ s.numero }>
-              { s.numero }
+            <option key={s.numero} value={s.numero}>
+              {s.numero}
             </option>
           ))}
         </select>
@@ -204,6 +237,3 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
     </div>
   );
 }
-
-
-
