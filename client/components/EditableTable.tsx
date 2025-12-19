@@ -13,6 +13,7 @@ import DeletePopUp from "./DeletePopUp";
 
 import {
   deleteCabinet,
+  deleteDrawer,
   deleteInput,
   deleteMedicine,
   deleteResident,
@@ -64,12 +65,14 @@ export default function EditableTable({
       navigate("/inputs/register");
     } else if (entityType === "cabinets") {
       navigate("/cabinets/register");
+    } else if (entityType === "drawers") {
+      navigate("/drawer/register");
     }
   };
 
   const handleEditClick = (row: any) => {
     let type = typeMap[row?.type];
-    if (["inputs", "medicines", "residents", "cabinets"].includes(entityType)) {
+    if (["inputs", "medicines", "residents", "cabinets", "drawers"].includes(entityType)) {
       type = entityType;
     }
 
@@ -100,6 +103,8 @@ export default function EditableTable({
 
       if (entityType === "cabinets") {
         res = await deleteCabinet(rowToDelete.numero);
+      } else if (entityType === "drawers") {
+        res = await deleteDrawer(rowToDelete.numero);
       } else if (entityType === "inputs") {
         res = await deleteInput(rowToDelete.id);
       } else if (entityType === "medicines") {

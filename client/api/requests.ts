@@ -139,7 +139,8 @@ export const createStockIn = (payload: {
   medicamento_id?: number;
   insumo_id?: number;
   quantidade: number;
-  armario_id: number;
+  armario_id?: number | null;
+  gaveta_id?: number | null;
   casela_id?: number | null;
   validade?: Date | null;
   origem?: string | null;
@@ -151,6 +152,7 @@ export const createMovement = (payload: {
   armario_id: number;
   quantidade: number;
   casela_id?: number;
+  gaveta_id?: number;
   medicamento_id?: number;
   validade: string;
   insumo_id?: number;
@@ -224,3 +226,37 @@ export const getMedicineRanking = (
   api.get("/movimentacoes/medicamentos/ranking", {
     params: { type, page, limit },
   });
+
+export const getDrawers = (page = 1, limit = 10) =>
+  api.get("/gavetas", {
+    params: { page, limit },
+  });
+
+export const getDrawerByNumber = (numero: number) =>
+  api.get(`/gavetas/${numero}`);
+
+export const createDrawer = (numero: number, categoria_id: number) =>
+  api.post("/gavetas", { numero, categoria_id });
+
+export const updateDrawer = (numero: number, categoria_id: number) =>
+  api.put(`/gavetas/${numero}`, { categoria_id });
+
+export const deleteDrawer = (numero: number) =>
+  api.delete(`/gavetas/${numero}`);
+
+export const getDrawerCategories = (page = 1, limit = 10) =>
+  api.get("/categoria-gaveta", {
+    params: { page, limit },
+  });
+
+export const getDrawerCategoryById = (id: number) =>
+  api.get(`/categoria-gaveta/${id}`);
+
+export const createDrawerCategory = (nome: string) =>
+  api.post("/categoria-gaveta", { nome });
+
+export const updateDrawerCategory = (id: number, nome: string) =>
+  api.put(`/categoria-gaveta/${id}`, { nome });
+
+export const deleteDrawerCategory = (id: number) =>
+  api.delete(`/categoria-gaveta/${id}`);

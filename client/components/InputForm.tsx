@@ -8,7 +8,6 @@ import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
 import { InputStockType, StockTypeLabels } from "@/utils/enums";
 
-// shadcn
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -25,13 +24,15 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
+export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProps) {
   const [formData, setFormData] = useState({
     inputId: 0,
     category: "",
     quantity: 0,
-    cabinetId: 0,
+
+    storageId: 0,
     caselaId: 0,
+
     validity: null as Date | null,
     stockType: "" as InputStockType | "",
   });
@@ -42,13 +43,18 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
 
   const selectedInput = inputs.find((i) => i.id === formData.inputId);
 
+  const isEmergencyCart =
+    formData.stockType === InputStockType.CARRINHO;
+
   const handleInputSelect = (id: number) => {
     const selected = inputs.find((i) => i.id === id);
+
     setFormData((prev) => ({
       ...prev,
       inputId: id,
-      category: selected ? selected.description : "",
+      category: selected?.description ?? "",
     }));
+
     setInputOpen(false);
   };
 
@@ -58,8 +64,11 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
       return;
     }
 
-    if (!formData.cabinetId) {
-      toast({ title: "Selecione um armário", variant: "error" });
+    if (!formData.storageId) {
+      toast({
+        title: `Selecione ${isEmergencyCart ? "uma gaveta" : "um armário"}`,
+        variant: "error",
+      });
       return;
     }
 
@@ -71,15 +80,13 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
 
     onSubmit({
       inputId: formData.inputId,
-      cabinetId: formData.cabinetId,
-      caselaId: formData.caselaId || undefined,
       quantity,
+      isEmergencyCart,
+      caselaId: formData.caselaId || undefined,
       validity: formData.validity,
       stockType: formData.stockType,
     });
   };
-
-  console.log(cabinets);
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
@@ -96,14 +103,9 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
 
         <Popover open={inputOpen} onOpenChange={setInputOpen}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={inputOpen}
-              className="w-full justify-between"
-            >
+            <Button variant="outline" className="w-full justify-between">
               {selectedInput ? selectedInput.name : "Selecione o insumo"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
 
@@ -145,10 +147,7 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
             type="number"
             value={formData.quantity}
             onChange={(e) =>
-              setFormData({
-                ...formData,
-                quantity: parseInt(e.target.value) || 0,
-              })
+              setFormData({ ...formData, quantity: Number(e.target.value) || 0 })
             }
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
           />
@@ -165,26 +164,36 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
             }
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
-            className="w-full border border-slate-300 rounded-lg p-2 text-sm"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
           />
         </div>
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Armário</label>
+        <label className="text-sm font-semibold text-slate-700">
+          {isEmergencyCart ? "Gaveta" : "Armário"}
+        </label>
+
         <select
-          value={formData.cabinetId}
+          value={formData.storageId}
           onChange={(e) =>
-            setFormData({ ...formData, cabinetId: Number(e.target.value) })
+            setFormData({
+              ...formData,
+              storageId: Number(e.target.value),
+            })
           }
           className="w-full border bg-white border-slate-300 rounded-lg px-3 py-2 text-sm"
         >
           <option value={0} disabled hidden>
             Selecione
           </option>
-          {cabinets.map((cab) => (
-            <option key={cab.numero} value={cab.numero}>
-              {cab.numero}
+
+          {(isEmergencyCart ? drawers : cabinets).map((s: any) => (
+            <option
+              key={isEmergencyCart ? s.id : s.numero}
+              value={isEmergencyCart ? s.id : s.numero}
+            >
+              {isEmergencyCart ? s.nome ?? s.id : s.numero}
             </option>
           ))}
         </select>
@@ -235,3 +244,4 @@ export function InputForm({ inputs, cabinets, onSubmit }: InputFormProps) {
     </div>
   );
 }
+

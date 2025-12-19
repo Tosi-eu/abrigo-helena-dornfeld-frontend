@@ -200,12 +200,19 @@ export interface StockOutFormProps {
 export interface InputFormProps {
   inputs: Input[];
   cabinets: Cabinet[];
+  drawers: Drawer[];
+
   onSubmit: (data: {
     inputId: number;
-    cabinetId: number;
-    caselaId?: number;
     quantity: number;
-    validity: Date;
+
+    cabinetId?: number | null;
+    drawerId?: number | null;
+
+    isEmergencyCart: boolean;
+
+    caselaId?: number;
+    validity?: Date | null;
     stockType: string;
   }) => void;
 }
@@ -214,13 +221,19 @@ export interface MedicineFormProps {
   medicines: Medicine[];
   caselas: Patient[];
   cabinets: Cabinet[];
+  drawers: Drawer[];
+
   onSubmit: (data: {
     id: number;
     quantity: number;
-    cabinet: number;
+
+    cabinetId?: number | null;
+    drawerId?: number | null;
+    isEmergencyCart: boolean;
+
     casela?: number;
-    expirationDate?: Date;
-    origin?: string;
+    expirationDate: Date;
+    origin: string;
     stockType: string;
   }) => void;
 }
@@ -303,4 +316,15 @@ export interface RawMovement {
   CabinetModel?: {
     num_armario: number;
   };
+}
+
+export interface Drawer {
+  numero: number;      
+  categoria_id: number;   
+  categoria: string;     
+}
+
+export interface DrawerCategory {
+  id: number;
+  nome: string;
 }

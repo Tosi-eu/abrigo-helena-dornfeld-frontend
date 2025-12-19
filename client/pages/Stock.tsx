@@ -26,6 +26,7 @@ export default function Stock() {
       expiry: item.validade || "-",
       quantity: Number(item.quantidade) || 0,
       cabinet: item.armario_id ?? "-",
+      drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
       stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
       patient: item.paciente || "-",
@@ -92,6 +93,7 @@ export default function Stock() {
     { key: "quantity", label: "Quantidade", editable: true },
     { key: "patient", label: "Residente", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
+    { key: "drawer", label: "Gaveta", editable: false },
     { key: "casela", label: "Casela", editable: false },
     { key: "origin", label: "Origem", editable: false },
   ];

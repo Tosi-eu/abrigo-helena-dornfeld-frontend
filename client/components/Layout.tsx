@@ -25,6 +25,7 @@ export default function Layout({ children, title }: LayoutProps) {
     { name: "Estoque", href: "/stock" },
     { name: "Residentes", href: "/residents" },
     { name: "Armários", href: "/cabinets" },
+    { name: "Gavetas", href: "/drawers" },
     { name: "Perfil", href: "/user/profile" },
   ];
 
@@ -34,21 +35,6 @@ export default function Layout({ children, title }: LayoutProps) {
     navigate("/user/login");
   };
   const cancelLogout = () => setShowLogoutModal(false);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const resp = await getTodayNotifications();
-        if (resp.count > 0) {
-          setReminderEvents(resp.data);
-          setNotificationCount(resp.count);
-        }
-      } catch (err) {
-        console.error("Erro ao buscar notificações", err);
-      }
-    };
-    if (user) fetchNotifications();
-  }, [user]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
