@@ -110,7 +110,8 @@ export default function StockOut() {
       await createMovement({
         tipo: MovementType.OUT,
         login_id: user?.id,
-        armario_id: selected.armario_id,
+        armario_id: selected.armario_id ?? null,
+        gaveta_id: selected.gaveta_id ?? null,
         casela_id: selected.casela_id ?? null,
         quantidade: qty,
         validade: selected.validade,

@@ -1,5 +1,5 @@
 import "react-datepicker/dist/react-datepicker.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
@@ -26,55 +26,56 @@ import { cn } from "@/lib/utils";
 
 export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProps) {
   const [formData, setFormData] = useState({
-    inputId: 0,
+    inputId: null as number | null,
     category: "",
-    quantity: 0,
-
-    storageId: 0,
-    caselaId: 0,
-
-    validity: null as Date | null,
+    quantity: "",
     stockType: "" as InputStockType | "",
+    validity: null as Date | null,
+    cabinetId: null as number | null,
+    drawerId: null as number | null,
   });
 
   const [inputOpen, setInputOpen] = useState(false);
-
   const navigate = useNavigate();
 
   const selectedInput = inputs.find((i) => i.id === formData.inputId);
+  const isEmergencyCart = formData.stockType === InputStockType.CARRINHO;
 
-  const isEmergencyCart =
-    formData.stockType === InputStockType.CARRINHO;
+  const updateField = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, cabinetId: null, drawerId: null }));
+  }, [formData.stockType]);
 
   const handleInputSelect = (id: number) => {
     const selected = inputs.find((i) => i.id === id);
-
-    setFormData((prev) => ({
-      ...prev,
-      inputId: id,
-      category: selected?.description ?? "",
-    }));
-
+    updateField("inputId", id);
+    updateField("category", selected?.description ?? "");
     setInputOpen(false);
   };
 
   const handleSubmit = () => {
+    const quantity = Number(formData.quantity);
+
     if (!formData.inputId) {
       toast({ title: "Selecione um insumo", variant: "error" });
       return;
     }
 
-    if (!formData.storageId) {
-      toast({
-        title: `Selecione ${isEmergencyCart ? "uma gaveta" : "um armário"}`,
-        variant: "error",
-      });
+    if (isNaN(quantity) || quantity <= 0) {
+      toast({ title: "Informe uma quantidade válida", variant: "error" });
       return;
     }
 
-    const quantity = Number(formData.quantity);
-    if (isNaN(quantity) || quantity <= 0) {
-      toast({ title: "Informe uma quantidade válida", variant: "error" });
+    if (isEmergencyCart && !formData.drawerId) {
+      toast({ title: "Selecione uma gaveta", variant: "error" });
+      return;
+    }
+
+    if (!isEmergencyCart && !formData.cabinetId) {
+      toast({ title: "Selecione um armário", variant: "error" });
       return;
     }
 
@@ -82,25 +83,23 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
       inputId: formData.inputId,
       quantity,
       isEmergencyCart,
-      caselaId: formData.caselaId || undefined,
+      drawerId: formData.drawerId || undefined,
+      cabinetId: formData.cabinetId || undefined,
       validity: formData.validity,
       stockType: formData.stockType,
     });
   };
 
+  const storageOptions = isEmergencyCart ? drawers : cabinets;
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
-        <h2 className="text-lg font-semibold text-slate-800">
-          Informações do Insumo
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-800">Informações do Insumo</h2>
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">
-          Nome do Insumo
-        </label>
-
+        <label className="text-sm font-semibold text-slate-700">Nome do Insumo</label>
         <Popover open={inputOpen} onOpenChange={setInputOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
@@ -108,28 +107,20 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-
           <PopoverContent className="w-full p-0">
             <Command>
               <CommandInput placeholder="Buscar insumo..." />
               <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
-
               <CommandGroup>
-                {inputs.map((input) => (
-                  <CommandItem
-                    key={input.id}
-                    value={input.name}
-                    onSelect={() => handleInputSelect(input.id)}
-                  >
+                {inputs.map((i) => (
+                  <CommandItem key={i.id} value={i.name} onSelect={() => handleInputSelect(i.id)}>
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        formData.inputId === input.id
-                          ? "opacity-100"
-                          : "opacity-0",
+                        formData.inputId === i.id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {input.name}
+                    {i.name}
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -140,28 +131,19 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Quantidade
-          </label>
+          <label className="text-sm font-semibold text-slate-700">Quantidade</label>
           <input
             type="number"
             value={formData.quantity}
-            onChange={(e) =>
-              setFormData({ ...formData, quantity: Number(e.target.value) || 0 })
-            }
+            onChange={(e) => updateField("quantity", e.target.value)}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
           />
         </div>
-
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Validade
-          </label>
+          <label className="text-sm font-semibold text-slate-700">Validade</label>
           <DatePicker
             selected={formData.validity}
-            onChange={(date: Date | null) =>
-              setFormData({ ...formData, validity: date })
-            }
+            onChange={(date: Date | null) => updateField("validity", date)}
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
@@ -170,55 +152,34 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">
-          {isEmergencyCart ? "Gaveta" : "Armário"}
-        </label>
-
+        <label className="text-sm font-semibold text-slate-700">Tipo de Estoque</label>
         <select
-          value={formData.storageId}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              storageId: Number(e.target.value),
-            })
-          }
-          className="w-full border bg-white border-slate-300 rounded-lg px-3 py-2 text-sm"
+          value={formData.stockType}
+          onChange={(e) => updateField("stockType", e.target.value as InputStockType)}
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
         >
-          <option value={0} disabled hidden>
-            Selecione
-          </option>
-
-          {(isEmergencyCart ? drawers : cabinets).map((s: any) => (
-            <option
-              key={isEmergencyCart ? s.id : s.numero}
-              value={isEmergencyCart ? s.id : s.numero}
-            >
-              {isEmergencyCart ? s.nome ?? s.id : s.numero}
-            </option>
+          <option value="" disabled hidden>Selecione</option>
+          {Object.values(InputStockType).map((t) => (
+            <option key={t} value={t}>{StockTypeLabels[t]}</option>
           ))}
         </select>
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">
-          Tipo de Estoque
-        </label>
+        <label className="text-sm font-semibold text-slate-700">{isEmergencyCart ? "Gaveta" : "Armário"}</label>
         <select
-          value={formData.stockType}
+          value={isEmergencyCart ? formData.drawerId ?? "" : formData.cabinetId ?? ""}
           onChange={(e) =>
-            setFormData({
-              ...formData,
-              stockType: e.target.value as InputStockType,
-            })
+            isEmergencyCart
+              ? updateField("drawerId", Number(e.target.value))
+              : updateField("cabinetId", Number(e.target.value))
           }
-          className="w-full border bg-white border-slate-300 rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
         >
-          <option value="" disabled hidden>
-            Selecione
-          </option>
-          {Object.values(InputStockType).map((type) => (
-            <option key={type} value={type}>
-              {StockTypeLabels[type]}
+          <option value="" disabled hidden>Selecione</option>
+          {storageOptions.map((s) => (
+            <option key={ s.numero } value={ s.numero }>
+              { s.numero }
             </option>
           ))}
         </select>
@@ -232,7 +193,6 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
         >
           Cancelar
         </button>
-
         <button
           type="button"
           onClick={handleSubmit}
@@ -244,4 +204,6 @@ export function InputForm({ inputs, cabinets, drawers, onSubmit }: InputFormProp
     </div>
   );
 }
+
+
 

@@ -163,6 +163,7 @@ export interface StockItemRaw {
   tipo?: string;
   paciente?: string | null;
   armario_id?: number | null;
+  gaveta_id?: number | null;
   casela_id?: number | null;
   detalhes?: string;
 }
@@ -270,6 +271,11 @@ export interface StockDistributionItem {
 
 export interface CabinetStockItem {
   cabinet: number;
+  total: number;
+}
+
+export interface DrawerStockItem {
+  drawer: number;
   total: number;
 }
 

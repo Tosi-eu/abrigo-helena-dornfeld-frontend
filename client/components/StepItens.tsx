@@ -14,6 +14,7 @@ interface Props {
 }
 
 export default function StepItems({ items, selected, onSelectItem }: Props) {
+  console.log(items)
   return (
     <div className="w-full space-y-4">
       <div

@@ -16,12 +16,9 @@ export function StockCard({
   const display = (v: any) =>
     v !== null && v !== undefined && v !== "" ? v : "N/A";
 
-  console.log(item);
-
   const fields: { label: string; value: string | number }[] = [
     { label: "Nome", value: display(item.nome) },
     { label: "Quantidade", value: display(item.quantidade) },
-    { label: "Validade", value: display(item.validade) },
   ];
 
   if (item.tipo_item === "medicamento") {
@@ -29,13 +26,12 @@ export function StockCard({
       label: "Princípio ativo",
       value: display(item.principio_ativo),
     });
-    if (item.paciente) {
-      fields.push({ label: "Paciente", value: display(item.paciente) });
-    }
   }
 
   fields.push({ label: "Armário", value: display(item.armario_id) });
-  fields.push({ label: "Casela", value: display(item.casela_id) });
+  fields.push({ label: "Gaveta", value: display(item.gaveta_id) });
+  fields.push({ label: "Paciente", value: display(item.paciente) });
+
   if (item.origem)
     fields.push({ label: "Origem", value: display(item.origem) });
 

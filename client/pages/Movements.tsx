@@ -30,6 +30,7 @@ export default function InputMovements() {
     { key: "operator", label: "Operador", editable: false },
     { key: "movementDate", label: "Data da Transação", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
+    { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },
   ];
 
@@ -39,15 +40,16 @@ export default function InputMovements() {
     return {
       id: item.id,
       name: isMedicine
-        ? (item.MedicineModel?.nome ?? "-")
-        : (item.InputModel?.nome ?? "-"),
+        ? (item.MedicineModel?.nome)
+        : (item.InputModel?.nome),
       additionalData: isMedicine
-        ? (item.MedicineModel?.principio_ativo ?? "")
-        : (item.InputModel?.descricao ?? ""),
+        ? (item.MedicineModel?.principio_ativo)
+        : (item.InputModel?.descricao ?? "-"),
       quantity: item.quantidade,
-      operator: item.LoginModel?.login ?? "",
+      operator: item.LoginModel?.login,
       movementDate: item.data,
-      cabinet: item.CabinetModel?.num_armario ?? item.armario_id ?? "",
+      cabinet: item.armario_id ?? "-",
+      drawer: item.gaveta_id ?? "-",
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
     };
