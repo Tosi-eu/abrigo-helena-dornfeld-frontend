@@ -5,12 +5,13 @@ import {
   OriginType,
 } from "@/utils/enums";
 import { ReactNode } from "react";
+import { StockExpiryStatus, StockQuantityStatus } from "./types";
 
 export interface Column {
   key: string;
   label: string;
   editable?: boolean;
-  type?: "text" | "date";
+  type?: string | Date
   enum?: string[];
 }
 
@@ -111,45 +112,6 @@ export interface Movement {
   patientId?: number;
 }
 
-export interface InputMovementRow {
-  inputName: string;
-  description: string;
-  quantity?: number;
-  cabinet: string;
-  operator?: string;
-  movementDate: string;
-  movementType: string;
-}
-
-export interface MovementRow {
-  type: "Medicamento" | "Insumo";
-  name: string;
-  description: string;
-  expiry?: string;
-  quantity?: number;
-  minimumStock?: number;
-  stockType?: string;
-  patient?: string;
-  casela?: number;
-  cabinet?: number | string;
-  operator?: string;
-  movementDate: string;
-  movementType: string;
-  originSector?: string;
-  destinationSector?: string;
-}
-
-export interface PrepareMovementsParams {
-  movements: Movement[];
-  medicines: Medicine[];
-  inputs: Input[];
-  patients: Patient[];
-  cabinets: Cabinet[];
-  users: User[];
-  medicineInventory: MedicineInventory[];
-  inputInventory: InputInventory[];
-}
-
 export interface StockItemRaw {
   item_id: number;
   estoque_id: number;
@@ -169,6 +131,7 @@ export interface StockItemRaw {
 }
 
 export interface StockItem {
+  id: number;
   name: string;
   description: string;
   expiry: string;
@@ -180,24 +143,6 @@ export interface StockItem {
   stockType: MedicineStockType;
   status?: string | null;
   suspended_at?: Date | null;
-}
-
-export interface StockOutFormProps {
-  items: {
-    id: string;
-    nome: string;
-    detalhes?: string;
-  }[];
-  cabinets: {
-    value: string;
-    label: string;
-  }[];
-  onSubmit: (data: {
-    itemId: string;
-    armarioId: string;
-    caselaId?: string;
-    quantity: number;
-  }) => void;
 }
 
 export interface InputFormProps {
@@ -257,8 +202,8 @@ export interface StockStatusItem {
   name: string;
   quantity: number;
   expiry: string | null;
-  st_quantidade: "low" | "ok" | "zero";
-  st_expiracao: "expired" | "warning" | "critical" | "ok";
+  st_quantidade: StockQuantityStatus;
+  st_expiracao: StockExpiryStatus;
   minimo?: number;
   paciente?: string | null;
   armario_id?: number | null;
@@ -287,16 +232,6 @@ export interface MedicineRankingItem {
   total: number;
   entradas: number;
   saidas: number;
-}
-
-export interface RawMedicineMovement {
-  tipo: string;
-  quantidade: number;
-  data: string;
-  MedicamentoModel?: { nome: string };
-  LoginModel?: { login: string };
-  ResidenteModel?: { nome: string; num_casela: number };
-  ArmarioModel?: { num_armario: number };
 }
 
 export interface RawMovement {

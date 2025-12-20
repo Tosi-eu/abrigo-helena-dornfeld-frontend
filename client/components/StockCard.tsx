@@ -1,3 +1,6 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip";
+import { AlertTriangle } from "lucide-react";
+
 interface StockCardProps {
   item: any;
   selected: boolean;
@@ -11,10 +14,23 @@ export function StockCard({
   selected,
   onSelect,
   disabled = false,
-  tooltip,
 }: StockCardProps) {
   const display = (v: any) =>
     v !== null && v !== undefined && v !== "" ? v : "N/A";
+
+  const isSuspended = item.status === "suspended";
+  const isOutOfStock = Number(item.quantidade) === 0;
+  const isExpired = item.st_expiracao === "expired";
+
+  const isDisabled = disabled || isSuspended || isOutOfStock || isExpired;
+
+  const disabledReason = isSuspended
+    ? "Medicamento suspenso"
+    : isOutOfStock
+    ? "Sem estoque disponível"
+    : isExpired
+    ? "Medicamento vencido"
+    : undefined;
 
   const fields: { label: string; value: string | number }[] = [
     { label: "Nome", value: display(item.nome) },
@@ -39,22 +55,27 @@ export function StockCard({
   const left = fields.slice(0, mid);
   const right = fields.slice(mid);
 
-  return (
+  const card = (
     <div
       onClick={() => {
-        if (!disabled) onSelect();
+        if (!isDisabled) onSelect();
       }}
-      title={disabled && tooltip ? tooltip : ""}
       className={`
-        w-full rounded-xl p-5 border shadow-sm transition-all
+        relative w-full rounded-xl p-5 border shadow-sm transition-all
         ${
           selected
             ? "bg-sky-50 border-sky-600 shadow-md"
             : "bg-white border-slate-300 hover:bg-slate-50"
         }
-        ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+        ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
       `}
     >
+      {isDisabled && disabledReason && (
+        <div className="absolute top-4 right-4 text-yellow-500">
+          <AlertTriangle size={18} />
+        </div>
+      )}
+
       <div className="font-semibold text-slate-800 text-base mb-3">
         {item.nome}
       </div>
@@ -80,4 +101,16 @@ export function StockCard({
       </div>
     </div>
   );
+
+  if (!isDisabled || !disabledReason) return card;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{card}</TooltipTrigger>
+        <TooltipContent>{disabledReason}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
+

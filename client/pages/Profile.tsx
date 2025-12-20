@@ -61,7 +61,6 @@ export default function Profile() {
         currentPassword,
       });
 
-      console.log(data);
       localStorage.setItem("user", JSON.stringify(data));
 
       toast({ title: "Perfil atualizado", variant: "success" });

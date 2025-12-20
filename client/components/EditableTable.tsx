@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  PauseCircle,
+  PlayCircle,
+  UserMinus,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EditableTableProps } from "@/interfaces/interfaces";
 import { useToast } from "@/hooks/use-toast.hook";
@@ -18,11 +25,39 @@ import {
   deleteMedicine,
   deleteResident,
 } from "@/api/requests";
-import { PauseCircle, PlayCircle, UserMinus } from "lucide-react";
 
 const typeMap: Record<string, string> = {
   Medicamento: "medicines",
   Insumo: "inputs",
+};
+
+const StatusBadge = ({ row }: { row: any }) => {
+  if (!row.status) return "-";
+
+  if (row.status === "suspended") {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200 cursor-default">
+              Suspenso
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {row.suspended_at
+              ? `Suspenso em ${row.suspended_at.toLocaleDateString()}`
+              : "Medicamento suspenso"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return (
+    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+      Ativo
+    </span>
+  );
 };
 
 export default function EditableTable({
@@ -34,6 +69,9 @@ export default function EditableTable({
   hasNextPage = false,
   onNextPage,
   onPrevPage,
+  onRemoveIndividual,
+  onSuspend,
+  onResume,
 }: EditableTableProps & {
   entityType?: string;
   showAddons?: boolean;
@@ -41,6 +79,9 @@ export default function EditableTable({
   hasNextPage?: boolean;
   onNextPage?: () => void;
   onPrevPage?: () => void;
+  onRemoveIndividual?: (row: any) => void;
+  onSuspend?: (row: any) => void;
+  onResume?: (row: any) => void;
 }) {
   const [rows, setRows] = useState(data);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -49,375 +90,283 @@ export default function EditableTable({
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!data) return;
     setRows(data);
   }, [data]);
 
-  const isIndividualMedicine = (row: any) => row.casela != "-";
+  const isIndividualMedicine = (row: any) =>
+    row.casela !== "-" && row.stockType?.includes("individual");
+
   const isActive = (row: any) => row.status === "active";
-  const isSuspended = (row: any) => row.status === "suspended";
+
   const disabledActionClass =
     "opacity-40 cursor-not-allowed pointer-events-none";
 
   const handleAddRow = () => {
-    if (entityType === "entries") {
-      navigate("/stock/in", { state: { previousData: rows } });
-    } else if (entityType === "exits") {
-      navigate("/stock/out", { state: { previousData: rows } });
-    } else if (entityType === "medicines") {
-      navigate("/medicines/register");
-    } else if (entityType === "residents") {
-      navigate("/residents/register");
-    } else if (entityType === "inputs") {
-      navigate("/inputs/register");
-    } else if (entityType === "cabinets") {
-      navigate("/cabinets/register");
-    } else if (entityType === "drawers") {
-      navigate("/drawer/register");
-    }
-  };
+    const routes: Record<string, string> = {
+      entries: "/stock/in",
+      exits: "/stock/out",
+      medicines: "/medicines/register",
+      residents: "/residents/register",
+      inputs: "/inputs/register",
+      cabinets: "/cabinets/register",
+      drawers: "/drawer/register",
+    };
 
-  const handleRemoveIndividual = (row: any) => {
-    // TODO: chamar endpoint de remoção do individual
-    toast({
-      title: "Medicamento desvinculado",
-      description: "O medicamento voltou para o estoque geral.",
-      variant: "success",
-    });
-  };
-
-  const handleSuspend = (row: any) => {
-    // TODO: chamar endpoint de suspensão
-    toast({
-      title: "Medicamento suspenso",
-      variant: "success",
-    });
-  };
-
-  const handleResume = (row: any) => {
-    // TODO: chamar endpoint de reativação
-    toast({
-      title: "Medicamento reativado",
-      variant: "success",
-    });
+    const route = routes[entityType ?? ""];
+    if (route) navigate(route);
   };
 
   const handleEditClick = (row: any) => {
-    let type = typeMap[row?.type];
-    if (
-      ["inputs", "medicines", "residents", "cabinets", "drawers"].includes(
-        entityType,
-      )
-    ) {
-      type = entityType;
-    }
-
-    if (!type) {
+    if (row.status === "suspended") {
       toast({
-        title: "Tipo indefinido",
-        description: "Nenhum tipo foi informado.",
+        title: "Medicamento suspenso",
+        description: "Reative o medicamento para poder editá-lo.",
         variant: "error",
       });
       return;
     }
 
+    let type = typeMap[row?.type];
+
+    if (
+      ["inputs", "medicines", "residents", "cabinets", "drawers"].includes(
+        entityType ?? "",
+      )
+    ) {
+      type = entityType!;
+    }
+
+    if (!type) return;
+
     navigate(`/${type}/edit`, { state: { item: row } });
   };
 
-  const confirmDelete = async (index: number) => {
-    setDeleteIndex(index);
-  };
+  const confirmDelete = (index: number) => setDeleteIndex(index);
 
   const handleDeleteConfirmed = async () => {
     if (deleteIndex === null) return;
 
-    const rowToDelete = rows[deleteIndex];
-    if (!rowToDelete) return;
+    const row = rows[deleteIndex];
+    if (!row) return;
 
     try {
-      let res = null;
+      if (entityType === "cabinets") await deleteCabinet(row.numero);
+      else if (entityType === "drawers") await deleteDrawer(row.numero);
+      else if (entityType === "inputs") await deleteInput(row.id);
+      else if (entityType === "medicines") await deleteMedicine(row.id);
+      else if (entityType === "residents") await deleteResident(row.casela);
 
-      if (entityType === "cabinets") {
-        res = await deleteCabinet(rowToDelete.numero);
-      } else if (entityType === "drawers") {
-        res = await deleteDrawer(rowToDelete.numero);
-      } else if (entityType === "inputs") {
-        res = await deleteInput(rowToDelete.id);
-      } else if (entityType === "medicines") {
-        res = await deleteMedicine(rowToDelete.id);
-      } else if (entityType === "residents") {
-        res = await deleteResident(rowToDelete.casela);
-      } else {
-        throw new Error("Entidade não suportada para deleção.");
-      }
-
-      toast({
-        title: "Item removido",
-        description: "O item foi excluído com sucesso.",
-        variant: "success",
-      });
-
-      setRows(rows.filter((_, i) => i !== deleteIndex));
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o item.",
-        variant: "error",
-      });
+      toast({ title: "Item removido", variant: "success" });
+      setRows((prev) => prev.filter((_, i) => i !== deleteIndex));
+    } catch {
+      toast({ title: "Erro ao remover item", variant: "error" });
     } finally {
       setDeleteIndex(null);
     }
   };
 
-  const handleDeleteCancel = () => setDeleteIndex(null);
-
   return (
-    <>
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden font-[Inter]">
-        <div className="flex items-center justify-end px-4 py-3 border-b border-slate-200 bg-sky-50">
-          {showAddons && (
-            <button
-              onClick={handleAddRow}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-sky-700 hover:text-sky-800 hover:bg-sky-100 rounded-lg transition"
-            >
-              <Plus size={16} /> Adicionar
-            </button>
-          )}
-        </div>
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="flex justify-end px-4 py-3 border-b bg-sky-50">
+        {showAddons && (
+          <button
+            onClick={handleAddRow}
+            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-sky-700 hover:bg-sky-100 rounded-lg"
+          >
+            <Plus size={16} /> Adicionar
+          </button>
+        )}
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-sky-100 border-b border-slate-200">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-sky-100 border-b">
+              {columns.map((col) => (
+                <th key={col.key} className="px-4 py-3 text-sm font-semibold">
+                  {col.label}
+                </th>
+              ))}
+              {showAddons && <th className="px-4 py-3">Ações</th>}
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.map((row, i) => (
+              <tr
+                key={i}
+                className={`border-b transition ${
+                  row.status === "suspended"
+                    ? "bg-slate-50 opacity-70"
+                    : "hover:bg-sky-50"
+                }`}
+              >
                 {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="px-4 py-3 text-center text-sm font-semibold text-slate-800"
-                  >
-                    {col.label}
-                  </th>
+                  <td key={col.key} className="px-4 py-3 text-sm text-center">
+                    {col.key === "status" ? (
+                      <StatusBadge row={row} />
+                    ) : col.key === "expiry" ? (
+                      renderExpiryTag(row)
+                    ) : col.key === "quantity" ? (
+                      renderQuantityTag(row)
+                    ) : (
+                      row[col.key]
+                    )}
+                  </td>
                 ))}
+
                 {showAddons && (
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-800 text-center">
-                    Ações
-                  </th>
+                  <td className="px-4 py-3 flex justify-center gap-4">
+                    <button
+                      onClick={() => handleEditClick(row)}
+                      className="text-sky-700 hover:text-sky-900"
+                    >
+                      <Pencil size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => confirmDelete(i)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => onRemoveIndividual?.(row)}
+                      disabled={!isIndividualMedicine(row)}
+                      className={`text-orange-600 ${
+                        !isIndividualMedicine(row) && disabledActionClass
+                      }`}
+                    >
+                      <UserMinus size={18} />
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        isActive(row)
+                          ? onSuspend?.(row)
+                          : onResume?.(row)
+                      }
+                      disabled={!isIndividualMedicine(row)}
+                      className={`${
+                        isActive(row)
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      } ${!isIndividualMedicine(row) && disabledActionClass}`}
+                    >
+                      {isActive(row) ? (
+                        <PauseCircle size={18} />
+                      ) : (
+                        <PlayCircle size={18} />
+                      )}
+                    </button>
+                  </td>
                 )}
               </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-slate-200 hover:bg-sky-50 transition-colors"
-                >
-                  {columns.map((col) => {
-                    let content = row[col.key];
-                    if (col.key === "expiry") content = renderExpiryTag(row);
-                    if (col.key === "quantity")
-                      content = renderQuantityTag(row);
-
-                    return (
-                      <td
-                        key={col.key}
-                        className="px-4 py-3 text-sm text-slate-800 text-center"
-                      >
-                        {content}
-                      </td>
-                    );
-                  })}
-
-                  {showAddons && (
-                    <td className="px-4 py-3 flex justify-center gap-4">
-                      <button
-                        onClick={() => handleEditClick(row)}
-                        className="text-sky-700 hover:text-sky-900 transition"
-                      >
-                        <Pencil size={18} />
-                      </button>
-
-                      <button
-                        onClick={() => confirmDelete(i)}
-                        className="text-red-600 hover:text-red-800 transition"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() => handleRemoveIndividual(row)}
-                              disabled={!isIndividualMedicine(row)}
-                              className={`text-orange-600 hover:text-orange-800 transition ${
-                                !isIndividualMedicine(row)
-                                  ? disabledActionClass
-                                  : ""
-                              }`}
-                            >
-                              <UserMinus size={18} />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {isIndividualMedicine(row)
-                              ? "Remover medicamento do paciente"
-                              : "Disponível apenas para medicamentos individuais"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() =>
-                                isActive(row)
-                                  ? handleSuspend(row)
-                                  : handleResume(row)
-                              }
-                              disabled={!isIndividualMedicine(row)}
-                              className={`
-                                  transition
-                                  ${
-                                    !isIndividualMedicine(row)
-                                      ? disabledActionClass
-                                      : isActive(row)
-                                        ? "text-yellow-600 hover:text-yellow-800"
-                                        : "text-green-600 hover:text-green-800"
-                                  }
-                                `}
-                            >
-                              {isActive(row) ? (
-                                <PauseCircle size={18} />
-                              ) : (
-                                <PlayCircle size={18} />
-                              )}
-                            </button>
-                          </TooltipTrigger>
-
-                          <TooltipContent>
-                            {!isIndividualMedicine(row)
-                              ? "Disponível apenas para medicamentos individuais"
-                              : isActive(row)
-                                ? "Suspender medicamento"
-                                : "Reativar medicamento"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </td>
-                  )}
-                </tr>
-              ))}
-
-              {rows.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={columns.length + 1}
-                    className="text-center py-6 text-sm text-slate-600"
-                  >
-                    Nenhum item encontrado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {(onNextPage || onPrevPage) && (
-          <div className="flex justify-center gap-4 py-4 bg-white border-t border-slate-200">
-            <button
-              onClick={onPrevPage}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg font-medium border transition ${
-                currentPage === 1
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-white text-sky-700 hover:bg-sky-50"
-              }`}
-            >
-              Anterior
-            </button>
-
-            <button
-              onClick={onNextPage}
-              disabled={!hasNextPage}
-              className={`px-4 py-2 rounded-lg font-medium border transition ${
-                !hasNextPage
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-white text-sky-700 hover:bg-sky-50"
-              }`}
-            >
-              Próximo
-            </button>
-          </div>
-        )}
-
-        <DeletePopUp
-          open={deleteIndex !== null}
-          onCancel={handleDeleteCancel}
-          onConfirm={handleDeleteConfirmed}
-          message="Tem certeza que deseja remover este item?"
-        />
+            ))}
+          </tbody>
+        </table>
       </div>
-    </>
+
+      {/* Paginação */}
+      {(onNextPage || onPrevPage) && (
+        <div className="flex justify-center gap-4 py-4 border-t bg-white">
+          <button
+            onClick={onPrevPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg font-medium border ${
+              currentPage === 1
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white text-sky-700 hover:bg-sky-50"
+            }`}
+          >
+            Anterior
+          </button>
+
+          <button
+            onClick={onNextPage}
+            disabled={!hasNextPage}
+            className={`px-4 py-2 rounded-lg font-medium border ${
+              !hasNextPage
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white text-sky-700 hover:bg-sky-50"
+            }`}
+          >
+            Próximo
+          </button>
+        </div>
+      )}
+
+      <DeletePopUp
+        open={deleteIndex !== null}
+        onCancel={() => setDeleteIndex(null)}
+        onConfirm={handleDeleteConfirmed}
+        message="Tem certeza que deseja remover este item?"
+      />
+    </div>
   );
 }
 
 const renderExpiryTag = (row: any) => {
-  const status = row.expirationStatus;
-  const message = row.expirationMsg;
+  if (!row.expirationStatus) return "-";
 
-  if (!status) return "-";
-
-  const colorMap: Record<string, string> = {
-    expired: "bg-red-50 text-red-700 border border-red-200",
-    critical: "bg-orange-50 text-orange-700 border border-orange-200",
-    warning: "bg-yellow-50 text-yellow-700 border border-yellow-200",
-    healthy: "bg-green-50 text-green-700 border border-green-200",
+  const map: Record<string, string> = {
+    expired: "bg-red-50 text-red-700 border-red-200",
+    critical: "bg-orange-50 text-orange-700 border-orange-200",
+    warning: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    healthy: "bg-green-50 text-green-700 border-green-200",
   };
+
+  const classes =
+    map[row.expirationStatus] ??
+    "bg-slate-50 text-slate-700 border border-slate-200";
+
+  const badge = (
+    <span className={`px-2 py-1 rounded-full text-xs border ${classes}`}>
+      {row.expiry}
+    </span>
+  );
+
+  if (!row.expirationMsg) return badge;
 
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            className={`px-2 py-1 rounded-full text-[11px] font-medium ${colorMap[status]}`}
-          >
-            {row.expiry}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>{message}</TooltipContent>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent>{row.expirationMsg}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 };
 
 const renderQuantityTag = (row: any) => {
-  const status = row.quantityStatus;
-  const message = row.quantityMsg;
+  if (!row.quantityStatus) return row.quantity;
 
-  const colorMap: Record<string, string> = {
-    empty: "bg-red-100 text-red-700 border border-red-300",
-    low: "bg-orange-100 text-orange-700 border border-orange-300",
-    critical: "bg-red-100 text-red-700 border border-red-300",
-    medium: "bg-yellow-100 text-yellow-700 border border-yellow-300",
-    high: "bg-green-100 text-green-700 border border-green-300",
-    normal: "bg-green-100 text-green-700 border border-green-300",
+  const map: Record<string, string> = {
+    critical: "bg-red-100 text-red-700",
+    low: "bg-orange-100 text-orange-700",
+    medium: "bg-yellow-100 text-yellow-700",
+    normal: "bg-green-100 text-green-700",
+    high: "bg-green-100 text-green-700",
   };
+
+  const classes =
+    map[row.quantityStatus] ??
+    "bg-slate-100 text-slate-700 border border-slate-200";
+
+  const badge = (
+    <span className={`px-2 py-1 rounded-full text-xs ${classes}`}>
+      {row.quantity}
+    </span>
+  );
+
+  if (!row.quantityMsg) return badge;
 
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
-          >
-            {row.quantity}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="text-xs">
-          {message}
-        </TooltipContent>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent>{row.quantityMsg}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

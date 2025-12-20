@@ -77,7 +77,7 @@ export default function StockIn() {
         tipo: data.stockType,
         medicamento_id: data.id,
         quantidade: data.quantity,
-        armario_id: data.cabinet ?? null,
+        armario_id: data.cabinetId ?? null,
         gaveta_id: data.drawerId ?? null,
         casela_id: data.casela ?? null,
         validade: data.expirationDate ?? null,
@@ -86,20 +86,10 @@ export default function StockIn() {
 
       await createStockIn(payload);
 
-      console.log({
-        tipo: MovementType.IN,
-        login_id: user?.id,
-        armario_id: data.cabinet ?? null,
-        quantidade: data.quantity,
-        casela_id: data.casela ?? null,
-        gaveta_id: data.drawerId ?? null,
-        medicamento_id: data.id,
-        validade: data.expirationDate,
-      });
       await createMovement({
         tipo: MovementType.IN,
         login_id: user?.id,
-        armario_id: data.cabinet ?? null,
+        armario_id: data.cabinetId ?? null,
         quantidade: data.quantity,
         casela_id: data.casela ?? null,
         gaveta_id: data.drawerId ?? null,

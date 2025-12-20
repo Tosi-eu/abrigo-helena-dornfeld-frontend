@@ -39,7 +39,7 @@ export default function Resident() {
 
   return (
     <Layout title="Residentes">
-      <div className="pt-8">
+      <div className="pt-8">  
         {!loading && error && (
           <div className="text-center mt-10 text-red-500">{error}</div>
         )}

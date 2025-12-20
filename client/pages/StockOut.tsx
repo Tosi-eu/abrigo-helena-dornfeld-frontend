@@ -19,6 +19,21 @@ import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
 import { fetchAllPaginated } from "@/helpers/pagination.helper";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 const UI_PAGE_SIZE = 6;
 
 export default function StockOut() {
@@ -46,7 +61,6 @@ export default function StockOut() {
 
   async function fetchStock() {
     setLoading(true);
-
     try {
       const allItems = await fetchAllPaginated(
         (page, limit) =>
@@ -57,9 +71,7 @@ export default function StockOut() {
           ),
         100,
       );
-
       setItems(allItems as StockItemRaw[]);
-      setTotalPages(Math.max(1, Math.ceil(allItems.length / UI_PAGE_SIZE)));
     } catch (err) {
       console.error(err);
       toast({
@@ -74,13 +86,55 @@ export default function StockOut() {
 
   useEffect(() => {
     fetchStock();
+    setUiPage(1);
+    setSelected(null);
   }, [operationType]);
+
+  const nameOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((i) => i.nome).filter(Boolean))).map(
+        (name) => ({ label: name, value: name }),
+      ),
+    [items],
+  );
+
+  const cabinetOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((i) => i.armario_id).filter(Boolean))).map(
+        (id) => ({ label: `Armário ${id}`, value: String(id) }),
+      ),
+    [items],
+  );
+
+  const originOptions = useMemo(
+    () =>
+      Array.from(new Set(items.map((i) => i.origem).filter(Boolean))).map(
+        (o) => ({ label: o, value: o }),
+      ),
+    [items],
+  );
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (filters.nome && item.nome !== filters.nome) return false;
+      if (filters.armario && String(item.armario_id ?? "") !== filters.armario)
+        return false;
+      if (filters.origem && item.origem !== filters.origem) return false;
+      return true;
+    });
+  }, [items, filters]);
 
   const paginatedItems = useMemo(() => {
     const start = (uiPage - 1) * UI_PAGE_SIZE;
     const end = start + UI_PAGE_SIZE;
-    return items.slice(start, end);
-  }, [items, uiPage]);
+    return filteredItems.slice(start, end);
+  }, [filteredItems, uiPage]);
+
+  useEffect(() => {
+    setUiPage(1);
+    setSelected(null);
+    setTotalPages(Math.max(1, Math.ceil(filteredItems.length / UI_PAGE_SIZE)));
+  }, [filteredItems]);
 
   const handleSelectType = (type: OperationType) => {
     setOperationType(type);
@@ -96,7 +150,6 @@ export default function StockOut() {
 
   const handleConfirm = async () => {
     if (!selected) return;
-
     const qty = Number(quantity);
     if (!qty || qty <= 0) return;
 
@@ -137,19 +190,15 @@ export default function StockOut() {
   };
 
   const handleBack = () => {
-    if (step === StockWizardSteps.ITENS) {
-      setStep(StockWizardSteps.TIPO);
-    } else if (step === StockWizardSteps.QUANTIDADE) {
-      setStep(StockWizardSteps.ITENS);
-    }
+    if (step === StockWizardSteps.ITENS) setStep(StockWizardSteps.TIPO);
+    else if (step === StockWizardSteps.QUANTIDADE) setStep(StockWizardSteps.ITENS);
   };
 
   const handleNext = () => {
-    if (step === StockWizardSteps.TIPO && operationType !== "Selecione") {
+    if (step === StockWizardSteps.TIPO && operationType !== "Selecione")
       setStep(StockWizardSteps.ITENS);
-    } else if (step === StockWizardSteps.ITENS && selected) {
+    else if (step === StockWizardSteps.ITENS && selected)
       setStep(StockWizardSteps.QUANTIDADE);
-    }
   };
 
   return (
@@ -158,40 +207,133 @@ export default function StockOut() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs text-gray-700 mb-1">Nome</label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 p-2 rounded-lg"
-              value={filters.nome}
-              onChange={(e) => setFilters({ ...filters, nome: e.target.value })}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white"
+                >
+                  {filters.nome || "Selecione"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Buscar nome..." />
+                  <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                  <CommandGroup>
+                    {nameOptions.map((o) => (
+                      <CommandItem
+                        key={o.value}
+                        value={o.value}
+                        onSelect={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            nome: prev.nome === o.value ? "" : o.value, 
+                          }))
+                        }
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.nome === o.value ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                        {o.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
             <label className="block text-xs text-gray-700 mb-1">Armário</label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 p-2 rounded-lg"
-              value={filters.armario}
-              onChange={(e) =>
-                setFilters({ ...filters, armario: e.target.value })
-              }
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white"
+                >
+                  {filters.armario || "Selecione"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Buscar armário..." />
+                  <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                  <CommandGroup>
+                    {cabinetOptions.map((o) => (
+                      <CommandItem
+                        key={o.value}
+                        value={o.value}
+                        onSelect={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            armario: prev.armario === o.value ? "" : o.value,
+                          }))
+                        }
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.armario === o.value ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                        {o.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
             <label className="block text-xs text-gray-700 mb-1">Origem</label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 p-2 rounded-lg"
-              value={filters.origem}
-              onChange={(e) =>
-                setFilters({ ...filters, origem: e.target.value })
-              }
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white"
+                >
+                  {filters.origem || "Selecione"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Buscar origem..." />
+                  <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                  <CommandGroup>
+                    {originOptions.map((o) => (
+                      <CommandItem
+                        key={o.value}
+                        value={o.value}
+                        onSelect={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            origem: prev.origem === o.value ? "" : o.value,
+                          }))
+                        }
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.origem === o.value ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                        {o.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
 
+      {/* Wizard Steps */}
       <div className="relative overflow-hidden max-w-7xl mx-auto bg-white border border-slate-400 rounded-xl p-10 px-16 shadow-sm mt-10">
         {step !== StockWizardSteps.TIPO && (
           <button
@@ -237,7 +379,7 @@ export default function StockOut() {
               >
                 <StepItems
                   items={paginatedItems}
-                  allItemsCount={items.length}
+                  allItemsCount={filteredItems.length}
                   page={uiPage}
                   pageSize={UI_PAGE_SIZE}
                   totalPages={totalPages}

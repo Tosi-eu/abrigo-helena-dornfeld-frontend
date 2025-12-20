@@ -262,3 +262,13 @@ export const updateDrawerCategory = (id: number, nome: string) =>
 
 export const deleteDrawerCategory = (id: number) =>
   api.delete(`/categoria-gaveta/${id}`);
+
+export const removeIndividualMedicineFromStock = (stockId: number) =>
+  api.patch(`/estoque/medicamento/${stockId}/remover-individual`);
+
+export const suspendMedicineFromStock = (stockId: number) =>
+  api.patch(`/estoque/medicamento/${stockId}/suspender`);
+
+export const resumeMedicineFromStock = (stockId: number) =>
+  api.patch(`/estoque/medicamento/${stockId}/retomar`);
+
