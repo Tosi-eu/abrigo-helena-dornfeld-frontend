@@ -57,7 +57,7 @@ export default function EditableTable({
   const isActive = (row: any) => row.status === "active";
   const isSuspended = (row: any) => row.status === "suspended";
   const disabledActionClass =
-  "opacity-40 cursor-not-allowed pointer-events-none";
+    "opacity-40 cursor-not-allowed pointer-events-none";
 
   const handleAddRow = () => {
     if (entityType === "entries") {
@@ -244,63 +244,67 @@ export default function EditableTable({
                         <Trash2 size={18} />
                       </button>
 
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => handleRemoveIndividual(row)}
-                                disabled={!isIndividualMedicine(row)}
-                                className={`text-orange-600 hover:text-orange-800 transition ${
-                                  !isIndividualMedicine(row) ? disabledActionClass : ""
-                                }`}
-                              >
-                                <UserMinus size={18} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {isIndividualMedicine(row)
-                                ? "Remover medicamento do paciente"
-                                : "Disponível apenas para medicamentos individuais"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() =>
-                                  isActive(row) ? handleSuspend(row) : handleResume(row)
-                                }
-                                disabled={!isIndividualMedicine(row)}
-                                className={`
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleRemoveIndividual(row)}
+                              disabled={!isIndividualMedicine(row)}
+                              className={`text-orange-600 hover:text-orange-800 transition ${
+                                !isIndividualMedicine(row)
+                                  ? disabledActionClass
+                                  : ""
+                              }`}
+                            >
+                              <UserMinus size={18} />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {isIndividualMedicine(row)
+                              ? "Remover medicamento do paciente"
+                              : "Disponível apenas para medicamentos individuais"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() =>
+                                isActive(row)
+                                  ? handleSuspend(row)
+                                  : handleResume(row)
+                              }
+                              disabled={!isIndividualMedicine(row)}
+                              className={`
                                   transition
                                   ${
                                     !isIndividualMedicine(row)
                                       ? disabledActionClass
                                       : isActive(row)
-                                      ? "text-yellow-600 hover:text-yellow-800"
-                                      : "text-green-600 hover:text-green-800"
+                                        ? "text-yellow-600 hover:text-yellow-800"
+                                        : "text-green-600 hover:text-green-800"
                                   }
                                 `}
-                              >
-                                {isActive(row) ? (
-                                  <PauseCircle size={18} />
-                                ) : (
-                                  <PlayCircle size={18} />
-                                )}
-                              </button>
-                            </TooltipTrigger>
+                            >
+                              {isActive(row) ? (
+                                <PauseCircle size={18} />
+                              ) : (
+                                <PlayCircle size={18} />
+                              )}
+                            </button>
+                          </TooltipTrigger>
 
-                            <TooltipContent>
-                              {!isIndividualMedicine(row)
-                                ? "Disponível apenas para medicamentos individuais"
-                                : isActive(row)
+                          <TooltipContent>
+                            {!isIndividualMedicine(row)
+                              ? "Disponível apenas para medicamentos individuais"
+                              : isActive(row)
                                 ? "Suspender medicamento"
                                 : "Reativar medicamento"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </td>
                   )}
                 </tr>

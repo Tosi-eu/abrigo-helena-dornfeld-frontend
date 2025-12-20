@@ -85,7 +85,7 @@ export default function Stock() {
     }
   }, [page]);
 
-  console.log(items)
+  console.log(items);
 
   const columns = [
     { key: "stockType", label: "Tipo de Estoque", editable: false },
