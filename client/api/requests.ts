@@ -1,5 +1,6 @@
 import { EventStatus, MovementType, OperationType } from "@/utils/enums";
 import { api } from "./canonical";
+import { StockItemType } from "@/interfaces/types";
 
 export const getCabinets = (page = 1, limit = 10) =>
   api.get("/armarios", {
@@ -272,3 +273,5 @@ export const suspendMedicineFromStock = (stockId: number) =>
 export const resumeMedicineFromStock = (stockId: number) =>
   api.patch(`/estoque/medicamento/${stockId}/retomar`);
 
+export const deleteStockItem = (stockId: number, type: StockItemType) =>
+  api.delete(`/estoque/${type}/${stockId}`);

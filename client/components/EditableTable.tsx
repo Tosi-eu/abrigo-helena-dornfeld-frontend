@@ -24,6 +24,7 @@ import {
   deleteInput,
   deleteMedicine,
   deleteResident,
+  deleteStockItem,
 } from "@/api/requests";
 
 const typeMap: Record<string, string> = {
@@ -155,6 +156,7 @@ export default function EditableTable({
       else if (entityType === "inputs") await deleteInput(row.id);
       else if (entityType === "medicines") await deleteMedicine(row.id);
       else if (entityType === "residents") await deleteResident(row.casela);
+      else if (entityType === "stock") await deleteStockItem(row.id, row.itemType);
 
       toast({ title: "Item removido", variant: "success" });
       setRows((prev) => prev.filter((_, i) => i !== deleteIndex));
