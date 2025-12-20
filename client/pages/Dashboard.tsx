@@ -107,7 +107,7 @@ export default function Dashboard() {
 
           getStockProportions().then((res) => res),
           getStock(1, 10, "armarios"),
-          getStock(1, 100, "gavetas"),
+          getStock(1, 20, "gavetas"),
         ]);
 
         const [medMoreRes, medLessRes, nonMovementRes] = await Promise.all([

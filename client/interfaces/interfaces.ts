@@ -178,6 +178,8 @@ export interface StockItem {
   cabinet?: number | string;
   casela?: string | number;
   stockType: MedicineStockType;
+  status?: string | null;
+  suspended_at?: Date | null;
 }
 
 export interface StockOutFormProps {

@@ -21,6 +21,7 @@ export default function Stock() {
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
+      id: item.estoque_id,
       name: item.nome || "-",
       description: item.principio_ativo || item.descricao || "-",
       expiry: item.validade || "-",
@@ -36,6 +37,9 @@ export default function Stock() {
       quantityMsg: item.msg_quantidade,
       expirationStatus: item.st_expiracao,
       quantityStatus: item.st_quantidade,
+      status: item.status || null,
+      suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
+      itemType: item.tipo_item,
     }));
   };
 
@@ -80,6 +84,8 @@ export default function Stock() {
       loadStock(page);
     }
   }, [page]);
+
+  console.log(items)
 
   const columns = [
     { key: "stockType", label: "Tipo de Estoque", editable: false },
@@ -151,7 +157,7 @@ export default function Stock() {
               <EditableTable
                 data={items}
                 columns={columns}
-                showAddons={false}
+                showAddons={true}
                 currentPage={page}
                 hasNextPage={hasNext}
                 onNextPage={() => setPage((p) => p + 1)}
