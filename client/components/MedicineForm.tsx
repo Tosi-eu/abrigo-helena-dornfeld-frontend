@@ -26,9 +26,10 @@ import { cn } from "@/lib/utils";
 
 export function MedicineForm({
   medicines,
-  caselas,
+  caselas,  
   cabinets,
   drawers,
+  initialData,
   onSubmit,
 }: MedicineFormProps) {
   const [formData, setFormData] = useState({
@@ -52,6 +53,27 @@ export function MedicineForm({
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  console.log(initialData)
+
+  useEffect(() => {
+  if (!initialData) return;
+
+  setFormData({
+      id: initialData.id ?? null,
+      quantity: initialData.quantity?.toString() ?? "",
+      stockType: initialData.stockType ?? "",
+      expirationDate: initialData.expirationDate
+        ? new Date(initialData.expirationDate)
+        : null,
+      resident: initialData.resident ?? "",
+      casela: initialData.casela ?? null,
+      cabinetId: initialData.cabinetId ?? null,
+      drawerId: initialData.drawerId ?? null,
+      origin: initialData.origin ?? "",
+    });
+  }, [initialData]);
+
 
   useEffect(() => {
     setFormData((prev) => ({

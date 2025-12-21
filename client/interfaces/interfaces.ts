@@ -7,11 +7,27 @@ import {
 import { ReactNode } from "react";
 import { StockExpiryStatus, StockQuantityStatus } from "./types";
 
+export interface RawStockMedicine {
+  id?: number,
+  estoque_minimo: string,
+  dosagem: string,
+  nome: string,
+  principio_ativo: string,
+  unidade_medida: string
+}
+
+export interface RawStockInput {
+  id?: number;
+  nome: string;
+  descricao: string;
+  estoque_minimo: number;
+}
+
 export interface Column {
   key: string;
   label: string;
   editable?: boolean;
-  type?: string | Date
+  type?: string | Date;
   enum?: string[];
 }
 
@@ -80,7 +96,8 @@ export interface CabinetCategory {
 export interface Input {
   id: number;
   name: string;
-  description?: string;
+  description: string;
+  minimumStock: number;
 }
 
 export interface MedicineInventory {
@@ -170,6 +187,7 @@ export interface MedicineFormProps {
   caselas: Patient[];
   cabinets: Cabinet[];
   drawers: Drawer[];
+  initialData?: MedicineFormInitialData;
 
   onSubmit: (data: {
     id: number;
@@ -271,3 +289,15 @@ export interface DrawerCategory {
   id: number;
   nome: string;
 }
+
+export interface MedicineFormInitialData {
+  id: number | null;
+  quantity: number;
+  stockType: MedicineStockType;
+  expirationDate: Date | null;
+  resident: string;
+  casela: number | null;
+  cabinetId: number | null;
+  drawerId: number | null;
+  origin: OriginType | "";
+};

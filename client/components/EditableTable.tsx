@@ -130,11 +130,15 @@ export default function EditableTable({
     let type = typeMap[row?.type];
 
     if (
-      ["inputs", "medicines", "residents", "cabinets", "drawers"].includes(
-        entityType ?? "",
-      )
+      [
+        "inputs",
+        "medicines",
+        "residents",
+        "cabinets",
+        "drawers",
+      ].includes(entityType)
     ) {
-      type = entityType!;
+      type = entityType;
     }
 
     if (!type) return;
@@ -156,7 +160,8 @@ export default function EditableTable({
       else if (entityType === "inputs") await deleteInput(row.id);
       else if (entityType === "medicines") await deleteMedicine(row.id);
       else if (entityType === "residents") await deleteResident(row.casela);
-      else if (entityType === "stock") await deleteStockItem(row.id, row.itemType);
+      else if (entityType === "stock")
+        await deleteStockItem(row.id, row.itemType);
 
       toast({ title: "Item removido", variant: "success" });
       setRows((prev) => prev.filter((_, i) => i !== deleteIndex));
@@ -245,15 +250,11 @@ export default function EditableTable({
 
                     <button
                       onClick={() =>
-                        isActive(row)
-                          ? onSuspend?.(row)
-                          : onResume?.(row)
+                        isActive(row) ? onSuspend?.(row) : onResume?.(row)
                       }
                       disabled={!isIndividualMedicine(row)}
                       className={`${
-                        isActive(row)
-                          ? "text-yellow-600"
-                          : "text-green-600"
+                        isActive(row) ? "text-yellow-600" : "text-green-600"
                       } ${!isIndividualMedicine(row) && disabledActionClass}`}
                     >
                       {isActive(row) ? (

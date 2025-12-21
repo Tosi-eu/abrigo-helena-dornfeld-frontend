@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
 import ReportModal from "@/components/ReportModal";
-import { getStock, removeIndividualMedicineFromStock, resumeMedicineFromStock, suspendMedicineFromStock } from "@/api/requests";
+import {
+  getStock,
+  removeIndividualMedicineFromStock,
+  resumeMedicineFromStock,
+  suspendMedicineFromStock,
+} from "@/api/requests";
 import { MedicineStockType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
@@ -137,10 +142,10 @@ export default function Stock() {
 
   const updateItemLocally = (
     id: number,
-    updater: (item: StockItem) => StockItem
+    updater: (item: StockItem) => StockItem,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? updater(item) : item))
+      prev.map((item) => (item.id === id ? updater(item) : item)),
     );
   };
 
@@ -242,19 +247,19 @@ export default function Stock() {
         <div className="pt-12">
           {!loading && (
             <>
-            <EditableTable
-              data={items}
-              columns={columns}
-              showAddons={true}
-              currentPage={page}
-              hasNextPage={hasNext}
-              onNextPage={() => setPage((p) => p + 1)}
-              onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-              onRemoveIndividual={requestRemoveIndividual}
-              onSuspend={requestSuspend}
-              onResume={requestResume}
-              entityType="stock"
-            />
+              <EditableTable
+                data={items}
+                columns={columns}
+                showAddons={true}
+                currentPage={page}
+                hasNextPage={hasNext}
+                onNextPage={() => setPage((p) => p + 1)}
+                onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+                onRemoveIndividual={requestRemoveIndividual}
+                onSuspend={requestSuspend}
+                onResume={requestResume}
+                entityType="stock"
+              />
             </>
           )}
         </div>
@@ -267,15 +272,15 @@ export default function Stock() {
           pendingAction.type === "remove"
             ? "Remover medicamento do paciente"
             : pendingAction.type === "suspend"
-            ? "Suspender medicamento"
-            : "Reativar medicamento"
+              ? "Suspender medicamento"
+              : "Reativar medicamento"
         }
         description={
           pendingAction.type === "remove"
             ? "O medicamento será desvinculado do paciente e retornará ao estoque geral. Deseja continuar?"
             : pendingAction.type === "suspend"
-            ? "O medicamento ficará suspenso e não poderá ser utilizado. Deseja continuar?"
-            : "O medicamento será reativado e poderá ser utilizado novamente. Deseja continuar?"
+              ? "O medicamento ficará suspenso e não poderá ser utilizado. Deseja continuar?"
+              : "O medicamento será reativado e poderá ser utilizado novamente. Deseja continuar?"
         }
         confirmLabel="Confirmar"
         onConfirm={handleConfirmAction}

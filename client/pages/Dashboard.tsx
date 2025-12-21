@@ -21,7 +21,7 @@ import {
   DEFAULT_PAGE_SIZE,
   fetchAllPaginated,
   paginate,
-} from "@/helpers/pagination.helper";
+} from "@/helpers/paginacao.helper";
 
 import EditableTable from "@/components/EditableTable";
 import {

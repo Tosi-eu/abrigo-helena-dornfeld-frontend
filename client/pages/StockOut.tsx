@@ -17,7 +17,7 @@ import { MovementType, OperationType, StockWizardSteps } from "@/utils/enums";
 import { StockItemRaw } from "@/interfaces/interfaces";
 import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
-import { fetchAllPaginated } from "@/helpers/pagination.helper";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 import {
   Popover,
@@ -191,7 +191,8 @@ export default function StockOut() {
 
   const handleBack = () => {
     if (step === StockWizardSteps.ITENS) setStep(StockWizardSteps.TIPO);
-    else if (step === StockWizardSteps.QUANTIDADE) setStep(StockWizardSteps.ITENS);
+    else if (step === StockWizardSteps.QUANTIDADE)
+      setStep(StockWizardSteps.ITENS);
   };
 
   const handleNext = () => {
@@ -209,9 +210,7 @@ export default function StockOut() {
             <label className="block text-xs text-gray-700 mb-1">Nome</label>
             <Popover>
               <PopoverTrigger asChild>
-                <button
-                  className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white"
-                >
+                <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
                   {filters.nome || "Selecione"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                 </button>
@@ -228,14 +227,16 @@ export default function StockOut() {
                         onSelect={() =>
                           setFilters((prev) => ({
                             ...prev,
-                            nome: prev.nome === o.value ? "" : o.value, 
+                            nome: prev.nome === o.value ? "" : o.value,
                           }))
                         }
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            filters.nome === o.value ? "opacity-100" : "opacity-0",
+                            filters.nome === o.value
+                              ? "opacity-100"
+                              : "opacity-0",
                           )}
                         />
                         {o.label}
@@ -251,9 +252,7 @@ export default function StockOut() {
             <label className="block text-xs text-gray-700 mb-1">Armário</label>
             <Popover>
               <PopoverTrigger asChild>
-                <button
-                  className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white"
-                >
+                <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
                   {filters.armario || "Selecione"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                 </button>
@@ -277,7 +276,9 @@ export default function StockOut() {
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            filters.armario === o.value ? "opacity-100" : "opacity-0",
+                            filters.armario === o.value
+                              ? "opacity-100"
+                              : "opacity-0",
                           )}
                         />
                         {o.label}
@@ -293,9 +294,7 @@ export default function StockOut() {
             <label className="block text-xs text-gray-700 mb-1">Origem</label>
             <Popover>
               <PopoverTrigger asChild>
-                <button
-                  className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white"
-                >
+                <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
                   {filters.origem || "Selecione"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                 </button>
@@ -319,7 +318,9 @@ export default function StockOut() {
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            filters.origem === o.value ? "opacity-100" : "opacity-0",
+                            filters.origem === o.value
+                              ? "opacity-100"
+                              : "opacity-0",
                           )}
                         />
                         {o.label}

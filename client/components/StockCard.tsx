@@ -1,4 +1,9 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 import { AlertTriangle } from "lucide-react";
 
 interface StockCardProps {
@@ -27,10 +32,10 @@ export function StockCard({
   const disabledReason = isSuspended
     ? "Medicamento suspenso"
     : isOutOfStock
-    ? "Sem estoque disponível"
-    : isExpired
-    ? "Medicamento vencido"
-    : undefined;
+      ? "Sem estoque disponível"
+      : isExpired
+        ? "Medicamento vencido"
+        : undefined;
 
   const fields: { label: string; value: string | number }[] = [
     { label: "Nome", value: display(item.nome) },
@@ -113,4 +118,3 @@ export function StockCard({
     </TooltipProvider>
   );
 }
-

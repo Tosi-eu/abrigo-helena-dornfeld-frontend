@@ -33,19 +33,13 @@ const ConfirmActionModal: FC<ConfirmActionModalProps> = ({
     <Dialog open={open} onOpenChange={onCancel}>
       <DialogContent className="max-w-md rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-slate-900">
-            {title}
-          </DialogTitle>
+          <DialogTitle className="text-slate-900">{title}</DialogTitle>
         </DialogHeader>
 
         <p className="text-slate-600 text-sm">{description}</p>
 
         <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>
 

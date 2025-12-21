@@ -22,7 +22,7 @@ import {
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
 import { MovementType, OperationType } from "@/utils/enums";
-import { fetchAllPaginated } from "@/helpers/pagination.helper";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 export default function StockIn() {
   const [operationType, setOperationType] = useState<
