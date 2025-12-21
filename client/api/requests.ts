@@ -29,7 +29,7 @@ export const getMedicines = (page = 1, limit = 10) =>
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
 
-export const getStockProportions = () => api.get("/estoque/proporcao");
+export const getStockProportions = (sector?: string) => api.get(`/estoque/proporcao${sector ? `?setor=${sector}` : ''}`);
 
 export const getInputMovements = ({
   page = 1,
@@ -187,15 +187,17 @@ export const getNotifications = async (
     const res = await api.get("/notificacao", {
       params: { page, limit, status },
     });
+
     const data = res.data;
 
     return {
       items: Array.isArray(data) ? data : [],
-      total: typeof data.total === "number" ? data.total : 0,
+      total: res.total ? res.total : 0,
+      hasNext: res.hasNext ? res.hasNext : false,
     };
   } catch (err) {
     console.error("Erro ao buscar notificações:", err);
-    return { items: [], total: 0 };
+    return { items: [], total: 0, hasNext: false };
   }
 };
 

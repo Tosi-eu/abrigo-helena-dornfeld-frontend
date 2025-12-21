@@ -3,10 +3,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -44,10 +40,11 @@ import {
   DrawerStockItem,
 } from "@/interfaces/interfaces";
 import NotificationReminderModal from "@/components/NotificationModal";
+import StockProportionCard from "@/components/StockProportionCard";
+import { prepareStockDistributionData } from "@/helpers/estoque.helper";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -68,9 +65,9 @@ export default function Dashboard() {
   const [nonMovementPage, setNonMovementPage] = useState(1);
   const [recentMovementsPage, setRecentMovementsPage] = useState(1);
 
-  const [stockDistribution, setStockDistribution] = useState<
-    StockDistributionItem[]
-  >([]);
+
+  const [nursingDistribution, setNursingDistribution] = useState<StockDistributionItem[]>([]);
+  const [pharmacyDistribution, setPharmacyDistribution] = useState<StockDistributionItem[]>([]);
 
   const [recentMovements, setRecentMovements] = useState<RecentMovement[]>([]);
 
@@ -89,7 +86,8 @@ export default function Dashboard() {
           stockList,
           medicamentosMov,
           insumosMov,
-          proportionRes,
+          nursingRes,
+          pharmacyRes,
           cabinetRes,
           drawerRes,
         ] = await Promise.all([
@@ -105,7 +103,8 @@ export default function Dashboard() {
             getInputMovements({ page, limit, days: 7 }).then((res) => res),
           ),
 
-          getStockProportions().then((res) => res),
+          getStockProportions("enfermagem"),
+          getStockProportions("farmacia"),
           getStock(1, 10, "armarios"),
           getStock(1, 20, "gavetas"),
         ]);
@@ -189,35 +188,8 @@ export default function Dashboard() {
           })),
         );
 
-        const { percentuais, totais } = proportionRes;
-
-        setStockDistribution([
-          {
-            name: "Medicamentos em Estoque Geral",
-            value: percentuais.medicamentos_geral,
-            rawValue: totais.medicamentos_geral,
-          },
-          {
-            name: "Medicamentos em Estoque Individual",
-            value: percentuais.medicamentos_individual,
-            rawValue: totais.medicamentos_individual,
-          },
-          {
-            name: "Insumos em Estoque Geral",
-            value: percentuais.insumos,
-            rawValue: totais.insumos,
-          },
-          {
-            name: "Medicamentos no Carrinho",
-            value: percentuais.carrinho_medicamentos,
-            rawValue: totais.carrinho_medicamentos,
-          },
-          {
-            name: "Insumos no Carrinho",
-            value: percentuais.carrinho_insumos,
-            rawValue: totais.carrinho_insumos,
-          },
-        ]);
+        setNursingDistribution(prepareStockDistributionData(nursingRes, "enfermagem"));
+        setPharmacyDistribution(prepareStockDistributionData(pharmacyRes, "farmacia"));
 
         const formattedCabinetData = cabinetRes.data.map((arm: any) => ({
           cabinet: arm.armario_id,
@@ -571,59 +543,19 @@ export default function Dashboard() {
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Proporção de Estoque
-                </CardTitle>
-              </CardHeader>
+            <StockProportionCard
+              title="Proporção de Estoque da Farmácia"
+              data={pharmacyDistribution}
+              colors={COLORS}
+            />
 
-              <CardContent>
-                <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
-                  <div className="w-full lg:w-1/2 h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stockDistribution}
-                          dataKey="value"
-                          outerRadius={80}
-                          activeIndex={activePieIndex ?? undefined}
-                          activeShape={renderActiveShape}
-                          onMouseEnter={(_, i) => setActivePieIndex(i)}
-                          onMouseLeave={() => setActivePieIndex(null)}
-                        >
-                          {stockDistribution.map((_, i) => (
-                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                          ))}
-                        </Pie>
-
-                        <Tooltip
-                          formatter={(v: any, _n: string, p: any) => [
-                            p.payload.rawValue,
-                            "Quantidade",
-                          ]}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="space-y-2 text-sm text-slate-700">
-                    {stockDistribution.map((item, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: COLORS[i] }}
-                        />
-                        <span>
-                          {item.name}: <b>{item.value}%</b>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <StockProportionCard
+              title="Proporção de Estoque da Enfermagem"
+              data={nursingDistribution}
+              colors={COLORS}
+            />
           </section>
+
         </div>
       )}
 

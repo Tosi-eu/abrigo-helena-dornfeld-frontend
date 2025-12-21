@@ -127,6 +127,8 @@ export default function StockIn() {
         setor: data.sector,
       };
 
+      console.log(payload)
+
       await createStockIn(payload);
 
       await createMovement({
