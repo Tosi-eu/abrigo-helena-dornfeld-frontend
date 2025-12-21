@@ -287,7 +287,6 @@ export default function EditableTable({
         </table>
       </div>
 
-      {/* Paginação */}
       {(onNextPage || onPrevPage) && (
         <div className="flex justify-center gap-4 py-4 border-t bg-white">
           <button

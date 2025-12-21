@@ -14,7 +14,7 @@ import {
 import { MedicineStockType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
-import { actionMessages, actionTitles } from "@/helpers/toaster.helper";
+import { actionConfig, actionMessages, actionTitles } from "@/helpers/toaster.helper";
 import { toast } from "@/hooks/use-toast.hook";
 
 export default function Stock() {
@@ -320,21 +320,9 @@ export default function Stock() {
         loading={actionLoading}
         title={pendingAction.type ? actionTitles[pendingAction.type] : ""}
         description={
-          pendingAction.type === "remove"
-            ? "O medicamento será desvinculado do paciente e retornará ao estoque geral. Deseja continuar?"
-            : pendingAction.type === "suspend"
-              ? "O medicamento ficará suspenso e não poderá ser utilizado. Deseja continuar?"
-              : pendingAction.type === "resume"
-                ? "O medicamento será reativado e poderá ser utilizado novamente. Deseja continuar?"
-                : `O item será transferido do setor ${
-                    pendingAction.row?.sector === "farmacia"
-                      ? "Farmácia"
-                      : "Enfermagem"
-                  } para ${
-                    pendingAction.row?.sector === "farmacia"
-                      ? "Enfermagem"
-                      : "Farmácia"
-                  }. Deseja continuar?`
+          pendingAction.type
+            ? actionConfig[pendingAction.type].description(pendingAction.row)
+            : ""
         }
         confirmLabel="Confirmar"
         onConfirm={handleConfirmAction}
