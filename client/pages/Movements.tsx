@@ -32,6 +32,7 @@ export default function InputMovements() {
     { key: "cabinet", label: "Armário", editable: false },
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },
+    { key: "sector", label: "Setor", editable: false },
   ];
 
   function normalizeMovement(item: any) {
@@ -50,11 +51,12 @@ export default function InputMovements() {
       drawer: item.gaveta_id ?? "-",
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
+      sector: item.setor || "-",
     };
   }
 
   async function fetchEntries() {
-    const requestId = ++entriesRequestId.current;
+    const requestId = +entriesRequestId.current;
 
     const [insumos, medicamentos] = await Promise.all([
       getInputMovements({
@@ -86,7 +88,7 @@ export default function InputMovements() {
   }
 
   async function fetchExits() {
-    const requestId = ++exitsRequestId.current;
+    const requestId = +exitsRequestId.current;
 
     const [insumos, medicamentos] = await Promise.all([
       getInputMovements({

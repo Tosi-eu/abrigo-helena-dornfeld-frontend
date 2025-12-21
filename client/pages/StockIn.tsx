@@ -82,6 +82,7 @@ export default function StockIn() {
         casela_id: data.casela ?? null,
         validade: data.expirationDate ?? null,
         origem: data.origin ?? null,
+        setor: data.sector,
       };
 
       await createStockIn(payload);
@@ -95,6 +96,7 @@ export default function StockIn() {
         gaveta_id: data.drawerId ?? null,
         medicamento_id: data.id,
         validade: data.expirationDate,
+        setor: data.sector,
       });
 
       toast({
@@ -122,6 +124,7 @@ export default function StockIn() {
         armario_id: data.cabinetId ?? null,
         gaveta_id: data.drawerId ?? null,
         validade: data.validity,
+        setor: data.sector,
       };
 
       await createStockIn(payload);
@@ -134,6 +137,7 @@ export default function StockIn() {
         gaveta_id: data.drawerId ?? null,
         quantidade: data.quantity,
         validade: data.validity,
+        setor: data.sector,
       });
 
       toast({

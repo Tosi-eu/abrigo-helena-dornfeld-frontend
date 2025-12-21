@@ -44,14 +44,10 @@ export default function EditInput() {
     });
   }, [location.state, navigate]);
 
-  const handleChange = (
-    field: keyof typeof formData,
-    value: string
-  ) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      [field]:
-        field === "estoque_minimo" ? Number(value) : value,
+      [field]: field === "estoque_minimo" ? Number(value) : value,
     }));
   };
 
@@ -118,9 +114,7 @@ export default function EditInput() {
               <Label>Nome do insumo</Label>
               <Input
                 value={formData.nome}
-                onChange={(e) =>
-                  handleChange("nome", e.target.value)
-                }
+                onChange={(e) => handleChange("nome", e.target.value)}
                 placeholder="Ex: Seringa 5ml"
                 disabled={saving}
               />
@@ -130,9 +124,7 @@ export default function EditInput() {
               <Label>Descrição</Label>
               <Input
                 value={formData.descricao}
-                onChange={(e) =>
-                  handleChange("descricao", e.target.value)
-                }
+                onChange={(e) => handleChange("descricao", e.target.value)}
                 placeholder="Ex: Material de injeção"
                 disabled={saving}
               />
@@ -144,9 +136,7 @@ export default function EditInput() {
                 type="number"
                 min={0}
                 value={formData.estoque_minimo}
-                onChange={(e) =>
-                  handleChange("estoque_minimo", e.target.value)
-                }
+                onChange={(e) => handleChange("estoque_minimo", e.target.value)}
                 placeholder="Ex: 10"
                 disabled={saving}
               />

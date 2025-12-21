@@ -3,17 +3,18 @@ import {
   MovementType,
   OperationType,
   OriginType,
+  SectorType,
 } from "@/utils/enums";
 import { ReactNode } from "react";
 import { StockExpiryStatus, StockQuantityStatus } from "./types";
 
 export interface RawStockMedicine {
-  id?: number,
-  estoque_minimo: string,
-  dosagem: string,
-  nome: string,
-  principio_ativo: string,
-  unidade_medida: string
+  id?: number;
+  estoque_minimo: string;
+  dosagem: string;
+  nome: string;
+  principio_ativo: string;
+  unidade_medida: string;
 }
 
 export interface RawStockInput {
@@ -118,33 +119,23 @@ export interface InputInventory {
   quantity: number;
 }
 
-export interface Movement {
-  id: number;
-  type: MovementType;
-  date: string;
-  user: string;
-  medicineId?: number;
-  inputId?: number;
-  cabinetId: number;
-  patientId?: number;
-}
-
 export interface StockItemRaw {
   item_id: number;
   estoque_id: number;
   tipo_item: OperationType | string;
   nome: string;
   principio_ativo?: string;
-  validade?: string | null;
+  validade: string;
   quantidade: number;
   minimo?: number;
-  origem?: string;
-  tipo?: string;
+  origem: string;
+  tipo: string;
   paciente?: string | null;
   armario_id?: number | null;
   gaveta_id?: number | null;
   casela_id?: number | null;
   detalhes?: string;
+  setor: string;
 }
 
 export interface StockItem {
@@ -157,8 +148,10 @@ export interface StockItem {
   patient?: string;
   cabinet?: number | string;
   casela?: string | number;
+  itemType: OperationType;
   stockType: MedicineStockType;
   status?: string | null;
+  sector: string;
   suspended_at?: Date | null;
 }
 
@@ -179,6 +172,7 @@ export interface InputFormProps {
     caselaId?: number;
     validity?: Date | null;
     stockType: string;
+    sector: string;
   }) => void;
 }
 
@@ -201,6 +195,7 @@ export interface MedicineFormProps {
     expirationDate: Date;
     origin: string;
     stockType: string;
+    sector: string;
   }) => void;
 }
 
@@ -300,4 +295,5 @@ export interface MedicineFormInitialData {
   cabinetId: number | null;
   drawerId: number | null;
   origin: OriginType | "";
-};
+  sector: SectorType | "";
+}

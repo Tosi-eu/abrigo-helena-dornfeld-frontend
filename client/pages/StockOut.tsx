@@ -171,6 +171,7 @@ export default function StockOut() {
         ...(selected.tipo_item === "medicamento"
           ? { medicamento_id: selected.item_id }
           : { insumo_id: selected.item_id }),
+        setor: selected.setor,
       });
 
       toast({

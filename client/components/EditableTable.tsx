@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import DeletePopUp from "./DeletePopUp";
+import { ArrowLeftRight } from "lucide-react";
 
 import {
   deleteCabinet,
@@ -71,6 +72,7 @@ export default function EditableTable({
   onNextPage,
   onPrevPage,
   onRemoveIndividual,
+  onTransferSector,
   onSuspend,
   onResume,
 }: EditableTableProps & {
@@ -81,6 +83,7 @@ export default function EditableTable({
   onNextPage?: () => void;
   onPrevPage?: () => void;
   onRemoveIndividual?: (row: any) => void;
+  onTransferSector?: (row: any) => void;
   onSuspend?: (row: any) => void;
   onResume?: (row: any) => void;
 }) {
@@ -130,13 +133,9 @@ export default function EditableTable({
     let type = typeMap[row?.type];
 
     if (
-      [
-        "inputs",
-        "medicines",
-        "residents",
-        "cabinets",
-        "drawers",
-      ].includes(entityType)
+      ["inputs", "medicines", "residents", "cabinets", "drawers"].includes(
+        entityType,
+      )
     ) {
       type = entityType;
     }
@@ -227,6 +226,7 @@ export default function EditableTable({
                     <button
                       onClick={() => handleEditClick(row)}
                       className="text-sky-700 hover:text-sky-900"
+                      title="Editar item"
                     >
                       <Pencil size={18} />
                     </button>
@@ -234,6 +234,7 @@ export default function EditableTable({
                     <button
                       onClick={() => confirmDelete(i)}
                       className="text-red-600 hover:text-red-800"
+                      title="Deletar item"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -244,6 +245,7 @@ export default function EditableTable({
                       className={`text-orange-600 ${
                         !isIndividualMedicine(row) && disabledActionClass
                       }`}
+                      title="Remoção de medicamento individual"
                     >
                       <UserMinus size={18} />
                     </button>
@@ -256,6 +258,7 @@ export default function EditableTable({
                       className={`${
                         isActive(row) ? "text-yellow-600" : "text-green-600"
                       } ${!isIndividualMedicine(row) && disabledActionClass}`}
+                      title="Suspender Medicação"
                     >
                       {isActive(row) ? (
                         <PauseCircle size={18} />
@@ -263,6 +266,19 @@ export default function EditableTable({
                         <PlayCircle size={18} />
                       )}
                     </button>
+
+                    {entityType === "stock" && onTransferSector && (
+                      <button
+                        onClick={() => onTransferSector(row)}
+                        disabled={!isIndividualMedicine(row)}
+                        className={`text-indigo-600 hover:text-indigo-800 ${
+                          !isIndividualMedicine(row) && disabledActionClass
+                        }`}
+                        title="Transferir setor"
+                      >
+                        <ArrowLeftRight size={18} />
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>

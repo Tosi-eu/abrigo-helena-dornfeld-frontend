@@ -1,4 +1,9 @@
-export type StockActionType = "remove" | "suspend" | "resume" | null;
+export type StockActionType =
+  | "remove"
+  | "suspend"
+  | "resume"
+  | "transfer"
+  | null;
 
 export type StockExpiryStatus = "expired" | "warning" | "critical" | "ok";
 

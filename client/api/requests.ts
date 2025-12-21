@@ -1,4 +1,9 @@
-import { EventStatus, MovementType, OperationType } from "@/utils/enums";
+import {
+  EventStatus,
+  MovementType,
+  OperationType,
+  SectorType,
+} from "@/utils/enums";
 import { api } from "./canonical";
 import { StockItemType } from "@/interfaces/types";
 
@@ -147,6 +152,7 @@ export const createStockIn = (payload: {
   casela_id?: number | null;
   validade?: Date | null;
   origem?: string | null;
+  setor: string;
 }) => api.post("/estoque/entrada", payload);
 
 export const createMovement = (payload: {
@@ -159,6 +165,7 @@ export const createMovement = (payload: {
   medicamento_id?: number;
   validade: string;
   insumo_id?: number;
+  setor: string;
 }) => api.post("/movimentacoes", payload);
 
 export const createNotificationEvent = (payload: {
@@ -275,3 +282,12 @@ export const resumeMedicineFromStock = (stockId: number) =>
 
 export const deleteStockItem = (stockId: number, type: StockItemType) =>
   api.delete(`/estoque/${type}/${stockId}`);
+
+export const transferStockSector = (payload: {
+  estoque_id: number;
+  tipo: StockItemType;
+  setor: SectorType;
+}) =>
+  api.patch(`/estoque/transferir/${payload.tipo}/${payload.estoque_id}`, {
+    setor: payload.setor,
+  });

@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale";
 
 import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import { InputStockType, StockTypeLabels } from "@/utils/enums";
+import { InputStockType, StockTypeLabels, SectorType } from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,7 @@ export function InputForm({
     validity: null as Date | null,
     cabinetId: null as number | null,
     drawerId: null as number | null,
+    sector: "" as SectorType | "",
   });
 
   const [inputOpen, setInputOpen] = useState(false);
@@ -49,6 +50,15 @@ export function InputForm({
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    if (isEmergencyCart) {
+      setFormData((prev) => ({
+        ...prev,
+        sector: SectorType.ENFERMAGEM,
+      }));
+    }
+  }, [isEmergencyCart]);
 
   useEffect(() => {
     setFormData((prev) => ({ ...prev, cabinetId: null, drawerId: null }));
@@ -92,6 +102,7 @@ export function InputForm({
       cabinetId: formData.cabinetId || undefined,
       validity: formData.validity,
       stockType: formData.stockType,
+      sector: formData.sector,
     });
   };
 
@@ -213,6 +224,30 @@ export function InputForm({
           {storageOptions.map((s) => (
             <option key={s.numero} value={s.numero}>
               {s.numero}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-700">Setor</label>
+        <select
+          value={formData.sector}
+          onChange={(e) => updateField("sector", e.target.value as SectorType)}
+          disabled={isEmergencyCart}
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+            isEmergencyCart
+              ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+              : "border-slate-300",
+          )}
+        >
+          <option value="" disabled hidden>
+            Selecione
+          </option>
+          {Object.values(SectorType).map((sector) => (
+            <option key={sector} value={sector}>
+              {sector}
             </option>
           ))}
         </select>

@@ -9,10 +9,13 @@ import {
   removeIndividualMedicineFromStock,
   resumeMedicineFromStock,
   suspendMedicineFromStock,
+  transferStockSector,
 } from "@/api/requests";
-import { MedicineStockType, StockTypeLabels } from "@/utils/enums";
+import { MedicineStockType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
+import { actionMessages, actionTitles } from "@/helpers/toaster.helper";
+import { toast } from "@/hooks/use-toast.hook";
 
 export default function Stock() {
   const navigate = useNavigate();
@@ -53,6 +56,7 @@ export default function Stock() {
       status: item.status || null,
       suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
       itemType: item.tipo_item,
+      sector: item.setor,
     }));
   };
 
@@ -113,8 +117,17 @@ export default function Stock() {
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "casela", label: "Casela", editable: false },
     { key: "origin", label: "Origem", editable: false },
+    { key: "sector", label: "Setor", editable: false },
     { key: "status", label: "Status", editable: false },
   ];
+
+  const requestTransferSector = (row: StockItem) => {
+    setPendingAction({
+      type: "transfer",
+      row,
+    });
+    setConfirmOpen(true);
+  };
 
   const requestRemoveIndividual = (row: StockItem) => {
     setPendingAction({
@@ -186,8 +199,44 @@ export default function Stock() {
 
         await resumeMedicineFromStock(row.id);
       }
+
+      if (type === "transfer") {
+        const nextSector =
+          row.sector === "farmacia" ? "enfermagem" : "farmacia";
+
+        updateItemLocally(row.id, (item) => ({
+          ...item,
+          sector: nextSector,
+        }));
+
+        await transferStockSector({
+          estoque_id: row.id,
+          tipo: row.itemType,
+          setor: nextSector as SectorType,
+        });
+      }
+
+      if (type === "transfer") {
+        const messages = actionMessages.transfer(row);
+        toast({ title: messages.success, variant: "success" });
+      } else {
+        toast({
+          title: actionMessages[type].success,
+          variant: "success",
+        });
+      }
     } catch (err) {
       console.error("Erro ao executar ação", err);
+
+      if (type === "transfer") {
+        const messages = actionMessages.transfer(row);
+        toast({ title: messages.error, variant: "error" });
+      } else {
+        toast({
+          title: actionMessages[type].error,
+          variant: "error",
+        });
+      }
 
       await loadStock(page);
     } finally {
@@ -255,6 +304,7 @@ export default function Stock() {
                 hasNextPage={hasNext}
                 onNextPage={() => setPage((p) => p + 1)}
                 onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+                onTransferSector={requestTransferSector}
                 onRemoveIndividual={requestRemoveIndividual}
                 onSuspend={requestSuspend}
                 onResume={requestResume}
@@ -268,19 +318,23 @@ export default function Stock() {
       <ConfirmActionModal
         open={confirmOpen}
         loading={actionLoading}
-        title={
-          pendingAction.type === "remove"
-            ? "Remover medicamento do paciente"
-            : pendingAction.type === "suspend"
-              ? "Suspender medicamento"
-              : "Reativar medicamento"
-        }
+        title={pendingAction.type ? actionTitles[pendingAction.type] : ""}
         description={
           pendingAction.type === "remove"
             ? "O medicamento será desvinculado do paciente e retornará ao estoque geral. Deseja continuar?"
             : pendingAction.type === "suspend"
               ? "O medicamento ficará suspenso e não poderá ser utilizado. Deseja continuar?"
-              : "O medicamento será reativado e poderá ser utilizado novamente. Deseja continuar?"
+              : pendingAction.type === "resume"
+                ? "O medicamento será reativado e poderá ser utilizado novamente. Deseja continuar?"
+                : `O item será transferido do setor ${
+                    pendingAction.row?.sector === "farmacia"
+                      ? "Farmácia"
+                      : "Enfermagem"
+                  } para ${
+                    pendingAction.row?.sector === "farmacia"
+                      ? "Enfermagem"
+                      : "Farmácia"
+                  }. Deseja continuar?`
         }
         confirmLabel="Confirmar"
         onConfirm={handleConfirmAction}

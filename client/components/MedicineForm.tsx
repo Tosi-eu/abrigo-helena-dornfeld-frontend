@@ -6,7 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import { MedicineStockType, OriginType, StockTypeLabels } from "@/utils/enums";
+import {
+  MedicineStockType,
+  OriginType,
+  SectorType,
+  StockTypeLabels,
+} from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,10 +31,9 @@ import { cn } from "@/lib/utils";
 
 export function MedicineForm({
   medicines,
-  caselas,  
+  caselas,
   cabinets,
   drawers,
-  initialData,
   onSubmit,
 }: MedicineFormProps) {
   const [formData, setFormData] = useState({
@@ -42,6 +46,7 @@ export function MedicineForm({
     cabinetId: null as number | null,
     drawerId: null as number | null,
     origin: "" as OriginType | "",
+    sector: "" as SectorType | "",
   });
 
   const [medicineOpen, setMedicineOpen] = useState(false);
@@ -54,26 +59,14 @@ export function MedicineForm({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  console.log(initialData)
-
   useEffect(() => {
-  if (!initialData) return;
-
-  setFormData({
-      id: initialData.id ?? null,
-      quantity: initialData.quantity?.toString() ?? "",
-      stockType: initialData.stockType ?? "",
-      expirationDate: initialData.expirationDate
-        ? new Date(initialData.expirationDate)
-        : null,
-      resident: initialData.resident ?? "",
-      casela: initialData.casela ?? null,
-      cabinetId: initialData.cabinetId ?? null,
-      drawerId: initialData.drawerId ?? null,
-      origin: initialData.origin ?? "",
-    });
-  }, [initialData]);
-
+    if (isEmergencyCart) {
+      setFormData((prev) => ({
+        ...prev,
+        sector: SectorType.ENFERMAGEM,
+      }));
+    }
+  }, [isEmergencyCart]);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -321,6 +314,32 @@ export function MedicineForm({
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-700">Setor</label>
+
+        <select
+          value={formData.sector}
+          onChange={(e) => updateField("sector", e.target.value as SectorType)}
+          disabled={isEmergencyCart}
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+            isEmergencyCart
+              ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+              : "border-slate-300",
+          )}
+        >
+          <option value="" disabled hidden>
+            Selecione
+          </option>
+
+          {Object.values(SectorType).map((sector) => (
+            <option key={sector} value={sector}>
+              {sector === SectorType.FARMACIA ? "Farmácia" : "Enfermagem"}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
