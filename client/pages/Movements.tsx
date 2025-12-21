@@ -133,7 +133,7 @@ export default function InputMovements() {
     <Layout title="Movimentações">
       {!loading && (
         <div className="w-full flex justify-center p-10">
-          <Card className="w-full max-w-5xl bg-white border shadow-md p-8 space-y-12">
+          <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Entradas</h2>
 

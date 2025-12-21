@@ -1,6 +1,7 @@
 import {
   EventStatus,
   MovementType,
+  NotificationDestiny,
   OperationType,
   SectorType,
 } from "@/utils/enums";
@@ -171,7 +172,7 @@ export const createMovement = (payload: {
 export const createNotificationEvent = (payload: {
   medicamento_id: number;
   residente_id: number;
-  destino: string;
+  destino: NotificationDestiny;
   data_prevista: Date;
   criado_por: number;
   status: EventStatus;
