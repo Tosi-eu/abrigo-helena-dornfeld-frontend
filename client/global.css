@@ -133,3 +133,14 @@
 .animate-slide-left {
   animation: slide-left 0.25s ease-out;
 }
+
+@keyframes fadeInSlice {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

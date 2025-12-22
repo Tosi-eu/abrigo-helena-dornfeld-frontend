@@ -1,92 +1,48 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "/logo.png";
+import { useNavigate } from "react-router-dom";
 import { LayoutProps } from "@/interfaces/interfaces";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useState } from "react";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
 import { NotificationButton } from "@/components/NotificationButton";
 import { NotificationDrawer } from "./NotificationDrawer";
+import { VerticalLayout } from "./VerticalLayout";
 
 export default function Layout({ children, title }: LayoutProps) {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const navigation = [
-    { name: "Painel", href: "/dashboard" },
-    { name: "Movimentações", href: "/Movements" },
-    { name: "Medicamentos", href: "/medicines" },
-    { name: "Insumos", href: "/inputs" },
-    { name: "Estoque", href: "/stock" },
-    { name: "Residentes", href: "/residents" },
-    { name: "Armários", href: "/cabinets" },
-    { name: "Gavetas", href: "/drawers" },
-    { name: "Perfil", href: "/user/profile" },
-  ];
-
   const handleLogout = () => setShowLogoutModal(true);
+
   const confirmLogout = () => {
     logout();
     navigate("/user/login");
   };
+
   const cancelLogout = () => setShowLogoutModal(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="backdrop-blur bg-white/70 border-b border-slate-200/70 sticky top-0 z-30">
-        <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo} alt="Logo" className="h-16 w-auto" />
-          </Link>
+    <div className="h-screen flex bg-background text-foreground overflow-hidden">
+      <VerticalLayout onLogout={handleLogout} />
 
-          <nav className="hidden md:flex items-center gap-2">
-            {navigation.map((item) => {
-              const isActive =
-                location.pathname === item.href ||
-                (item.href !== "/dashboard" &&
-                  location.pathname.startsWith(item.href));
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {title && (
+          <div className="shrink-0 border-b border-slate-200 bg-white/70 backdrop-blur">
+            <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+                {title}
+              </h1>
+            </div>
+          </div>
+        )}
 
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all 
-                    ${
-                      isActive
-                        ? "bg-sky-100 text-sky-700 shadow-sm"
-                        : "text-slate-600 hover:bg-sky-50 hover:text-sky-700"
-                    }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-
-            {user && (
-              <button
-                onClick={handleLogout}
-                className="ml-4 text-sm px-3 py-2 rounded-xl border border-red-300 text-red-600 hover:bg-red-50 transition"
-              >
-                Sair
-              </button>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      {title && (
-        <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-            {title}
-          </h1>
-        </div>
-      )}
-
-      <main className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {children}
-      </main>
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {children}
+          </div>
+        </main>
+      </div>
 
       <NotificationButton />
       <NotificationDrawer />
@@ -99,3 +55,4 @@ export default function Layout({ children, title }: LayoutProps) {
     </div>
   );
 }
+

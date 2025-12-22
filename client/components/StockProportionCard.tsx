@@ -30,10 +30,17 @@ export default function StockProportionCard({
 }: StockProportionCardProps) {
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
+  const handleMouseLeave = () => {
+    setTimeout(() => {
+      setActivePieIndex(null);
+    }, 120);
+  };
+
   const renderActiveShape = (props: any) => {
     const {
       cx,
       cy,
+      midAngle,
       innerRadius,
       outerRadius,
       startAngle,
@@ -41,17 +48,40 @@ export default function StockProportionCard({
       fill,
     } = props;
 
+    const RADIAN = Math.PI / 180;
+    const sin = Math.sin(-RADIAN * midAngle);
+    const cos = Math.cos(-RADIAN * midAngle);
+
+    const offset = 8;
+    const x = cx + offset * cos;
+    const y = cy + offset * sin;
+
     return (
       <g>
+        <defs>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow
+              dx="0"
+              dy="6"
+              stdDeviation="8"
+              floodColor="#000"
+              floodOpacity="0.42"
+            />
+          </filter>
+        </defs>
+
         <Sector
-          cx={cx}
-          cy={cy}
+          cx={x}
+          cy={y}
           innerRadius={innerRadius}
-          outerRadius={outerRadius + 10}
+          outerRadius={outerRadius + 12}
           startAngle={startAngle}
           endAngle={endAngle}
           fill={fill}
-          style={{ transition: "all 0.3s ease", opacity: 1 }}
+          filter="url(#shadow)"
+          style={{
+            animation: "cubic-bezier(0.4, 0, 0.2, 1) forwards",
+          }}
         />
       </g>
     );
@@ -75,10 +105,20 @@ export default function StockProportionCard({
                   activeIndex={activePieIndex ?? undefined}
                   activeShape={renderActiveShape}
                   onMouseEnter={(_, i) => setActivePieIndex(i)}
-                  onMouseLeave={() => setActivePieIndex(null)}
+                  onMouseLeave={handleMouseLeave}
                 >
                   {data.map((_, i) => (
-                    <Cell key={i} fill={colors[i % colors.length]} />
+                    <Cell
+                      key={i}
+                      fill={colors[i % colors.length]}
+                      opacity={
+                        activePieIndex === null || activePieIndex === i ? 1 : 0.45
+                      }
+                      style={{
+                        transition: "opacity 400ms ease",
+                        cursor: "pointer",
+                      }}
+                    />
                   ))}
                 </Pie>
 
