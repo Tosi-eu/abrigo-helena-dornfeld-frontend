@@ -42,6 +42,7 @@ import {
 import NotificationReminderModal from "@/components/NotificationModal";
 import StockProportionCard from "@/components/StockProportionCard";
 import { prepareStockDistributionData } from "@/helpers/estoque.helper";
+import { SectorType } from "@/utils/enums";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -188,8 +189,8 @@ export default function Dashboard() {
           })),
         );
 
-        setNursingDistribution(prepareStockDistributionData(nursingRes, "enfermagem"));
-        setPharmacyDistribution(prepareStockDistributionData(pharmacyRes, "farmacia"));
+        setNursingDistribution(prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM));
+        setPharmacyDistribution(prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA));
 
         const formattedCabinetData = cabinetRes.data.map((arm: any) => ({
           cabinet: arm.armario_id,
@@ -270,25 +271,6 @@ export default function Dashboard() {
   ];
 
   const COLORS = ["#0EA5E9", "#FACC15", "#EF4444", "#10B981", "#8B5CF6"];
-
-  const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
-      props;
-    return (
-      <g>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 10}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-          style={{ transition: "all 0.3s ease", opacity: 1 }}
-        />
-      </g>
-    );
-  };
 
   return (
     <Layout>

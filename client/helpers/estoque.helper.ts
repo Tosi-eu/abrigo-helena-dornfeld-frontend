@@ -1,29 +1,33 @@
 import { StockDistributionItem } from "@/interfaces/interfaces";
-
-export type StockSector = "farmacia" | "enfermagem";
+import { SectorType } from "@/utils/enums";
 
 export function prepareStockDistributionData(
   proportionRes: any,
-  sector: StockSector,
+  sector: SectorType,
 ): StockDistributionItem[] {
   const { percentuais, totais } = proportionRes;
 
-  const baseData: StockDistributionItem[] = [
-    {
-      name: "Medicamentos em Estoque Geral",
-      value: percentuais.medicamentos_geral,
-      rawValue: totais.medicamentos_geral,
-    },
-    {
-      name: "Medicamentos em Estoque Individual",
-      value: percentuais.medicamentos_individual,
-      rawValue: totais.medicamentos_individual,
-    },
-    {
-      name: "Insumos em Estoque Geral",
-      value: percentuais.insumos,
-      rawValue: totais.insumos,
-    },
+  if (sector === SectorType.FARMACIA) {
+    return [
+      {
+        name: "Medicamentos em Estoque Geral",
+        value: percentuais.medicamentos_geral,
+        rawValue: totais.medicamentos_geral,
+      },
+      {
+        name: "Medicamentos em Estoque Individual",
+        value: percentuais.medicamentos_individual,
+        rawValue: totais.medicamentos_individual,
+      },
+      {
+        name: "Insumos em Estoque Geral",
+        value: percentuais.insumos_geral,
+        rawValue: totais.insumos_geral,
+      },
+    ];
+  }
+
+  return [
     {
       name: "Medicamentos no Carrinho",
       value: percentuais.carrinho_medicamentos,
@@ -34,11 +38,10 @@ export function prepareStockDistributionData(
       value: percentuais.carrinho_insumos,
       rawValue: totais.carrinho_insumos,
     },
+    {
+      name: "Medicamentos na Casela",
+      value: percentuais.medicamentos_casela,
+      rawValue: totais.medicamentos_casela,
+    },
   ];
-
-  if (sector === "farmacia") {
-    return baseData.slice(0, 3);
-  }
-
-  return baseData;
 }

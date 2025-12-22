@@ -2,11 +2,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "/logo.png";
 import { LayoutProps } from "@/interfaces/interfaces";
 import { useAuth } from "@/hooks/use-auth.hook";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
 import { NotificationButton } from "@/components/NotificationButton";
 import { NotificationDrawer } from "./NotificationDrawer";
-import { getTodayNotifications } from "@/api/requests";
 
 export default function Layout({ children, title }: LayoutProps) {
   const location = useLocation();
@@ -14,8 +13,6 @@ export default function Layout({ children, title }: LayoutProps) {
   const { user, logout } = useAuth();
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [reminderEvents, setReminderEvents] = useState<any[]>([]);
-  const [notificationCount, setNotificationCount] = useState(0);
 
   const navigation = [
     { name: "Painel", href: "/dashboard" },
