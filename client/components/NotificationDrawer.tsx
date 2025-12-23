@@ -20,6 +20,7 @@ export function NotificationDrawer() {
   const [items, setItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
 
   const [mode, setMode] = useState<"list" | "create">("list");
   const [editingNotification, setEditingNotification] = useState<any | null>(
@@ -29,22 +30,28 @@ export function NotificationDrawer() {
   const fetchNotifications = async (p = 1, append = false) => {
     setLoading(true);
     try {
-      const { items: data, total } = await getNotifications(
+      const { items: data, total, hasNext } = await getNotifications(
         p,
         5,
         EventStatus.PENDENTE,
       );
+
+      console.log(hasNext)
+
       setItems((prev) => (append ? [...prev, ...data] : data));
       setCount(total);
+      setHasNext(hasNext);
     } catch {
       toast({
         title: "Erro",
         description: "Não foi possível carregar as notificações.",
         variant: "error",
       });
+
       if (!append) {
         setItems([]);
         setCount(0);
+        setHasNext(false);
       }
     } finally {
       setLoading(false);
@@ -156,7 +163,7 @@ export function NotificationDrawer() {
                   </AnimatePresence>
                 )}
 
-                {!loading && items.length > 0 && (
+                {!loading && items.length > 0 && hasNext && (
                   <div className="text-center py-2">
                     <button
                       className="text-sky-600 hover:text-sky-700 font-medium"

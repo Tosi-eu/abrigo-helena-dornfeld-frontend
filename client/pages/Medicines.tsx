@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import { getMedicines } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
-import { DEFAULT_PAGE_SIZE } from "@/helpers/pagination.helper";
+import { DEFAULT_PAGE_SIZE } from "@/helpers/paginacao.helper";
 
 export default function Medicines() {
   const [medicines, setMedicines] = useState<any[]>([]);

@@ -8,7 +8,7 @@ import { formatDateToPtBr } from "@/helpers/dates.helper";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNotifications } from "@/hooks/use-notification.hook";
 import { toast } from "@/hooks/use-toast.hook";
-import { EventStatus } from "@/utils/enums";
+import { EventStatus, NotificationDestiny } from "@/utils/enums";
 import { parseDateFromString } from "@/utils/utils";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
@@ -35,12 +35,18 @@ export default function CreateNotificationForm({
   const [form, setForm] = useState({
     medicamento_id: 0,
     residente_id: 0,
-    destino: "SUS",
+    destino: NotificationDestiny.SUS,
     data_prevista: null as Date | null,
     criado_por: user?.id,
     status: EventStatus.PENDENTE,
     id: undefined as number | undefined,
   });
+
+  const NotificationDestinyLabel: Record<NotificationDestiny, string> = {
+    [NotificationDestiny.SUS]: "SUS",
+    [NotificationDestiny.FAMILY]: "Família",
+    [NotificationDestiny.PHARMACY]: "Farmácia",
+  };
 
   useEffect(() => {
     if (editData) {
@@ -57,7 +63,7 @@ export default function CreateNotificationForm({
       setForm({
         medicamento_id: 0,
         residente_id: 0,
-        destino: "SUS",
+        destino: NotificationDestiny.SUS,
         data_prevista: null,
         criado_por: user?.id,
         status: EventStatus.PENDENTE,
@@ -191,10 +197,18 @@ export default function CreateNotificationForm({
           id="destino"
           className="border rounded p-2 w-full bg-white"
           value={form.destino}
-          onChange={(e) => setForm({ ...form, destino: e.target.value })}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              destino: e.target.value as NotificationDestiny,
+            })
+          }
         >
-          <option value="SUS">SUS</option>
-          <option value="Família">Família</option>
+          {Object.values(NotificationDestiny).map((destiny) => (
+            <option key={destiny} value={destiny}>
+              {NotificationDestinyLabel[destiny]}
+            </option>
+          ))}
         </select>
       </div>
 

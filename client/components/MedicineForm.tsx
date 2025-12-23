@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
@@ -6,7 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import { MedicineStockType, OriginType, StockTypeLabels } from "@/utils/enums";
+import {
+  MedicineStockType,
+  OriginType,
+  SectorType,
+  StockTypeLabels,
+} from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +33,7 @@ export function MedicineForm({
   medicines,
   caselas,
   cabinets,
+  drawers,
   onSubmit,
 }: MedicineFormProps) {
   const [formData, setFormData] = useState({
@@ -37,19 +43,38 @@ export function MedicineForm({
     expirationDate: null as Date | null,
     resident: "",
     casela: null as number | null,
-    cabinet: null as number | null,
+    cabinetId: null as number | null,
+    drawerId: null as number | null,
     origin: "" as OriginType | "",
+    sector: "" as SectorType | "",
   });
 
   const [medicineOpen, setMedicineOpen] = useState(false);
-
   const navigate = useNavigate();
 
   const selectedMedicine = medicines.find((m) => m.id === formData.id);
+  const isEmergencyCart = formData.stockType === MedicineStockType.CARRINHO;
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    if (isEmergencyCart) {
+      setFormData((prev) => ({
+        ...prev,
+        sector: SectorType.ENFERMAGEM,
+      }));
+    }
+  }, [isEmergencyCart]);
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      cabinetId: null,
+      drawerId: null,
+    }));
+  }, [formData.stockType]);
 
   const handleCaselaChange = (value: number) => {
     const selected = caselas.find((c) => c.casela === value);
@@ -78,7 +103,12 @@ export function MedicineForm({
       return;
     }
 
-    if (!formData.cabinet) {
+    if (isEmergencyCart && !formData.drawerId) {
+      toast({ title: "Selecione uma gaveta", variant: "error" });
+      return;
+    }
+
+    if (!isEmergencyCart && !formData.cabinetId) {
       toast({ title: "Selecione um armário", variant: "error" });
       return;
     }
@@ -98,8 +128,11 @@ export function MedicineForm({
       expirationDate: formData.expirationDate
         ? new Date(formData.expirationDate)
         : null,
+      isEmergencyCart,
     });
   };
+
+  const storageOptions = isEmergencyCart ? drawers : cabinets;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
@@ -113,7 +146,6 @@ export function MedicineForm({
         <label className="text-sm font-semibold text-slate-700">
           Medicamento
         </label>
-
         <Popover open={medicineOpen} onOpenChange={setMedicineOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -127,12 +159,10 @@ export function MedicineForm({
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-
           <PopoverContent className="w-full p-0">
             <Command>
               <CommandInput placeholder="Buscar medicamento..." />
               <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>
-
               <CommandGroup>
                 {medicines.map((m) => (
                   <CommandItem
@@ -167,7 +197,6 @@ export function MedicineForm({
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
           />
         </div>
-
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
             Validade
@@ -224,7 +253,6 @@ export function MedicineForm({
             ))}
           </select>
         </div>
-
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
             Residente
@@ -241,19 +269,27 @@ export function MedicineForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            Armário
+            {isEmergencyCart ? "Gaveta" : "Armário"}
           </label>
           <select
-            value={formData.cabinet ?? ""}
-            onChange={(e) => updateField("cabinet", Number(e.target.value))}
+            value={
+              isEmergencyCart
+                ? (formData.drawerId ?? "")
+                : (formData.cabinetId ?? "")
+            }
+            onChange={(e) =>
+              isEmergencyCart
+                ? updateField("drawerId", Number(e.target.value))
+                : updateField("cabinetId", Number(e.target.value))
+            }
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
             <option value="" disabled hidden>
               Selecione
             </option>
-            {cabinets.map((c) => (
-              <option key={c.numero} value={c.numero}>
-                {c.numero}
+            {storageOptions.map((s) => (
+              <option key={s.numero} value={s.numero}>
+                {s.numero}
               </option>
             ))}
           </select>
@@ -280,6 +316,32 @@ export function MedicineForm({
         </div>
       </div>
 
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-700">Setor</label>
+
+        <select
+          value={formData.sector}
+          onChange={(e) => updateField("sector", e.target.value as SectorType)}
+          disabled={isEmergencyCart}
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+            isEmergencyCart
+              ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+              : "border-slate-300",
+          )}
+        >
+          <option value="" disabled hidden>
+            Selecione
+          </option>
+
+          {Object.values(SectorType).map((sector) => (
+            <option key={sector} value={sector}>
+              {sector === SectorType.FARMACIA ? "Farmácia" : "Enfermagem"}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
         <button
           type="button"
@@ -288,7 +350,6 @@ export function MedicineForm({
         >
           Cancelar
         </button>
-
         <button
           type="button"
           onClick={handleSubmit}

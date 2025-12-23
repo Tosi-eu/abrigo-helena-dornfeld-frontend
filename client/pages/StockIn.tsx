@@ -3,19 +3,26 @@ import { useState, useEffect } from "react";
 import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
-import { Input, Medicine, Patient, Cabinet } from "@/interfaces/interfaces";
+import {
+  Input,
+  Medicine,
+  Patient,
+  Cabinet,
+  Drawer,
+} from "@/interfaces/interfaces";
 import { useAuth } from "@/hooks/use-auth.hook";
 import {
   createMovement,
   createStockIn,
   getCabinets,
+  getDrawers,
   getInputs,
   getMedicines,
   getResidents,
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
 import { MovementType, OperationType } from "@/utils/enums";
-import { fetchAllPaginated } from "@/helpers/pagination.helper";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 export default function StockIn() {
   const [operationType, setOperationType] = useState<
@@ -24,6 +31,7 @@ export default function StockIn() {
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [inputs, setInputs] = useState<Input[]>([]);
   const [caselas, setCaselas] = useState<Patient[]>([]);
+  const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -35,19 +43,20 @@ export default function StockIn() {
       setLoading(true);
 
       try {
-        const [medicines, inputs, residents, cabinets] = await Promise.all([
-          fetchAllPaginated(getMedicines),
-          fetchAllPaginated(getInputs),
-          fetchAllPaginated(getResidents),
-          fetchAllPaginated(getCabinets),
-        ]);
-
-        console.log(cabinets);
+        const [medicines, inputs, residents, cabinets, drawers] =
+          await Promise.all([
+            fetchAllPaginated(getMedicines),
+            fetchAllPaginated(getInputs),
+            fetchAllPaginated(getResidents),
+            fetchAllPaginated(getCabinets),
+            fetchAllPaginated(getDrawers),
+          ]);
 
         setMedicines(medicines as Medicine[]);
         setInputs(inputs as Input[]);
         setCaselas(residents as Patient[]);
         setCabinets(cabinets as Cabinet[]);
+        setDrawers(drawers as Drawer[]);
       } catch (err) {
         console.error("Erro ao carregar dados da tela de entrada:", err);
         setMedicines([]);
@@ -68,22 +77,26 @@ export default function StockIn() {
         tipo: data.stockType,
         medicamento_id: data.id,
         quantidade: data.quantity,
-        armario_id: data.cabinet,
+        armario_id: data.cabinetId ?? null,
+        gaveta_id: data.drawerId ?? null,
         casela_id: data.casela ?? null,
         validade: data.expirationDate ?? null,
         origem: data.origin ?? null,
+        setor: data.sector,
       };
 
       await createStockIn(payload);
 
       await createMovement({
         tipo: MovementType.IN,
-        login_id: user?.id!,
-        medicamento_id: data.id,
-        armario_id: data.cabinet,
-        casela_id: data.casela ?? null,
+        login_id: user?.id,
+        armario_id: data.cabinetId ?? null,
         quantidade: data.quantity,
-        validade: data.expirationDate ?? null,
+        casela_id: data.casela ?? null,
+        gaveta_id: data.drawerId ?? null,
+        medicamento_id: data.id,
+        validade: data.expirationDate,
+        setor: data.sector,
       });
 
       toast({
@@ -108,9 +121,13 @@ export default function StockIn() {
         tipo: data.stockType,
         insumo_id: data.inputId,
         quantidade: data.quantity,
-        armario_id: data.cabinetId,
+        armario_id: data.cabinetId ?? null,
+        gaveta_id: data.drawerId ?? null,
         validade: data.validity,
+        setor: data.sector,
       };
+
+      console.log(payload)
 
       await createStockIn(payload);
 
@@ -118,9 +135,11 @@ export default function StockIn() {
         tipo: MovementType.IN,
         login_id: user?.id!,
         insumo_id: data.inputId,
-        armario_id: data.cabinetId,
+        armario_id: data.cabinetId ?? null,
+        gaveta_id: data.drawerId ?? null,
         quantidade: data.quantity,
         validade: data.validity,
+        setor: data.sector,
       });
 
       toast({
@@ -190,6 +209,7 @@ export default function StockIn() {
               medicines={canonicalMedicines}
               caselas={caselas}
               cabinets={cabinets}
+              drawers={drawers}
               onSubmit={handleMedicineSubmit}
             />
           )}
@@ -198,6 +218,7 @@ export default function StockIn() {
             <InputForm
               inputs={canonicalInputs}
               cabinets={cabinets}
+              drawers={drawers}
               onSubmit={handleInputSubmit}
             />
           )}

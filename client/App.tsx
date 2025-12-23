@@ -31,6 +31,9 @@ import Inputs from "./pages/Inputs";
 import { AuthProvider } from "./context/auth-context";
 import PrivateRoute from "./pages/PrivateRoute";
 import { NotificationProvider } from "./context/notification.context";
+import Drawers from "./pages/Drawers";
+import EditDrawer from "./pages/EditDrawer";
+import RegisterDrawer from "./pages/RegisterDrawer";
 
 const queryClient = new QueryClient();
 
@@ -179,6 +182,30 @@ const App = () => (
                 element={
                   <PrivateRoute>
                     <EditCabinet />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/drawers"
+                element={
+                  <PrivateRoute>
+                    <Drawers />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/drawer/register"
+                element={
+                  <PrivateRoute>
+                    <RegisterDrawer />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/drawers/edit"
+                element={
+                  <PrivateRoute>
+                    <EditDrawer />
                   </PrivateRoute>
                 }
               />

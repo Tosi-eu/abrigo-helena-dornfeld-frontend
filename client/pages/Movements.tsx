@@ -30,7 +30,9 @@ export default function InputMovements() {
     { key: "operator", label: "Operador", editable: false },
     { key: "movementDate", label: "Data da Transação", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
+    { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },
+    { key: "sector", label: "Setor", editable: false },
   ];
 
   function normalizeMovement(item: any) {
@@ -38,23 +40,23 @@ export default function InputMovements() {
 
     return {
       id: item.id,
-      name: isMedicine
-        ? (item.MedicineModel?.nome ?? "-")
-        : (item.InputModel?.nome ?? "-"),
+      name: isMedicine ? item.MedicineModel?.nome : item.InputModel?.nome,
       additionalData: isMedicine
-        ? (item.MedicineModel?.principio_ativo ?? "")
-        : (item.InputModel?.descricao ?? ""),
+        ? item.MedicineModel?.principio_ativo
+        : (item.InputModel?.descricao ?? "-"),
       quantity: item.quantidade,
-      operator: item.LoginModel?.login ?? "",
+      operator: item.LoginModel?.login,
       movementDate: item.data,
-      cabinet: item.CabinetModel?.num_armario ?? item.armario_id ?? "",
+      cabinet: item.armario_id ?? "-",
+      drawer: item.gaveta_id ?? "-",
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
+      sector: item.setor || "-",
     };
   }
 
   async function fetchEntries() {
-    const requestId = ++entriesRequestId.current;
+    const requestId = +entriesRequestId.current;
 
     const [insumos, medicamentos] = await Promise.all([
       getInputMovements({
@@ -86,7 +88,7 @@ export default function InputMovements() {
   }
 
   async function fetchExits() {
-    const requestId = ++exitsRequestId.current;
+    const requestId = +exitsRequestId.current;
 
     const [insumos, medicamentos] = await Promise.all([
       getInputMovements({
@@ -131,7 +133,7 @@ export default function InputMovements() {
     <Layout title="Movimentações">
       {!loading && (
         <div className="w-full flex justify-center p-10">
-          <Card className="w-full max-w-5xl bg-white border shadow-md p-8 space-y-12">
+          <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Entradas</h2>
 
@@ -139,10 +141,7 @@ export default function InputMovements() {
                 data={entries}
                 columns={columnsBase}
                 entityType="entries"
-                currentPage={Math.max(
-                  entriesInputPage,
-                  entriesMedicinePage,
-                )}
+                currentPage={Math.max(entriesInputPage, entriesMedicinePage)}
                 hasNextPage={entriesHasNext}
                 onNextPage={() => {
                   setEntriesInputPage((p) => p + 1);
