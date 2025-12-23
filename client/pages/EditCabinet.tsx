@@ -41,7 +41,7 @@ export default function EditCabinet() {
 
   useEffect(() => {
     getCabinets()
-      .then(setCabinets)
+      .then((res) => setCabinets(res.data))
       .catch(() =>
         toast({
           title: "Erro ao carregar armários",
@@ -176,10 +176,12 @@ export default function EditCabinet() {
                 <div className="space-y-1">
                   <Label>Número do armário</Label>
                   <Input
+                    className="bg-slate-100 text-slate-500"
                     type="number"
                     value={formData.id}
                     onChange={(e) => handleChange("id", Number(e.target.value))}
                     disabled={loading}
+                    readOnly
                   />
                 </div>
 

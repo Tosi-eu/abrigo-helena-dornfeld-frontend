@@ -50,7 +50,11 @@ export function StockCard({
   }
 
   fields.push({ label: "Armário", value: display(item.armario_id) });
-  fields.push({ label: "Gaveta", value: display(item.gaveta_id) });
+  if(item.casela_id) {
+    fields.push({ label: "Casela", value: display(item.casela_id) });
+  } else {
+    fields.push({ label: "Gaveta", value: display(item.gaveta_id) });
+  }
   fields.push({ label: "Paciente", value: display(item.paciente) });
   fields.push({ label: "Setor", value: display(item.setor) });
 
