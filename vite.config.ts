@@ -17,7 +17,7 @@ export default defineConfig({
     host: "::",
     port: 8080,
     fs: {
-      allow: ["./client", "./shared", "./public", "./fonts"],
+      allow: ["./", "./client", "./shared", "./public", "./fonts"],
       deny: ["server/**"],
     },
   },
