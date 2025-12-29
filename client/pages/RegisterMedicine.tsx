@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { sanitizeDosage } from "@/helpers/medicacao.helper";
 
 export default function SignUpMedicine() {
   const navigate = useNavigate();
@@ -175,9 +176,12 @@ export default function SignUpMedicine() {
                 <Input
                   value={formData.dosageValue}
                   onChange={(e) =>
-                    setFormData({ ...formData, dosageValue: e.target.value })
+                    setFormData({
+                      ...formData,
+                      dosageValue: sanitizeDosage(e.target.value),
+                    })
                   }
-                  placeholder="500"
+                  placeholder="10,5 ou 10/100"
                   disabled={saving}
                 />
               </div>
@@ -199,6 +203,7 @@ export default function SignUpMedicine() {
                     <SelectItem value="ml">ml</SelectItem>
                     <SelectItem value="g">g</SelectItem>
                     <SelectItem value="mcg">mcg</SelectItem>
+                    <SelectItem value="mg/ml">mg/ml</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

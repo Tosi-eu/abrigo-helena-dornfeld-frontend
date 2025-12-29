@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth.hook";
 
-const navigation = [
+const navigationTabs = [
   { name: "Painel", href: "/dashboard", icon: LayoutDashboard },
   { name: "Movimentações", href: "/movements", icon: ArrowLeftRight },
   { name: "Medicamentos", href: "/medicines", icon: Pill },
@@ -31,16 +31,17 @@ interface SidebarProps {
 
 export function VerticalLayout({ onLogout }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate()
   const { user } = useAuth();
 
   return (
     <aside className="h-screen w-64 flex flex-col border-r border-slate-200 bg-white/70 backdrop-blur">
       <div className="h-20 shrink-0 flex items-center px-4 border-b">
-        <img src="/logo.png" className="h-16" />
+        <img src="/logo.png" className="h-20 cursor-pointer" onClick={() => navigate('/dashboard')} />
       </div>
 
        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
-        {navigation.map((item) => {
+        {navigationTabs.map((item) => {
           const isActive =
             location.pathname === item.href ||
             (item.href !== "/dashboard" &&

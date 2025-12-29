@@ -43,6 +43,8 @@ import NotificationReminderModal from "@/components/NotificationModal";
 import StockProportionCard from "@/components/StockProportionCard";
 import { prepareStockDistributionData } from "@/helpers/estoque.helper";
 import { SectorType } from "@/utils/enums";
+import { getMaxSectionRows } from "@/helpers/dashboard.helper";
+import { useMaxSectionRows } from "@/hooks/use-max-selection-rows";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -272,6 +274,11 @@ export default function Dashboard() {
 
   const COLORS = ["#0EA5E9", "#FACC15", "#EF4444", "#10B981", "#8B5CF6"];
 
+  const minRowsMovements = useMaxSectionRows(
+    [nonMovementProducts, recentMovements],
+    { min: DEFAULT_PAGE_SIZE }
+  );
+
   return (
     <Layout>
       {!loading && (
@@ -318,6 +325,7 @@ export default function Dashboard() {
                   ]}
                   data={paginate(nonMovementProducts, nonMovementPage)}
                   showAddons={false}
+                  minRows={minRowsMovements}
                 />
                 <div className="flex justify-center gap-2 mt-4">
                   <button
@@ -360,6 +368,7 @@ export default function Dashboard() {
                     { key: "date", label: "Data" },
                   ]}
                   data={paginate(recentMovements, recentMovementsPage)}
+                  minRows={minRowsMovements}
                   showAddons={false}
                 />
                 <div className="flex justify-center gap-2 mt-4">
@@ -367,7 +376,7 @@ export default function Dashboard() {
                     className="px-3 py-1 text-sm border rounded disabled:opacity-50"
                     disabled={recentMovementsPage === 1}
                     onClick={() => setRecentMovementsPage((p) => p - 1)}
-                  >
+                  > 
                     Anterior
                   </button>
 

@@ -33,6 +33,7 @@ export default function InputMovements() {
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },
     { key: "sector", label: "Setor", editable: false },
+    { key: "lot", label: "Lote", editable: false }
   ];
 
   function normalizeMovement(item: any) {
@@ -51,7 +52,8 @@ export default function InputMovements() {
       drawer: item.gaveta_id ?? "-",
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
-      sector: item.setor || "-",
+      sector: item.setor ?? "-",
+      lot: item.lote ?? "-"
     };
   }
 

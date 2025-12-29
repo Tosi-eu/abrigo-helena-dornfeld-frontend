@@ -57,6 +57,7 @@ export default function Stock() {
       suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
       itemType: item.tipo_item,
       sector: item.setor,
+      lot: item.lote ?? null
     }));
   };
 
@@ -119,6 +120,7 @@ export default function Stock() {
     { key: "origin", label: "Origem", editable: false },
     { key: "sector", label: "Setor", editable: false },
     { key: "status", label: "Status", editable: false },
+    { key: "lot", label: "Lote", editable: false },
   ];
 
   const requestTransferSector = (row: StockItem) => {

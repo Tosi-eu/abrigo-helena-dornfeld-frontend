@@ -83,6 +83,7 @@ export default function StockIn() {
         validade: data.expirationDate ?? null,
         origem: data.origin ?? null,
         setor: data.sector,
+        lote: data.lot ?? null
       };
 
       await createStockIn(payload);
@@ -97,6 +98,7 @@ export default function StockIn() {
         medicamento_id: data.id,
         validade: data.expirationDate,
         setor: data.sector,
+        lote: data.lot ?? null
       });
 
       toast({
@@ -125,9 +127,8 @@ export default function StockIn() {
         gaveta_id: data.drawerId ?? null,
         validade: data.validity,
         setor: data.sector,
+        lote: data.lot ?? null
       };
-
-      console.log(payload)
 
       await createStockIn(payload);
 
@@ -140,6 +141,7 @@ export default function StockIn() {
         quantidade: data.quantity,
         validade: data.validity,
         setor: data.sector,
+        lote: data.lot ?? null
       });
 
       toast({

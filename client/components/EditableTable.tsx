@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Pencil,
   Trash2,
@@ -75,11 +75,13 @@ export default function EditableTable({
   onTransferSector,
   onSuspend,
   onResume,
+  minRows,
 }: EditableTableProps & {
   entityType?: string;
   showAddons?: boolean;
   currentPage?: number;
   hasNextPage?: boolean;
+  minRows?: number;
   onNextPage?: () => void;
   onPrevPage?: () => void;
   onRemoveIndividual?: (row: any) => void;
@@ -96,6 +98,16 @@ export default function EditableTable({
   useEffect(() => {
     setRows(data);
   }, [data]);
+
+  const displayRows = useMemo(() => {
+    if (!minRows || rows.length >= minRows) return rows;
+
+    return [
+      ...rows,
+      ...Array.from({ length: minRows - rows.length }, () => null),
+    ];
+  }, [rows, minRows]);
+  
 
   const isIndividualMedicine = (row: any) =>
     row.casela !== "-" && row.stockType?.includes("individual");
@@ -198,86 +210,95 @@ export default function EditableTable({
           </thead>
 
           <tbody>
-            {rows.map((row, i) => (
+            {displayRows.map((row, i) => (
               <tr
                 key={i}
-                className={`border-b transition ${
-                  row.status === "suspended"
-                    ? "bg-slate-50 opacity-70"
-                    : "hover:bg-sky-50"
+                className={`border-b ${
+                  row
+                    ? row.status === "suspended"
+                      ? "bg-slate-50 opacity-70"
+                      : "hover:bg-sky-50"
+                    : "bg-white"
                 }`}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-3 text-sm text-center">
-                    {col.key === "status" ? (
-                      <StatusBadge row={row} />
-                    ) : col.key === "expiry" ? (
-                      renderExpiryTag(row)
-                    ) : col.key === "quantity" ? (
-                      renderQuantityTag(row)
-                    ) : (
-                      row[col.key]
-                    )}
+                  <td
+                    key={col.key}
+                    className="px-4 py-3 text-sm text-center"
+                  >
+                    {!row
+                      ? "\u00A0"
+                      : col.key === "status"
+                      ? <StatusBadge row={row} />
+                      : col.key === "expiry"
+                      ? renderExpiryTag(row)
+                      : col.key === "quantity"
+                      ? renderQuantityTag(row)
+                      : row[col.key]}
                   </td>
                 ))}
 
                 {showAddons && (
                   <td className="px-4 py-3 flex justify-center gap-4">
-                    <button
-                      onClick={() => handleEditClick(row)}
-                      className="text-sky-700 hover:text-sky-900"
-                      title="Editar item"
-                    >
-                      <Pencil size={18} />
-                    </button>
+                    {row && (
+                      <>
+                        <button
+                          onClick={() => handleEditClick(row)}
+                          className="text-sky-700 hover:text-sky-900"
+                        >
+                          <Pencil size={18} />
+                        </button>
 
-                    <button
-                      onClick={() => confirmDelete(i)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Deletar item"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                        <button
+                          onClick={() => confirmDelete(i)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 size={18} />
+                        </button>
 
-                    <button
-                      onClick={() => onRemoveIndividual?.(row)}
-                      disabled={!isIndividualMedicine(row)}
-                      className={`text-orange-600 ${
-                        !isIndividualMedicine(row) && disabledActionClass
-                      }`}
-                      title="Remoção de medicamento individual"
-                    >
-                      <UserMinus size={18} />
-                    </button>
+                        <button
+                          onClick={() => onRemoveIndividual?.(row)}
+                          disabled={!isIndividualMedicine(row)}
+                          className={`text-orange-600 ${
+                            !isIndividualMedicine(row) &&
+                            disabledActionClass
+                          }`}
+                        >
+                          <UserMinus size={18} />
+                        </button>
 
-                    <button
-                      onClick={() =>
-                        isActive(row) ? onSuspend?.(row) : onResume?.(row)
-                      }
-                      disabled={!isIndividualMedicine(row)}
-                      className={`${
-                        isActive(row) ? "text-yellow-600" : "text-green-600"
-                      } ${!isIndividualMedicine(row) && disabledActionClass}`}
-                      title="Suspender Medicação"
-                    >
-                      {isActive(row) ? (
-                        <PauseCircle size={18} />
-                      ) : (
-                        <PlayCircle size={18} />
-                      )}
-                    </button>
+                        <button
+                          onClick={() =>
+                            isActive(row)
+                              ? onSuspend?.(row)
+                              : onResume?.(row)
+                          }
+                          disabled={!isIndividualMedicine(row)}
+                          className={`${
+                            isActive(row)
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          } ${
+                            !isIndividualMedicine(row) &&
+                            disabledActionClass
+                          }`}
+                        >
+                          {isActive(row) ? (
+                            <PauseCircle size={18} />
+                          ) : (
+                            <PlayCircle size={18} />
+                          )}
+                        </button>
 
-                    {entityType === "stock" && onTransferSector && (
-                      <button
-                        onClick={() => onTransferSector(row)}
-                        disabled={!isIndividualMedicine(row)}
-                        className={`text-indigo-600 hover:text-indigo-800 ${
-                          !isIndividualMedicine(row) && disabledActionClass
-                        }`}
-                        title="Transferir setor"
-                      >
-                        <ArrowLeftRight size={18} />
-                      </button>
+                        {entityType === "stock" && onTransferSector && (
+                          <button
+                            onClick={() => onTransferSector(row)}
+                            className="text-indigo-600 hover:text-indigo-800"
+                          >
+                            <ArrowLeftRight size={18} />
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 )}

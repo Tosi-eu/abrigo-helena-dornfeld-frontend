@@ -37,6 +37,7 @@ export interface EditableTableProps {
   columns: Column[];
   entityType?: string;
   showAddons?: boolean;
+  minRows?: number; 
   onAdd?: (newRow: Record<string, any>) => void;
   onEdit?: (updatedRow: Record<string, any>, index: number) => void;
   onDelete?: (index: number) => void;
@@ -173,6 +174,7 @@ export interface InputFormProps {
     validity?: Date | null;
     stockType: string;
     sector: string;
+    lot?: string | null;
   }) => void;
 }
 

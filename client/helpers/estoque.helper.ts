@@ -21,8 +21,8 @@ export function prepareStockDistributionData(
       },
       {
         name: "Insumos em Estoque Geral",
-        value: percentuais.insumos_geral,
-        rawValue: totais.insumos_geral,
+        value: percentuais.insumos,
+        rawValue: totais.insumos,
       },
     ];
   }
@@ -40,8 +40,8 @@ export function prepareStockDistributionData(
     },
     {
       name: "Medicamentos na Casela",
-      value: percentuais.medicamentos_casela,
-      rawValue: totais.medicamentos_casela,
+      value: percentuais.medicamentos_individual,
+      rawValue: totais.medicamentos_individual,
     },
   ];
 }
