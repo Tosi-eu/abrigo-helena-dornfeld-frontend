@@ -47,6 +47,7 @@ const App = () => (
         <NotificationProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<LoadingScreen />} />
               <Route path="/" element={<Navigate to="/user/login" replace />} />
               <Route path="/user/login" element={<Auth />} />
 
