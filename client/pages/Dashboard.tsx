@@ -43,13 +43,10 @@ import NotificationReminderModal from "@/components/NotificationModal";
 import StockProportionCard from "@/components/StockProportionCard";
 import { prepareStockDistributionData } from "@/helpers/estoque.helper";
 import { SectorType } from "@/utils/enums";
-import { getMaxSectionRows } from "@/helpers/dashboard.helper";
 import { useMaxSectionRows } from "@/hooks/use-max-selection-rows";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(true);
 
   const [noStock, setNoStock] = useState<number>(0);
   const [belowMin, setBelowMin] = useState<number>(0);
@@ -83,7 +80,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setLoading(true);
       try {
         const [
           stockList,
@@ -207,9 +203,7 @@ export default function Dashboard() {
         setDrawerStockData(formattedDrawerData);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
 
     fetchDashboardData();
@@ -281,7 +275,6 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      {!loading && (
         <div className="space-y-10 pt-10">
           <section>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -548,7 +541,6 @@ export default function Dashboard() {
           </section>
 
         </div>
-      )}
 
       <NotificationReminderModal
         open={notifOpen}

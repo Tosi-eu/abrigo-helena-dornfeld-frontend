@@ -13,15 +13,11 @@ export default function Cabinets() {
   ];
 
   const [cabinets, setCabinets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
   async function fetchCabinets(pageNumber: number) {
     try {
-      setLoading(true);
-
       const res = await getCabinets(pageNumber, DEFAULT_LIMIT);
 
       setCabinets(Array.isArray(res.data) ? res.data : []);
@@ -33,8 +29,6 @@ export default function Cabinets() {
         description: err.message ?? "Erro inesperado",
         variant: "error",
       });
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -45,7 +39,6 @@ export default function Cabinets() {
   return (
     <Layout title="Armários">
       <div className="pt-12">
-        {!loading && (
           <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
             <EditableTable
               data={cabinets}
@@ -69,7 +62,6 @@ export default function Cabinets() {
               Página {page}
             </div>
           </div>
-        )}
       </div>
     </Layout>
   );

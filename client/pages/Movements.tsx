@@ -21,8 +21,6 @@ export default function InputMovements() {
   const [exits, setExits] = useState<any[]>([]);
   const exitsRequestId = useRef(0);
 
-  const [loading, setLoading] = useState(true);
-
   const columnsBase = [
     { key: "name", label: "Produto", editable: false },
     { key: "additionalData", label: "Princípio Ativo", editable: false },
@@ -122,18 +120,16 @@ export default function InputMovements() {
   }
 
   useEffect(() => {
-    setLoading(true);
-    fetchEntries().finally(() => setLoading(false));
+    fetchEntries();
   }, [entriesInputPage, entriesMedicinePage]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchExits().finally(() => setLoading(false));
+    fetchExits();
   }, [exitsInputPage, exitsMedicinePage]);
+
 
   return (
     <Layout title="Movimentações">
-      {!loading && (
         <div className="w-full flex justify-center p-10">
           <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
             <div className="space-y-4">
@@ -161,7 +157,7 @@ export default function InputMovements() {
               <h2 className="text-lg font-semibold">Saídas</h2>
 
               <EditableTable
-                data={exits}
+                data= {exits}
                 columns={columnsBase}
                 entityType="exits"
                 currentPage={Math.max(exitsInputPage, exitsMedicinePage)}
@@ -179,7 +175,6 @@ export default function InputMovements() {
             </div>
           </Card>
         </div>
-      )}
     </Layout>
   );
 }

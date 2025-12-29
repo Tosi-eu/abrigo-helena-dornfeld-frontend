@@ -24,7 +24,6 @@ export default function Stock() {
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
@@ -63,7 +62,6 @@ export default function Stock() {
 
   async function loadStock(pageToLoad: number) {
     try {
-      setLoading(true);
 
       if (data) {
         setItems(formatStockItems(data));
@@ -77,8 +75,6 @@ export default function Stock() {
       setHasNext(res.hasNext);
     } catch (err) {
       console.error("Erro ao buscar estoque:", err);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -87,7 +83,6 @@ export default function Stock() {
       if (data) {
         setItems(formatStockItems(data));
         setHasNext(false);
-        setLoading(false);
         return;
       }
 
@@ -254,7 +249,6 @@ export default function Stock() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => navigate("/stock/in")}
-            disabled={loading}
             className="
               h-12 px-6 rounded-lg font-semibold
               bg-green-600 text-white
@@ -268,7 +262,6 @@ export default function Stock() {
 
           <button
             onClick={() => navigate("/stock/out")}
-            disabled={loading}
             className="
               h-12 px-6 rounded-lg font-semibold
               bg-red-600 text-white
@@ -282,7 +275,6 @@ export default function Stock() {
 
           <button
             onClick={() => setReportModalOpen(true)}
-            disabled={loading}
             className="
               h-12 px-6 rounded-lg font-semibold
               bg-sky-600 text-white
@@ -296,7 +288,6 @@ export default function Stock() {
         </div>
 
         <div className="pt-12">
-          {!loading && (
             <>
               <EditableTable
                 data={items}
@@ -313,7 +304,6 @@ export default function Stock() {
                 entityType="stock"
               />
             </>
-          )}
         </div>
       </div>
 

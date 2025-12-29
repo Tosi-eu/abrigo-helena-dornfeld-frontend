@@ -28,7 +28,6 @@ export function NotificationDrawer() {
   );
 
   const fetchNotifications = async (p = 1, append = false) => {
-    setLoading(true);
     try {
       const { items: data, total, hasNext } = await getNotifications(
         p,
@@ -53,8 +52,6 @@ export function NotificationDrawer() {
         setCount(0);
         setHasNext(false);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -100,11 +97,7 @@ export function NotificationDrawer() {
 
         {mode === "list" && (
           <>
-            {loading && items.length === 0 ? (
-              <div className="text-center py-10 text-slate-500">
-                Carregando...
-              </div>
-            ) : (
+            (
               <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
                 {items.length === 0 ? (
                   <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
@@ -163,7 +156,7 @@ export function NotificationDrawer() {
                   </AnimatePresence>
                 )}
 
-                {!loading && items.length > 0 && hasNext && (
+                {items.length > 0 && hasNext && (
                   <div className="text-center py-2">
                     <button
                       className="text-sky-600 hover:text-sky-700 font-medium"
@@ -178,7 +171,7 @@ export function NotificationDrawer() {
                   </div>
                 )}
               </div>
-            )}
+            )
 
             <DrawerFooter>
               <button

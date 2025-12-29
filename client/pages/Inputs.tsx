@@ -8,7 +8,6 @@ export default function Inputs() {
   const [data, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const columns = [
@@ -19,7 +18,6 @@ export default function Inputs() {
 
   async function fetchInputs(pageNumber: number) {
     try {
-      setLoading(true);
 
       const res = await getInputs(pageNumber, 10);
 
@@ -32,9 +30,7 @@ export default function Inputs() {
         description: err.message ?? "Erro inesperado",
         variant: "error",
       });
-    } finally {
-      setLoading(false);
-    }
+    } 
   }
 
   useEffect(() => {
@@ -44,7 +40,6 @@ export default function Inputs() {
   return (
     <Layout title="Insumos">
       <div className="pt-12">
-        {!loading && (
           <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
             <EditableTable
               data={data}
@@ -68,7 +63,6 @@ export default function Inputs() {
               Página {page}
             </div>
           </div>
-        )}
       </div>
     </Layout>
   );

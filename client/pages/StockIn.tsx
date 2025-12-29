@@ -33,14 +33,12 @@ export default function StockIn() {
   const [caselas, setCaselas] = useState<Patient[]>([]);
   const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true);
 
       try {
         const [medicines, inputs, residents, cabinets, drawers] =
@@ -63,9 +61,7 @@ export default function StockIn() {
         setInputs([]);
         setCaselas([]);
         setCabinets([]);
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
 
     fetchAll();
@@ -178,7 +174,6 @@ export default function StockIn() {
 
   return (
     <Layout title="Entrada de Estoque">
-      {!loading && (
         <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
           <h2 className="text-lg font-semibold text-slate-800">
             Registrar Entrada
@@ -225,7 +220,6 @@ export default function StockIn() {
             />
           )}
         </div>
-      )}
     </Layout>
   );
 }
