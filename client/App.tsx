@@ -34,6 +34,7 @@ import { NotificationProvider } from "./context/notification.context";
 import Drawers from "./pages/Drawers";
 import EditDrawer from "./pages/EditDrawer";
 import RegisterDrawer from "./pages/RegisterDrawer";
+import LoadingScreen from "./components/LodingScreen";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
         <NotificationProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<LoadingScreen />} />
               <Route path="/" element={<Navigate to="/user/login" replace />} />
               <Route path="/user/login" element={<Auth />} />
 

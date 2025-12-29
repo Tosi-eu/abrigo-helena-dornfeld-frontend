@@ -297,3 +297,5 @@ export const transferStockSector = (payload: {
   api.patch(`/estoque/transferir/${payload.tipo}/${payload.estoque_id}`, {
     setor: payload.setor,
   });
+
+export const getBackendLoadingStatus = () => api.get('/status')
