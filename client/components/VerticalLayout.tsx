@@ -35,8 +35,8 @@ export function VerticalLayout({ onLogout }: SidebarProps) {
   const { user } = useAuth();
 
   return (
-    <aside className="h-screen w-64 flex flex-col border-r border-slate-200 bg-white/70 backdrop-blur">
-      <div className="h-20 shrink-0 flex items-center px-4 border-b">
+    <aside className="h-screen w-64 flex flex-col border-r border-sky-200 bg-sky-50">
+      <div className="h-20 shrink-0 flex items-center px-4 border-b border-sky-200 bg-sky-100">
         <img
           src="/logo.png"
           className="h-20 cursor-pointer"
@@ -60,8 +60,8 @@ export function VerticalLayout({ onLogout }: SidebarProps) {
               className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all
                 ${
                   isActive
-                    ? "bg-sky-100 text-sky-700"
-                    : "text-slate-600 hover:bg-sky-50 hover:text-sky-700"
+                    ? "bg-sky-200 text-sky-900 shadow-sm"
+                    : "text-slate-700 hover:bg-sky-100 hover:text-sky-900"
                 }`}
             >
               <Icon className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function VerticalLayout({ onLogout }: SidebarProps) {
       </nav>
 
       {user && (
-        <div className="p-3 border-t border-slate-200">
+        <div className="p-3 border-t border-sky-200">
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition"
