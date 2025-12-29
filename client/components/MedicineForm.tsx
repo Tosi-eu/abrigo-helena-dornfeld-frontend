@@ -344,9 +344,7 @@ export function MedicineForm({
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">
-          Lote
-        </label>
+        <label className="text-sm font-semibold text-slate-700">Lote</label>
         <input
           type="text"
           value={formData.lot}

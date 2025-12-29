@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useId } from "react";
 import {
   Pencil,
   Trash2,
@@ -6,6 +6,7 @@ import {
   PauseCircle,
   PlayCircle,
   UserMinus,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EditableTableProps } from "@/interfaces/interfaces";
@@ -17,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import DeletePopUp from "./DeletePopUp";
-import { ArrowLeftRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import {
   deleteCabinet,
@@ -33,15 +34,51 @@ const typeMap: Record<string, string> = {
   Insumo: "inputs",
 };
 
+const tableVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
+const rowVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+};
+
+const SkeletonCell = () => (
+  <div className="h-4 w-full bg-slate-200 rounded animate-pulse" />
+);
+
+const SkeletonRow = ({ cols }: { cols: number }) => (
+  <motion.tr
+    variants={rowVariants}
+    initial="initial"
+    animate="animate"
+    className="border-b"
+  >
+    {Array.from({ length: cols }).map((_, i) => (
+      <td key={i} className="px-4 py-3">
+        <SkeletonCell />
+      </td>
+    ))}
+    <td className="px-4 py-3">
+      <div className="flex justify-center gap-3">
+        <div className="h-5 w-5 bg-slate-200 rounded animate-pulse" />
+        <div className="h-5 w-5 bg-slate-200 rounded animate-pulse" />
+      </div>
+    </td>
+  </motion.tr>
+);
+
 const StatusBadge = ({ row }: { row: any }) => {
-  if (!row.status) return "-";
+  if (!row?.status) return "-";
 
   if (row.status === "suspended") {
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200 cursor-default">
+            <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
               Suspenso
             </span>
           </TooltipTrigger>
@@ -69,19 +106,21 @@ export default function EditableTable({
   showAddons = true,
   currentPage = 1,
   hasNextPage = false,
+  loading = false,
   onNextPage,
   onPrevPage,
   onRemoveIndividual,
   onTransferSector,
   onSuspend,
   onResume,
-  minRows,
+  minRows = 5,
 }: EditableTableProps & {
   entityType?: string;
   showAddons?: boolean;
   currentPage?: number;
   hasNextPage?: boolean;
   minRows?: number;
+  loading?: boolean;
   onNextPage?: () => void;
   onPrevPage?: () => void;
   onRemoveIndividual?: (row: any) => void;
@@ -89,9 +128,10 @@ export default function EditableTable({
   onSuspend?: (row: any) => void;
   onResume?: (row: any) => void;
 }) {
-  const [rows, setRows] = useState(data);
+  const [rows, setRows] = useState<any[]>([]);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
+  const instanceId = useId();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -100,19 +140,18 @@ export default function EditableTable({
   }, [data]);
 
   const displayRows = useMemo(() => {
-    if (!minRows || rows.length >= minRows) return rows;
+    if (rows.length >= minRows) return rows;
 
     return [
       ...rows,
       ...Array.from({ length: minRows - rows.length }, () => null),
     ];
   }, [rows, minRows]);
-  
 
   const isIndividualMedicine = (row: any) =>
-    row.casela !== "-" && row.stockType?.includes("individual");
+    row?.casela !== "-" && row?.stockType?.includes("individual");
 
-  const isActive = (row: any) => row.status === "active";
+  const isActive = (row: any) => row?.status === "active";
 
   const disabledActionClass =
     "opacity-40 cursor-not-allowed pointer-events-none";
@@ -143,25 +182,14 @@ export default function EditableTable({
     }
 
     let type = typeMap[row?.type];
-
-    if (
-      ["inputs", "medicines", "residents", "cabinets", "drawers"].includes(
-        entityType,
-      )
-    ) {
-      type = entityType;
-    }
+    if (entityType) type = entityType;
 
     if (!type) return;
-
     navigate(`/${type}/edit`, { state: { item: row } });
   };
 
-  const confirmDelete = (index: number) => setDeleteIndex(index);
-
   const handleDeleteConfirmed = async () => {
     if (deleteIndex === null) return;
-
     const row = rows[deleteIndex];
     if (!row) return;
 
@@ -196,7 +224,7 @@ export default function EditableTable({
         )}
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="bg-sky-100 border-b">
@@ -209,113 +237,128 @@ export default function EditableTable({
             </tr>
           </thead>
 
-          <tbody>
-            {displayRows.map((row, i) => (
-              <tr
-                key={i}
-                className={`border-b ${
-                  row
-                    ? row.status === "suspended"
-                      ? "bg-slate-50 opacity-70"
-                      : "hover:bg-sky-50"
-                    : "bg-white"
-                }`}
-              >
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className="px-4 py-3 text-sm text-center"
-                  >
-                    {!row
-                      ? "\u00A0"
-                      : col.key === "status"
-                      ? <StatusBadge row={row} />
-                      : col.key === "expiry"
-                      ? renderExpiryTag(row)
-                      : col.key === "quantity"
-                      ? renderQuantityTag(row)
-                      : row[col.key]}
-                  </td>
-                ))}
-
-                {showAddons && (
-                  <td className="px-4 py-3 flex justify-center gap-4">
-                    {row && (
-                      <>
-                        <button
-                          onClick={() => handleEditClick(row)}
-                          className="text-sky-700 hover:text-sky-900"
+          <AnimatePresence mode="wait">
+            <motion.tbody
+              key={`${instanceId}-${loading}-${currentPage}`}
+              variants={tableVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              {loading
+                ? Array.from({ length: minRows }).map((_, i) => (
+                    <SkeletonRow key={i} cols={columns.length} />
+                  ))
+                : displayRows.map((row, i) => (
+                    <motion.tr
+                      key={i}
+                      variants={rowVariants}
+                      initial="initial"
+                      animate="animate"
+                      className={`border-b ${
+                        row
+                          ? row.status === "suspended"
+                            ? "bg-slate-50 opacity-70"
+                            : "hover:bg-sky-50"
+                          : "bg-white"
+                      }`}
+                    >
+                      {columns.map((col) => (
+                        <td
+                          key={col.key}
+                          className="px-4 py-3 text-sm text-center"
                         >
-                          <Pencil size={18} />
-                        </button>
-
-                        <button
-                          onClick={() => confirmDelete(i)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-
-                        <button
-                          onClick={() => onRemoveIndividual?.(row)}
-                          disabled={!isIndividualMedicine(row)}
-                          className={`text-orange-600 ${
-                            !isIndividualMedicine(row) &&
-                            disabledActionClass
-                          }`}
-                        >
-                          <UserMinus size={18} />
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            isActive(row)
-                              ? onSuspend?.(row)
-                              : onResume?.(row)
-                          }
-                          disabled={!isIndividualMedicine(row)}
-                          className={`${
-                            isActive(row)
-                              ? "text-yellow-600"
-                              : "text-green-600"
-                          } ${
-                            !isIndividualMedicine(row) &&
-                            disabledActionClass
-                          }`}
-                        >
-                          {isActive(row) ? (
-                            <PauseCircle size={18} />
+                          {!row ? (
+                            "\u00A0"
+                          ) : col.key === "status" ? (
+                            <StatusBadge row={row} />
                           ) : (
-                            <PlayCircle size={18} />
+                            row[col.key]
                           )}
-                        </button>
+                        </td>
+                      ))}
 
-                        {entityType === "stock" && onTransferSector && (
-                          <button
-                            onClick={() => onTransferSector(row)}
-                            className="text-indigo-600 hover:text-indigo-800"
-                          >
-                            <ArrowLeftRight size={18} />
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
+                      {showAddons && (
+                        <td className="px-4 py-3 flex justify-center gap-4">
+                          {row && (
+                            <>
+                              <button
+                                onClick={() => handleEditClick(row)}
+                                className="text-sky-700 hover:text-sky-900"
+                              >
+                                <Pencil size={18} />
+                              </button>
+
+                              <button
+                                onClick={() => setDeleteIndex(i)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+
+                              <button
+                                onClick={() => onRemoveIndividual?.(row)}
+                                disabled={!isIndividualMedicine(row)}
+                                className={`text-orange-600 ${
+                                  !isIndividualMedicine(row) &&
+                                  disabledActionClass
+                                }`}
+                              >
+                                <UserMinus size={18} />
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  isActive(row)
+                                    ? onSuspend?.(row)
+                                    : onResume?.(row)
+                                }
+                                disabled={!isIndividualMedicine(row)}
+                                className={`${
+                                  isActive(row)
+                                    ? "text-yellow-600"
+                                    : "text-green-600"
+                                } ${
+                                  !isIndividualMedicine(row) &&
+                                  disabledActionClass
+                                }`}
+                              >
+                                {isActive(row) ? (
+                                  <PauseCircle size={18} />
+                                ) : (
+                                  <PlayCircle size={18} />
+                                )}
+                              </button>
+
+                              {entityType === "stock" &&
+                                onTransferSector && (
+                                  <button
+                                    onClick={() => onTransferSector(row)}
+                                    className="text-indigo-600 hover:text-indigo-800"
+                                  >
+                                    <ArrowLeftRight size={18} />
+                                  </button>
+                                )}
+                            </>
+                          )}
+                        </td>
+                      )}
+                    </motion.tr>
+                  ))}
+            </motion.tbody>
+          </AnimatePresence>
         </table>
       </div>
 
       {(onNextPage || onPrevPage) && (
-        <div className="flex justify-center gap-4 py-4 border-t bg-white">
+        <div className="flex justify-center gap-4 py-4 border-t">
           <button
             onClick={onPrevPage}
             disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg font-medium border ${
+            className={`px-4 py-2 rounded-lg border ${
               currentPage === 1
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                ? "bg-gray-200 text-gray-500"
                 : "bg-white text-sky-700 hover:bg-sky-50"
             }`}
           >
@@ -325,9 +368,9 @@ export default function EditableTable({
           <button
             onClick={onNextPage}
             disabled={!hasNextPage}
-            className={`px-4 py-2 rounded-lg font-medium border ${
+            className={`px-4 py-2 rounded-lg border ${
               !hasNextPage
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                ? "bg-gray-200 text-gray-500"
                 : "bg-white text-sky-700 hover:bg-sky-50"
             }`}
           >
@@ -345,68 +388,3 @@ export default function EditableTable({
     </div>
   );
 }
-
-const renderExpiryTag = (row: any) => {
-  if (!row.expirationStatus) return "-";
-
-  const map: Record<string, string> = {
-    expired: "bg-red-50 text-red-700 border-red-200",
-    critical: "bg-orange-50 text-orange-700 border-orange-200",
-    warning: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    healthy: "bg-green-50 text-green-700 border-green-200",
-  };
-
-  const classes =
-    map[row.expirationStatus] ??
-    "bg-slate-50 text-slate-700 border border-slate-200";
-
-  const badge = (
-    <span className={`px-2 py-1 rounded-full text-xs border ${classes}`}>
-      {row.expiry}
-    </span>
-  );
-
-  if (!row.expirationMsg) return badge;
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>{badge}</TooltipTrigger>
-        <TooltipContent>{row.expirationMsg}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-const renderQuantityTag = (row: any) => {
-  if (!row.quantityStatus) return row.quantity;
-
-  const map: Record<string, string> = {
-    critical: "bg-red-100 text-red-700",
-    low: "bg-orange-100 text-orange-700",
-    medium: "bg-yellow-100 text-yellow-700",
-    normal: "bg-green-100 text-green-700",
-    high: "bg-green-100 text-green-700",
-  };
-
-  const classes =
-    map[row.quantityStatus] ??
-    "bg-slate-100 text-slate-700 border border-slate-200";
-
-  const badge = (
-    <span className={`px-2 py-1 rounded-full text-xs ${classes}`}>
-      {row.quantity}
-    </span>
-  );
-
-  if (!row.quantityMsg) return badge;
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>{badge}</TooltipTrigger>
-        <TooltipContent>{row.quantityMsg}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};

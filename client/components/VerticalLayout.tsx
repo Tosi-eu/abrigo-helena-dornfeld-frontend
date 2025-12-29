@@ -31,16 +31,20 @@ interface SidebarProps {
 
 export function VerticalLayout({ onLogout }: SidebarProps) {
   const location = useLocation();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   return (
     <aside className="h-screen w-64 flex flex-col border-r border-slate-200 bg-white/70 backdrop-blur">
       <div className="h-20 shrink-0 flex items-center px-4 border-b">
-        <img src="/logo.png" className="h-20 cursor-pointer" onClick={() => navigate('/dashboard')} />
+        <img
+          src="/logo.png"
+          className="h-20 cursor-pointer"
+          onClick={() => navigate("/dashboard")}
+        />
       </div>
 
-       <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
         {navigationTabs.map((item) => {
           const isActive =
             location.pathname === item.href ||

@@ -31,7 +31,7 @@ export default function InputMovements() {
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },
     { key: "sector", label: "Setor", editable: false },
-    { key: "lot", label: "Lote", editable: false }
+    { key: "lot", label: "Lote", editable: false },
   ];
 
   function normalizeMovement(item: any) {
@@ -51,7 +51,7 @@ export default function InputMovements() {
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
       sector: item.setor ?? "-",
-      lot: item.lote ?? "-"
+      lot: item.lote ?? "-",
     };
   }
 
@@ -127,54 +127,53 @@ export default function InputMovements() {
     fetchExits();
   }, [exitsInputPage, exitsMedicinePage]);
 
-
   return (
     <Layout title="Movimentações">
-        <div className="w-full flex justify-center p-10">
-          <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Entradas</h2>
+      <div className="w-full flex justify-center p-10">
+        <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Entradas</h2>
 
-              <EditableTable
-                data={entries}
-                columns={columnsBase}
-                entityType="entries"
-                currentPage={Math.max(entriesInputPage, entriesMedicinePage)}
-                hasNextPage={entriesHasNext}
-                onNextPage={() => {
-                  setEntriesInputPage((p) => p + 1);
-                  setEntriesMedicinePage((p) => p + 1);
-                }}
-                onPrevPage={() => {
-                  setEntriesInputPage((p) => Math.max(1, p - 1));
-                  setEntriesMedicinePage((p) => Math.max(1, p - 1));
-                }}
-                showAddons={false}
-              />
-            </div>
+            <EditableTable
+              data={entries}
+              columns={columnsBase}
+              entityType="entries"
+              currentPage={Math.max(entriesInputPage, entriesMedicinePage)}
+              hasNextPage={entriesHasNext}
+              onNextPage={() => {
+                setEntriesInputPage((p) => p + 1);
+                setEntriesMedicinePage((p) => p + 1);
+              }}
+              onPrevPage={() => {
+                setEntriesInputPage((p) => Math.max(1, p - 1));
+                setEntriesMedicinePage((p) => Math.max(1, p - 1));
+              }}
+              showAddons={false}
+            />
+          </div>
 
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Saídas</h2>
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Saídas</h2>
 
-              <EditableTable
-                data= {exits}
-                columns={columnsBase}
-                entityType="exits"
-                currentPage={Math.max(exitsInputPage, exitsMedicinePage)}
-                hasNextPage={exitsHasNext}
-                onNextPage={() => {
-                  setExitsInputPage((p) => p + 1);
-                  setExitsMedicinePage((p) => p + 1);
-                }}
-                onPrevPage={() => {
-                  setExitsInputPage((p) => Math.max(1, p - 1));
-                  setExitsMedicinePage((p) => Math.max(1, p - 1));
-                }}
-                showAddons={false}
-              />
-            </div>
-          </Card>
-        </div>
+            <EditableTable
+              data={exits}
+              columns={columnsBase}
+              entityType="exits"
+              currentPage={Math.max(exitsInputPage, exitsMedicinePage)}
+              hasNextPage={exitsHasNext}
+              onNextPage={() => {
+                setExitsInputPage((p) => p + 1);
+                setExitsMedicinePage((p) => p + 1);
+              }}
+              onPrevPage={() => {
+                setExitsInputPage((p) => Math.max(1, p - 1));
+                setExitsMedicinePage((p) => Math.max(1, p - 1));
+              }}
+              showAddons={false}
+            />
+          </div>
+        </Card>
+      </div>
     </Layout>
   );
 }

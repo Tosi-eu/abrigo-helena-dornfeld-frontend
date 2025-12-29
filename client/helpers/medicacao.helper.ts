@@ -16,5 +16,5 @@ export function mapRawMedicines(raws: RawStockMedicine[]): Medicine[] {
 }
 
 export function sanitizeDosage(value: string) {
-  return value.replace(/[^0-9,/]/g, '');
+  return value.replace(/[^0-9,/]/g, "");
 }

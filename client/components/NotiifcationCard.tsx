@@ -23,98 +23,58 @@ export function NotificationCard({
   onComplete,
   onCancel,
   onEdit,
-  onRemove,
 }: NotificationCardProps) {
-  const [visible, setVisible] = useState(true);
-
-  const handleAction = async (action: () => Promise<void>) => {
-    await action();
-    setVisible(false);
-    onRemove?.();
-  };
-
   return (
-    <div
-      className={`transition-opacity duration-500 ${
-        visible ? "opacity-100" : "opacity-0"
-      }`}
-      style={{ pointerEvents: visible ? "auto" : "none" }}
-    >
-      <Card className="relative shadow-sm hover:shadow-md border-slate-200 transition-all duration-200 rounded-xl">
-        {onEdit && (
-          <button
-            onClick={onEdit}
-            className="absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <Pencil className="w-4 h-4 text-slate-600" />
-          </button>
-        )}
+    <Card className="relative shadow-sm hover:shadow-md border-slate-200 rounded-xl">
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          className="absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100"
+        >
+          <Pencil className="w-4 h-4 text-slate-600" />
+        </button>
+      )}
 
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold text-slate-800">
-            {residentName}
-          </CardTitle>
-        </CardHeader>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-semibold">{residentName}</CardTitle>
+      </CardHeader>
 
-        <CardContent className="space-y-2 text-sm text-slate-700">
-          <ul className="space-y-1">
-            <li>
-              <span className="font-medium text-slate-800">Medicamento:</span>{" "}
-              {medicineName}
-            </li>
-            <li>
-              <span className="font-medium text-slate-800">Data prevista:</span>{" "}
-              {dateToGo}
-            </li>
-            <li>
-              <span className="font-medium text-slate-800">Destino:</span>{" "}
-              {destiny}
-            </li>
-            <li>
-              <span className="font-medium text-slate-800">Criado por:</span>{" "}
-              {createdBy}
-            </li>
-          </ul>
+      <CardContent className="space-y-2 text-sm">
+        <ul className="space-y-1">
+          <li>
+            <b>Medicamento:</b> {medicineName}
+          </li>
+          <li>
+            <b>Data prevista:</b> {dateToGo}
+          </li>
+          <li>
+            <b>Destino:</b> {destiny}
+          </li>
+          <li>
+            <b>Criado por:</b> {createdBy}
+          </li>
+        </ul>
 
-          <div className="flex gap-3 pt-3">
-            {onComplete && (
-              <button
-                className="
-                  bg-green-600 
-                  hover:bg-green-700 
-                  text-white 
-                  px-4 py-2 
-                  rounded-lg 
-                  text-sm 
-                  font-medium 
-                  transition
-                "
-                onClick={() => handleAction(onComplete)}
-              >
-                Concluir
-              </button>
-            )}
+        <div className="flex gap-3 pt-3">
+          {onComplete && (
+            <button
+              onClick={onComplete}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+            >
+              Concluir
+            </button>
+          )}
 
-            {onCancel && (
-              <button
-                className="
-                  bg-red-600 
-                  hover:bg-red-700 
-                  text-white 
-                  px-4 py-2 
-                  rounded-lg 
-                  text-sm 
-                  font-medium 
-                  transition
-                "
-                onClick={() => handleAction(onCancel)}
-              >
-                Cancelar
-              </button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+            >
+              Cancelar
+            </button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

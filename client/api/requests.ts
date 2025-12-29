@@ -29,7 +29,8 @@ export const getMedicines = (page = 1, limit = 10) =>
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
 
-export const  getStockProportions = (sector?: string) => api.get(`/estoque/proporcao${sector ? `?setor=${sector}` : ''}`);
+export const getStockProportions = (sector?: string) =>
+  api.get(`/estoque/proporcao${sector ? `?setor=${sector}` : ""}`);
 
 export const getInputMovements = ({
   page = 1,
@@ -154,7 +155,7 @@ export const createStockIn = (payload: {
   validade?: Date | null;
   origem?: string | null;
   setor: string;
-  lote?: string | null
+  lote?: string | null;
 }) => api.post("/estoque/entrada", payload);
 
 export const createMovement = (payload: {
@@ -168,7 +169,7 @@ export const createMovement = (payload: {
   validade: string;
   insumo_id?: number;
   setor: string;
-  lote?: string | null
+  lote?: string | null;
 }) => api.post("/movimentacoes", payload);
 
 export const createNotificationEvent = (payload: {

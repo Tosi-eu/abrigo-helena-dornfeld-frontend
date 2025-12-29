@@ -7,12 +7,7 @@ import {
   Sector,
 } from "recharts";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { StockDistributionItem } from "@/interfaces/interfaces";
 import { useState } from "react";
@@ -112,7 +107,9 @@ export default function StockProportionCard({
                       key={i}
                       fill={colors[i % colors.length]}
                       opacity={
-                        activePieIndex === null || activePieIndex === i ? 1 : 0.45
+                        activePieIndex === null || activePieIndex === i
+                          ? 1
+                          : 0.45
                       }
                       style={{
                         transition: "opacity 400ms ease",

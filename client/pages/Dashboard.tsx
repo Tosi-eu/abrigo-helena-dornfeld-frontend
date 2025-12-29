@@ -65,22 +65,30 @@ export default function Dashboard() {
   const [nonMovementPage, setNonMovementPage] = useState(1);
   const [recentMovementsPage, setRecentMovementsPage] = useState(1);
 
-
-  const [nursingDistribution, setNursingDistribution] = useState<StockDistributionItem[]>([]);
-  const [pharmacyDistribution, setPharmacyDistribution] = useState<StockDistributionItem[]>([]);
+  const [nursingDistribution, setNursingDistribution] = useState<
+    StockDistributionItem[]
+  >([]);
+  const [pharmacyDistribution, setPharmacyDistribution] = useState<
+    StockDistributionItem[]
+  >([]);
 
   const [recentMovements, setRecentMovements] = useState<RecentMovement[]>([]);
 
   const [mostMovData, setMostMovData] = useState<MedicineRankingItem[]>([]);
   const [leastMovData, setLeastMovData] = useState<MedicineRankingItem[]>([]);
   const [nonMovementProducts, setNonMovementProducts] = useState<any[]>([]);
+  const [loadingNonMovement, setLoadingNonMovement] = useState(true);
+  const [loadingRecentMovements, setLoadingRecentMovements] = useState(true);
+  
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifList, setNotifList] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      try {
+      try {      
+        setLoadingNonMovement(true);
+        setLoadingRecentMovements(true);
         const [
           stockList,
           medicamentosMov,
@@ -187,8 +195,12 @@ export default function Dashboard() {
           })),
         );
 
-        setNursingDistribution(prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM));
-        setPharmacyDistribution(prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA));
+        setNursingDistribution(
+          prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM),
+        );
+        setPharmacyDistribution(
+          prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA),
+        );
 
         const formattedCabinetData = cabinetRes.data.map((arm: any) => ({
           cabinet: arm.armario_id,
@@ -203,7 +215,10 @@ export default function Dashboard() {
         setDrawerStockData(formattedDrawerData);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
-      } 
+      } finally {
+          setLoadingNonMovement(false);
+          setLoadingRecentMovements(false);
+      }
     };
 
     fetchDashboardData();
@@ -270,277 +285,278 @@ export default function Dashboard() {
 
   const minRowsMovements = useMaxSectionRows(
     [nonMovementProducts, recentMovements],
-    { min: DEFAULT_PAGE_SIZE }
+    { min: DEFAULT_PAGE_SIZE },
   );
 
   return (
     <Layout>
-        <div className="space-y-10 pt-10">
-          <section>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {stats.map((stat, index) => (
-                <Card
-                  key={index}
-                  onClick={stat.onClick}
-                  className="cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all"
+      <div className="space-y-10 pt-10">
+        <section>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {stats.map((stat, index) => (
+              <Card
+                key={index}
+                onClick={stat.onClick}
+                className="cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all"
+              >
+                <CardContent className="flex flex-col items-center py-8">
+                  <p className="text-sm text-muted-foreground mb-2 text-center">
+                    {stat.label}
+                  </p>
+                  <p className="text-5xl font-bold text-sky-700">
+                    {stat.value}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">
+                Produtos com Maior Tempo Sem Movimentação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditableTable
+                columns={[
+                  { key: "nome", label: "Nome" },
+                  { key: "detalhe", label: "Detalhe" },
+                  { key: "tipo_item", label: "Tipo" },
+                  { key: "dias_parados", label: "Dias Parados" },
+                  {
+                    key: "ultima_movimentacao",
+                    label: "Última Movimentação",
+                  },
+                ]}
+                data={paginate(nonMovementProducts, nonMovementPage)}
+                showAddons={false}
+                minRows={minRowsMovements}
+                loading={loadingNonMovement}
+              />
+              <div className="flex justify-center gap-2 mt-4">
+                <button
+                  className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                  disabled={nonMovementPage === 1}
+                  onClick={() => setNonMovementPage((p) => p - 1)}
                 >
-                  <CardContent className="flex flex-col items-center py-8">
-                    <p className="text-sm text-muted-foreground mb-2 text-center">
-                      {stat.label}
-                    </p>
-                    <p className="text-5xl font-bold text-sky-700">
-                      {stat.value}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
+                  Anterior
+                </button>
 
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Produtos com Maior Tempo Sem Movimentação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <EditableTable
-                  columns={[
-                    { key: "nome", label: "Nome" },
-                    { key: "detalhe", label: "Detalhe" },
-                    { key: "tipo_item", label: "Tipo" },
-                    { key: "dias_parados", label: "Dias Parados" },
-                    {
-                      key: "ultima_movimentacao",
-                      label: "Última Movimentação",
-                    },
-                  ]}
-                  data={paginate(nonMovementProducts, nonMovementPage)}
-                  showAddons={false}
-                  minRows={minRowsMovements}
-                />
-                <div className="flex justify-center gap-2 mt-4">
-                  <button
-                    className="px-3 py-1 text-sm border rounded disabled:opacity-50"
-                    disabled={nonMovementPage === 1}
-                    onClick={() => setNonMovementPage((p) => p - 1)}
+                <button
+                  className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                  disabled={
+                    nonMovementPage * DEFAULT_PAGE_SIZE >=
+                    nonMovementProducts.length
+                  }
+                  onClick={() => setNonMovementPage((p) => p + 1)}
+                >
+                  Próximo
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">
+                Movimentações Recentes
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <EditableTable
+                columns={[
+                  { key: "name", label: "Produto" },
+                  { key: "type", label: "Tipo" },
+                  { key: "casela", label: "Casela" },
+                  { key: "quantity", label: "Quantidade" },
+                  { key: "patient", label: "Paciente" },
+                  { key: "date", label: "Data" },
+                ]}
+                data={paginate(recentMovements, recentMovementsPage)}
+                minRows={minRowsMovements}
+                showAddons={false}
+                loading={loadingRecentMovements}
+              />
+              <div className="flex justify-center gap-2 mt-4">
+                <button
+                  className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                  disabled={recentMovementsPage === 1}
+                  onClick={() => setRecentMovementsPage((p) => p - 1)}
+                >
+                  Anterior
+                </button>
+
+                <button
+                  className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                  disabled={
+                    recentMovementsPage * DEFAULT_PAGE_SIZE >=
+                    recentMovements.length
+                  }
+                  onClick={() => setRecentMovementsPage((p) => p + 1)}
+                >
+                  Próximo
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">
+                Top 10 Mais Movimentados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditableTable
+                columns={[
+                  { key: "name", label: "Nome" },
+                  { key: "substance", label: "Princípio Ativo" },
+                  { key: "total", label: "Total" },
+                  { key: "entradas", label: "Entradas" },
+                  { key: "saidas", label: "Saídas" },
+                ]}
+                data={mostMovData}
+                showAddons={false}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">
+                Top 10 Menos Movimentados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditableTable
+                columns={[
+                  { key: "name", label: "Nome" },
+                  { key: "substance", label: "Princípio Ativo" },
+                  { key: "total", label: "Total" },
+                  { key: "entradas", label: "Entradas" },
+                  { key: "saidas", label: "Saídas" },
+                ]}
+                data={leastMovData}
+                showAddons={false}
+              />
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">
+                Quantidade de Itens por Armário
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full h-72 flex justify-center">
+                <ResponsiveContainer width="90%" height="100%">
+                  <BarChart
+                    data={cabinetStockData}
+                    layout="vertical"
+                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
                   >
-                    Anterior
-                  </button>
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="cabinet" width={80} />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <defs>
+                      <linearGradient
+                        id="barFillCabinet"
+                        x1="0"
+                        y1="0"
+                        x2="1"
+                        y2="0"
+                      >
+                        <stop offset="0%" stopColor="#0284c7" />
+                        <stop offset="100%" stopColor="#0369a1" />
+                      </linearGradient>
+                    </defs>
+                    <Bar
+                      dataKey="total"
+                      fill="url(#barFillCabinet)"
+                      radius={[0, 6, 6, 0]}
+                      barSize={28}
+                      label={{
+                        position: "right",
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
-                  <button
-                    className="px-3 py-1 text-sm border rounded disabled:opacity-50"
-                    disabled={
-                      nonMovementPage * DEFAULT_PAGE_SIZE >=
-                      nonMovementProducts.length
-                    }
-                    onClick={() => setNonMovementPage((p) => p + 1)}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">
+                Quantidade de Itens por Gaveta
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full h-72 flex justify-center">
+                <ResponsiveContainer width="90%" height="100%">
+                  <BarChart
+                    data={drawerStockData}
+                    layout="vertical"
+                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
                   >
-                    Próximo
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="drawer" width={80} />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <defs>
+                      <linearGradient
+                        id="barFillDrawer"
+                        x1="0"
+                        y1="0"
+                        x2="1"
+                        y2="0"
+                      >
+                        <stop offset="0%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <Bar
+                      dataKey="total"
+                      fill="url(#barFillDrawer)"
+                      radius={[0, 6, 6, 0]}
+                      barSize={28}
+                      label={{
+                        position: "right",
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Movimentações Recentes
-                </CardTitle>
-              </CardHeader>
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StockProportionCard
+            title="Proporção de Estoque da Farmácia"
+            data={pharmacyDistribution}
+            colors={COLORS}
+          />
 
-              <CardContent>
-                <EditableTable
-                  columns={[
-                    { key: "name", label: "Produto" },
-                    { key: "type", label: "Tipo" },
-                    { key: "casela", label: "Casela" },
-                    { key: "quantity", label: "Quantidade" },
-                    { key: "patient", label: "Paciente" },
-                    { key: "date", label: "Data" },
-                  ]}
-                  data={paginate(recentMovements, recentMovementsPage)}
-                  minRows={minRowsMovements}
-                  showAddons={false}
-                />
-                <div className="flex justify-center gap-2 mt-4">
-                  <button
-                    className="px-3 py-1 text-sm border rounded disabled:opacity-50"
-                    disabled={recentMovementsPage === 1}
-                    onClick={() => setRecentMovementsPage((p) => p - 1)}
-                  > 
-                    Anterior
-                  </button>
-
-                  <button
-                    className="px-3 py-1 text-sm border rounded disabled:opacity-50"
-                    disabled={
-                      recentMovementsPage * DEFAULT_PAGE_SIZE >=
-                      recentMovements.length
-                    }
-                    onClick={() => setRecentMovementsPage((p) => p + 1)}
-                  >
-                    Próximo
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Top 10 Mais Movimentados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <EditableTable
-                  columns={[
-                    { key: "name", label: "Nome" },
-                    { key: "substance", label: "Princípio Ativo" },
-                    { key: "total", label: "Total" },
-                    { key: "entradas", label: "Entradas" },
-                    { key: "saidas", label: "Saídas" },
-                  ]}
-                  data={mostMovData}
-                  showAddons={false}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Top 10 Menos Movimentados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <EditableTable
-                  columns={[
-                    { key: "name", label: "Nome" },
-                    { key: "substance", label: "Princípio Ativo" },
-                    { key: "total", label: "Total" },
-                    { key: "entradas", label: "Entradas" },
-                    { key: "saidas", label: "Saídas" },
-                  ]}
-                  data={leastMovData}
-                  showAddons={false}
-                />
-              </CardContent>
-            </Card>
-          </section>
-
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Quantidade de Itens por Armário
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="w-full h-72 flex justify-center">
-                  <ResponsiveContainer width="90%" height="100%">
-                    <BarChart
-                      data={cabinetStockData}
-                      layout="vertical"
-                      margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                    >
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="cabinet" width={80} />
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <defs>
-                        <linearGradient
-                          id="barFillCabinet"
-                          x1="0"
-                          y1="0"
-                          x2="1"
-                          y2="0"
-                        >
-                          <stop offset="0%" stopColor="#0284c7" />
-                          <stop offset="100%" stopColor="#0369a1" />
-                        </linearGradient>
-                      </defs>
-                      <Bar
-                        dataKey="total"
-                        fill="url(#barFillCabinet)"
-                        radius={[0, 6, 6, 0]}
-                        barSize={28}
-                        label={{
-                          position: "right",
-                          fontSize: 12,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Quantidade de Itens por Gaveta
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="w-full h-72 flex justify-center">
-                  <ResponsiveContainer width="90%" height="100%">
-                    <BarChart
-                      data={drawerStockData}
-                      layout="vertical"
-                      margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                    >
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="drawer" width={80} />
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <defs>
-                        <linearGradient
-                          id="barFillDrawer"
-                          x1="0"
-                          y1="0"
-                          x2="1"
-                          y2="0"
-                        >
-                          <stop offset="0%" stopColor="#34d399" />
-                          <stop offset="100%" stopColor="#059669" />
-                        </linearGradient>
-                      </defs>
-                      <Bar
-                        dataKey="total"
-                        fill="url(#barFillDrawer)"
-                        radius={[0, 6, 6, 0]}
-                        barSize={28}
-                        label={{
-                          position: "right",
-                          fontSize: 12,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <StockProportionCard
-              title="Proporção de Estoque da Farmácia"
-              data={pharmacyDistribution}
-              colors={COLORS}
-            />
-
-            <StockProportionCard
-              title="Proporção de Estoque da Enfermagem"
-              data={nursingDistribution}
-              colors={COLORS}
-            />
-          </section>
-
-        </div>
+          <StockProportionCard
+            title="Proporção de Estoque da Enfermagem"
+            data={nursingDistribution}
+            colors={COLORS}
+          />
+        </section>
+      </div>
 
       <NotificationReminderModal
         open={notifOpen}

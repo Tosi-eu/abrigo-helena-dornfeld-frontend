@@ -14,7 +14,11 @@ import {
 import { MedicineStockType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
-import { actionConfig, actionMessages, actionTitles } from "@/helpers/toaster.helper";
+import {
+  actionConfig,
+  actionMessages,
+  actionTitles,
+} from "@/helpers/toaster.helper";
 import { toast } from "@/hooks/use-toast.hook";
 
 export default function Stock() {
@@ -56,13 +60,12 @@ export default function Stock() {
       suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
       itemType: item.tipo_item,
       sector: item.setor,
-      lot: item.lote ?? null
+      lot: item.lote ?? null,
     }));
   };
 
   async function loadStock(pageToLoad: number) {
     try {
-
       if (data) {
         setItems(formatStockItems(data));
         setHasNext(false);
@@ -288,22 +291,22 @@ export default function Stock() {
         </div>
 
         <div className="pt-12">
-            <>
-              <EditableTable
-                data={items}
-                columns={columns}
-                showAddons={true}
-                currentPage={page}
-                hasNextPage={hasNext}
-                onNextPage={() => setPage((p) => p + 1)}
-                onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-                onTransferSector={requestTransferSector}
-                onRemoveIndividual={requestRemoveIndividual}
-                onSuspend={requestSuspend}
-                onResume={requestResume}
-                entityType="stock"
-              />
-            </>
+          <>
+            <EditableTable
+              data={items}
+              columns={columns}
+              showAddons={true}
+              currentPage={page}
+              hasNextPage={hasNext}
+              onNextPage={() => setPage((p) => p + 1)}
+              onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+              onTransferSector={requestTransferSector}
+              onRemoveIndividual={requestRemoveIndividual}
+              onSuspend={requestSuspend}
+              onResume={requestResume}
+              entityType="stock"
+            />
+          </>
         </div>
       </div>
 

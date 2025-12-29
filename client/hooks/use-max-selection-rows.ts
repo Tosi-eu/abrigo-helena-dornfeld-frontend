@@ -7,14 +7,12 @@ type UseMaxSectionRowsOptions = {
 
 export function useMaxSectionRows(
   lists: Array<unknown[] | undefined>,
-  options?: UseMaxSectionRowsOptions
+  options?: UseMaxSectionRowsOptions,
 ) {
   const { min = 0, max } = options || {};
 
   return useMemo(() => {
-    const lengths = lists
-      .filter(Boolean)
-      .map((list) => list!.length);
+    const lengths = lists.filter(Boolean).map((list) => list!.length);
 
     const biggest = lengths.length ? Math.max(...lengths) : 0;
 

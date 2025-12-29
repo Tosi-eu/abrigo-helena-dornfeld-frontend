@@ -50,7 +50,7 @@ export function StockCard({
   }
 
   fields.push({ label: "Armário", value: display(item.armario_id) });
-  if(item.casela_id) {
+  if (item.casela_id) {
     fields.push({ label: "Casela", value: display(item.casela_id) });
   } else {
     fields.push({ label: "Gaveta", value: display(item.gaveta_id) });

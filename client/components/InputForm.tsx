@@ -39,7 +39,7 @@ export function InputForm({
     cabinetId: null as number | null,
     drawerId: null as number | null,
     sector: "" as SectorType | "",
-    lot: ""
+    lot: "",
   });
 
   const [inputOpen, setInputOpen] = useState(false);
@@ -104,7 +104,7 @@ export function InputForm({
       validity: formData.validity,
       stockType: formData.stockType,
       sector: formData.sector,
-      lot: formData.lot
+      lot: formData.lot,
     });
   };
 
@@ -256,9 +256,7 @@ export function InputForm({
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">
-          Lote
-        </label>
+        <label className="text-sm font-semibold text-slate-700">Lote</label>
         <input
           type="text"
           value={formData.lot}

@@ -35,10 +35,6 @@ export function PaginatedListViewer<T>({
             ←
           </button>
 
-          <span className="text-sm text-gray-600">
-            Página {page} de {totalPages}
-          </span>
-
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}

@@ -39,7 +39,6 @@ export default function StockIn() {
 
   useEffect(() => {
     const fetchAll = async () => {
-
       try {
         const [medicines, inputs, residents, cabinets, drawers] =
           await Promise.all([
@@ -61,7 +60,7 @@ export default function StockIn() {
         setInputs([]);
         setCaselas([]);
         setCabinets([]);
-      } 
+      }
     };
 
     fetchAll();
@@ -79,7 +78,7 @@ export default function StockIn() {
         validade: data.expirationDate ?? null,
         origem: data.origin ?? null,
         setor: data.sector,
-        lote: data.lot ?? null
+        lote: data.lot ?? null,
       };
 
       await createStockIn(payload);
@@ -94,7 +93,7 @@ export default function StockIn() {
         medicamento_id: data.id,
         validade: data.expirationDate,
         setor: data.sector,
-        lote: data.lot ?? null
+        lote: data.lot ?? null,
       });
 
       toast({
@@ -123,7 +122,7 @@ export default function StockIn() {
         gaveta_id: data.drawerId ?? null,
         validade: data.validity,
         setor: data.sector,
-        lote: data.lot ?? null
+        lote: data.lot ?? null,
       };
 
       await createStockIn(payload);
@@ -137,7 +136,7 @@ export default function StockIn() {
         quantidade: data.quantity,
         validade: data.validity,
         setor: data.sector,
-        lote: data.lot ?? null
+        lote: data.lot ?? null,
       });
 
       toast({
@@ -174,52 +173,50 @@ export default function StockIn() {
 
   return (
     <Layout title="Entrada de Estoque">
-        <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-semibold text-slate-800">
-            Registrar Entrada
-          </h2>
+      <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
+        <h2 className="text-lg font-semibold text-slate-800">
+          Registrar Entrada
+        </h2>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Tipo de entrada
-            </label>
-            <select
-              value={operationType === "Selecione" ? "" : operationType}
-              onChange={(e) =>
-                setOperationType(e.target.value as OperationType)
-              }
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-            >
-              <option value="" disabled hidden>
-                Selecione
-              </option>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Tipo de entrada
+          </label>
+          <select
+            value={operationType === "Selecione" ? "" : operationType}
+            onChange={(e) => setOperationType(e.target.value as OperationType)}
+            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
+          >
+            <option value="" disabled hidden>
+              Selecione
+            </option>
 
-              <option value={OperationType.MEDICINE}>
-                {OperationType.MEDICINE}
-              </option>
-              <option value={OperationType.INPUT}>{OperationType.INPUT}</option>
-            </select>
-          </div>
-
-          {operationType === OperationType.MEDICINE && (
-            <MedicineForm
-              medicines={canonicalMedicines}
-              caselas={caselas}
-              cabinets={cabinets}
-              drawers={drawers}
-              onSubmit={handleMedicineSubmit}
-            />
-          )}
-
-          {operationType === OperationType.INPUT && (
-            <InputForm
-              inputs={canonicalInputs}
-              cabinets={cabinets}
-              drawers={drawers}
-              onSubmit={handleInputSubmit}
-            />
-          )}
+            <option value={OperationType.MEDICINE}>
+              {OperationType.MEDICINE}
+            </option>
+            <option value={OperationType.INPUT}>{OperationType.INPUT}</option>
+          </select>
         </div>
+
+        {operationType === OperationType.MEDICINE && (
+          <MedicineForm
+            medicines={canonicalMedicines}
+            caselas={caselas}
+            cabinets={cabinets}
+            drawers={drawers}
+            onSubmit={handleMedicineSubmit}
+          />
+        )}
+
+        {operationType === OperationType.INPUT && (
+          <InputForm
+            inputs={canonicalInputs}
+            cabinets={cabinets}
+            drawers={drawers}
+            onSubmit={handleInputSubmit}
+          />
+        )}
+      </div>
     </Layout>
   );
 }

@@ -39,29 +39,25 @@ export default function Drawers() {
   return (
     <Layout title="Gavetas">
       <div className="pt-12">
-          <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-            <EditableTable
-              data={drawers}
-              columns={columns}
-              entityType="drawers"
-              currentPage={page}
-              hasNextPage={hasNextPage}
-              onNextPage={() => {
-                if (hasNextPage) {
-                  fetchDrawers(page + 1);
-                }
-              }}
-              onPrevPage={() => {
-                if (page > 1) {
-                  fetchDrawers(page - 1);
-                }
-              }}
-            />
-
-            <div className="text-sm text-slate-500 text-center mt-4">
-              Página {page}
-            </div>
-          </div>
+        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <EditableTable
+            data={drawers}
+            columns={columns}
+            entityType="drawers"
+            currentPage={page}
+            hasNextPage={hasNextPage}
+            onNextPage={() => {
+              if (hasNextPage) {
+                fetchDrawers(page + 1);
+              }
+            }}
+            onPrevPage={() => {
+              if (page > 1) {
+                fetchDrawers(page - 1);
+              }
+            }}
+          />
+        </div>
       </div>
     </Layout>
   );

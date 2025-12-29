@@ -55,4 +55,3 @@ export default function Layout({ children, title }: LayoutProps) {
     </div>
   );
 }
-

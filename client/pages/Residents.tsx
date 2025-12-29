@@ -32,29 +32,25 @@ export default function Resident() {
   return (
     <Layout title="Residentes">
       <div className="pt-8">
-          <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-            <EditableTable
-              data={residents}
-              columns={columns}
-              entityType="residents"
-              currentPage={page}
-              hasNextPage={hasNextPage}
-              onNextPage={() => {
-                if (hasNextPage) {
-                  fetchResidents(page + 1);
-                }
-              }}
-              onPrevPage={() => {
-                if (page > 1) {
-                  fetchResidents(page - 1);
-                }
-              }}
-            />
-
-            <div className="text-sm text-slate-500 text-center mt-4">
-              Página {page}
-            </div>
-          </div>
+        <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <EditableTable
+            data={residents}
+            columns={columns}
+            entityType="residents"
+            currentPage={page}
+            hasNextPage={hasNextPage}
+            onNextPage={() => {
+              if (hasNextPage) {
+                fetchResidents(page + 1);
+              }
+            }}
+            onPrevPage={() => {
+              if (page > 1) {
+                fetchResidents(page - 1);
+              }
+            }}
+          />
+        </div>
       </div>
     </Layout>
   );

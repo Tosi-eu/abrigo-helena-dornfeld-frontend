@@ -39,29 +39,25 @@ export default function Cabinets() {
   return (
     <Layout title="Armários">
       <div className="pt-12">
-          <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-            <EditableTable
-              data={cabinets}
-              columns={columns}
-              entityType="cabinets"
-              currentPage={page}
-              hasNextPage={hasNextPage}
-              onNextPage={() => {
-                if (hasNextPage) {
-                  fetchCabinets(page + 1);
-                }
-              }}
-              onPrevPage={() => {
-                if (page > 1) {
-                  fetchCabinets(page - 1);
-                }
-              }}
-            />
-
-            <div className="text-sm text-slate-500 text-center mt-4">
-              Página {page}
-            </div>
-          </div>
+        <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <EditableTable
+            data={cabinets}
+            columns={columns}
+            entityType="cabinets"
+            currentPage={page}
+            hasNextPage={hasNextPage}
+            onNextPage={() => {
+              if (hasNextPage) {
+                fetchCabinets(page + 1);
+              }
+            }}
+            onPrevPage={() => {
+              if (page > 1) {
+                fetchCabinets(page - 1);
+              }
+            }}
+          />
+        </div>
       </div>
     </Layout>
   );

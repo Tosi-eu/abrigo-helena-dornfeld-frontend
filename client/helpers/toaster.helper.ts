@@ -60,13 +60,10 @@ export const actionConfig: Record<
   transfer: {
     title: "Transferir item de setor",
     description: (row) => {
-      const from =
-        row?.sector === "farmacia" ? "Farmácia" : "Enfermagem";
-      const to =
-        row?.sector === "farmacia" ? "Enfermagem" : "Farmácia";
+      const from = row?.sector === "farmacia" ? "Farmácia" : "Enfermagem";
+      const to = row?.sector === "farmacia" ? "Enfermagem" : "Farmácia";
 
       return `O item será transferido do setor ${from} para ${to}. Deseja continuar?`;
     },
   },
 };
-
