@@ -171,6 +171,9 @@ export default function EditableTable({
     if (route) navigate(route);
   };
 
+  const canTransfer = (row: any) =>
+    row?.casela && row.casela !== "-";
+
   const handleEditClick = (row: any) => {
     if (row.status === "suspended") {
       toast({
@@ -186,6 +189,24 @@ export default function EditableTable({
 
     if (!type) return;
     navigate(`/${type}/edit`, { state: { item: row } });
+  };
+
+  const renderCell = (row: any, colKey: string) => {
+    if (!row) return "\u00A0";
+
+    switch (colKey) {
+      case "status":
+        return <StatusBadge row={row} />;
+
+      case "expiry":
+        return renderExpiryTag(row);
+
+      case "quantity":
+        return renderQuantityTag(row);
+
+      default:
+        return row[colKey] ?? "-";
+    }
   };
 
   const handleDeleteConfirmed = async () => {
@@ -265,17 +286,8 @@ export default function EditableTable({
                       }`}
                     >
                       {columns.map((col) => (
-                        <td
-                          key={col.key}
-                          className="px-4 py-3 text-sm text-center"
-                        >
-                          {!row ? (
-                            "\u00A0"
-                          ) : col.key === "status" ? (
-                            <StatusBadge row={row} />
-                          ) : (
-                            row[col.key]
-                          )}
+                        <td key={col.key} className="px-4 py-3 text-sm text-center">
+                          {renderCell(row, col.key)}
                         </td>
                       ))}
 
@@ -330,16 +342,20 @@ export default function EditableTable({
                                   <PlayCircle size={18} />
                                 )}
                               </button>
-
-                              {entityType === "stock" &&
-                                onTransferSector && (
-                                  <button
-                                    onClick={() => onTransferSector(row)}
-                                    className="text-indigo-600 hover:text-indigo-800"
-                                  >
-                                    <ArrowLeftRight size={18} />
-                                  </button>
-                                )}
+                              {entityType === "stock" && onTransferSector && (
+                                <button
+                                  onClick={() => {
+                                    if (!canTransfer(row)) return;
+                                    onTransferSector(row);
+                                  }}
+                                  disabled={!canTransfer(row)}
+                                  className={`text-indigo-600 hover:text-indigo-800 ${
+                                    !canTransfer(row) && disabledActionClass
+                                  }`}
+                                >
+                                  <ArrowLeftRight size={18} />
+                                </button>
+                              )}
                             </>
                           )}
                         </td>
@@ -388,3 +404,63 @@ export default function EditableTable({
     </div>
   );
 }
+
+const renderExpiryTag = (row: any) => {
+  const status = row.expirationStatus;
+  const message = row.expirationMsg;
+
+  if (!status) return "-";
+
+  const colorMap: Record<string, string> = {
+    expired: "bg-red-50 text-red-700 border border-red-200",
+    critical: "bg-orange-50 text-orange-700 border border-orange-200",
+    warning: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    healthy: "bg-green-50 text-green-700 border border-green-200",
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={`px-2 py-1 rounded-full text-[11px] font-medium ${colorMap[status]}`}
+          >
+            {row.expiry}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{message}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+const renderQuantityTag = (row: any) => {
+  const status = row.quantityStatus;
+  const message = row.quantityMsg;
+
+  const colorMap: Record<string, string> = {
+    empty: "bg-red-100 text-red-700 border border-red-300",
+    low: "bg-orange-100 text-orange-700 border border-orange-300",
+    critical: "bg-red-100 text-red-700 border border-red-300",
+    medium: "bg-yellow-100 text-yellow-700 border border-yellow-300",
+    high: "bg-green-100 text-green-700 border border-green-300",
+    normal: "bg-green-100 text-green-700 border border-green-300",
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
+          >
+            {row.quantity}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          {message}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};

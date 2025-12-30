@@ -291,10 +291,9 @@ export const deleteStockItem = (stockId: number, type: StockItemType) =>
 
 export const transferStockSector = (payload: {
   estoque_id: number;
-  tipo: StockItemType;
   setor: SectorType;
 }) =>
-  api.patch(`/estoque/transferir/${payload.tipo}/${payload.estoque_id}`, {
+  api.patch(`/estoque/medicamento/${payload.estoque_id}/transferir-setor`, {
     setor: payload.setor,
   });
 

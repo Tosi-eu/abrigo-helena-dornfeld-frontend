@@ -211,7 +211,6 @@ export default function Stock() {
 
         await transferStockSector({
           estoque_id: row.id,
-          tipo: row.itemType,
           setor: nextSector as SectorType,
         });
       }
