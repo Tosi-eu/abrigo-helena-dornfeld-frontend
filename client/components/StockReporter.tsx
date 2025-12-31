@@ -5,17 +5,7 @@ import {
   View,
   Image,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
-
-Font.register({
-  family: "Inter",
-  fonts: [
-    {
-      src: "http://localhost:8080/fonts/Inter-Regular.ttf",
-    },
-  ],
-});
 
 interface ResidentesResponse {
   detalhes: RowData[];
@@ -42,7 +32,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 30,
     paddingBottom: 40,
-    fontFamily: "Inter",
+    fontFamily: "Helvetica",
     fontSize: 11,
     backgroundColor: "#ffffff",
   },
@@ -165,7 +155,7 @@ export function createStockPDF(
         <View style={styles.topLine} />
 
         <View style={styles.header}>
-          <Image src="http://localhost:8080/logo.png" style={styles.logo} />
+          <Image src="http://localhost:8081/logo.png" style={styles.logo} />
           <Text style={styles.title}>ESTOQUE ATUAL</Text>
         </View>
 

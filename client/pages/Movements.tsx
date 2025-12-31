@@ -21,8 +21,6 @@ export default function InputMovements() {
   const [exits, setExits] = useState<any[]>([]);
   const exitsRequestId = useRef(0);
 
-  const [loading, setLoading] = useState(true);
-
   const columnsBase = [
     { key: "name", label: "Produto", editable: false },
     { key: "additionalData", label: "Princípio Ativo", editable: false },
@@ -30,7 +28,10 @@ export default function InputMovements() {
     { key: "operator", label: "Operador", editable: false },
     { key: "movementDate", label: "Data da Transação", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
+    { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },
+    { key: "sector", label: "Setor", editable: false },
+    { key: "lot", label: "Lote", editable: false },
   ];
 
   function normalizeMovement(item: any) {
@@ -38,23 +39,24 @@ export default function InputMovements() {
 
     return {
       id: item.id,
-      name: isMedicine
-        ? (item.MedicineModel?.nome ?? "-")
-        : (item.InputModel?.nome ?? "-"),
+      name: isMedicine ? item.MedicineModel?.nome : item.InputModel?.nome,
       additionalData: isMedicine
-        ? (item.MedicineModel?.principio_ativo ?? "")
-        : (item.InputModel?.descricao ?? ""),
+        ? item.MedicineModel?.principio_ativo
+        : (item.InputModel?.descricao ?? "-"),
       quantity: item.quantidade,
-      operator: item.LoginModel?.login ?? "",
+      operator: item.LoginModel?.login,
       movementDate: item.data,
-      cabinet: item.CabinetModel?.num_armario ?? item.armario_id ?? "",
+      cabinet: item.armario_id ?? "-",
+      drawer: item.gaveta_id ?? "-",
       resident: item.ResidentModel?.num_casela ?? "-",
       type: item.tipo,
+      sector: item.setor ?? "-",
+      lot: item.lote ?? "-",
     };
   }
 
   async function fetchEntries() {
-    const requestId = ++entriesRequestId.current;
+    const requestId = +entriesRequestId.current;
 
     const [insumos, medicamentos] = await Promise.all([
       getInputMovements({
@@ -86,7 +88,7 @@ export default function InputMovements() {
   }
 
   async function fetchExits() {
-    const requestId = ++exitsRequestId.current;
+    const requestId = +exitsRequestId.current;
 
     const [insumos, medicamentos] = await Promise.all([
       getInputMovements({
@@ -118,67 +120,60 @@ export default function InputMovements() {
   }
 
   useEffect(() => {
-    setLoading(true);
-    fetchEntries().finally(() => setLoading(false));
+    fetchEntries();
   }, [entriesInputPage, entriesMedicinePage]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchExits().finally(() => setLoading(false));
+    fetchExits();
   }, [exitsInputPage, exitsMedicinePage]);
 
   return (
     <Layout title="Movimentações">
-      {!loading && (
-        <div className="w-full flex justify-center p-10">
-          <Card className="w-full max-w-5xl bg-white border shadow-md p-8 space-y-12">
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Entradas</h2>
+      <div className="w-full flex justify-center p-10">
+        <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Entradas</h2>
 
-              <EditableTable
-                data={entries}
-                columns={columnsBase}
-                entityType="entries"
-                currentPage={Math.max(
-                  entriesInputPage,
-                  entriesMedicinePage,
-                )}
-                hasNextPage={entriesHasNext}
-                onNextPage={() => {
-                  setEntriesInputPage((p) => p + 1);
-                  setEntriesMedicinePage((p) => p + 1);
-                }}
-                onPrevPage={() => {
-                  setEntriesInputPage((p) => Math.max(1, p - 1));
-                  setEntriesMedicinePage((p) => Math.max(1, p - 1));
-                }}
-                showAddons={false}
-              />
-            </div>
+            <EditableTable
+              data={entries}
+              columns={columnsBase}
+              entityType="entries"
+              currentPage={Math.max(entriesInputPage, entriesMedicinePage)}
+              hasNextPage={entriesHasNext}
+              onNextPage={() => {
+                setEntriesInputPage((p) => p + 1);
+                setEntriesMedicinePage((p) => p + 1);
+              }}
+              onPrevPage={() => {
+                setEntriesInputPage((p) => Math.max(1, p - 1));
+                setEntriesMedicinePage((p) => Math.max(1, p - 1));
+              }}
+              showAddons={false}
+            />
+          </div>
 
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Saídas</h2>
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Saídas</h2>
 
-              <EditableTable
-                data={exits}
-                columns={columnsBase}
-                entityType="exits"
-                currentPage={Math.max(exitsInputPage, exitsMedicinePage)}
-                hasNextPage={exitsHasNext}
-                onNextPage={() => {
-                  setExitsInputPage((p) => p + 1);
-                  setExitsMedicinePage((p) => p + 1);
-                }}
-                onPrevPage={() => {
-                  setExitsInputPage((p) => Math.max(1, p - 1));
-                  setExitsMedicinePage((p) => Math.max(1, p - 1));
-                }}
-                showAddons={false}
-              />
-            </div>
-          </Card>
-        </div>
-      )}
+            <EditableTable
+              data={exits}
+              columns={columnsBase}
+              entityType="exits"
+              currentPage={Math.max(exitsInputPage, exitsMedicinePage)}
+              hasNextPage={exitsHasNext}
+              onNextPage={() => {
+                setExitsInputPage((p) => p + 1);
+                setExitsMedicinePage((p) => p + 1);
+              }}
+              onPrevPage={() => {
+                setExitsInputPage((p) => Math.max(1, p - 1));
+                setExitsMedicinePage((p) => Math.max(1, p - 1));
+              }}
+              showAddons={false}
+            />
+          </div>
+        </Card>
+      </div>
     </Layout>
   );
 }

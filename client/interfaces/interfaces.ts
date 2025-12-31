@@ -3,14 +3,32 @@ import {
   MovementType,
   OperationType,
   OriginType,
+  SectorType,
 } from "@/utils/enums";
 import { ReactNode } from "react";
+import { StockExpiryStatus, StockQuantityStatus } from "./types";
+
+export interface RawStockMedicine {
+  id?: number;
+  estoque_minimo: string;
+  dosagem: string;
+  nome: string;
+  principio_ativo: string;
+  unidade_medida: string;
+}
+
+export interface RawStockInput {
+  id?: number;
+  nome: string;
+  descricao: string;
+  estoque_minimo: number;
+}
 
 export interface Column {
   key: string;
   label: string;
   editable?: boolean;
-  type?: "text" | "date";
+  type?: string | Date;
   enum?: string[];
 }
 
@@ -19,6 +37,7 @@ export interface EditableTableProps {
   columns: Column[];
   entityType?: string;
   showAddons?: boolean;
+  minRows?: number;
   onAdd?: (newRow: Record<string, any>) => void;
   onEdit?: (updatedRow: Record<string, any>, index: number) => void;
   onDelete?: (index: number) => void;
@@ -79,7 +98,8 @@ export interface CabinetCategory {
 export interface Input {
   id: number;
   name: string;
-  description?: string;
+  description: string;
+  minimumStock: number;
 }
 
 export interface MedicineInventory {
@@ -100,74 +120,27 @@ export interface InputInventory {
   quantity: number;
 }
 
-export interface Movement {
-  id: number;
-  type: MovementType;
-  date: string;
-  user: string;
-  medicineId?: number;
-  inputId?: number;
-  cabinetId: number;
-  patientId?: number;
-}
-
-export interface InputMovementRow {
-  inputName: string;
-  description: string;
-  quantity?: number;
-  cabinet: string;
-  operator?: string;
-  movementDate: string;
-  movementType: string;
-}
-
-export interface MovementRow {
-  type: "Medicamento" | "Insumo";
-  name: string;
-  description: string;
-  expiry?: string;
-  quantity?: number;
-  minimumStock?: number;
-  stockType?: string;
-  patient?: string;
-  casela?: number;
-  cabinet?: number | string;
-  operator?: string;
-  movementDate: string;
-  movementType: string;
-  originSector?: string;
-  destinationSector?: string;
-}
-
-export interface PrepareMovementsParams {
-  movements: Movement[];
-  medicines: Medicine[];
-  inputs: Input[];
-  patients: Patient[];
-  cabinets: Cabinet[];
-  users: User[];
-  medicineInventory: MedicineInventory[];
-  inputInventory: InputInventory[];
-}
-
 export interface StockItemRaw {
   item_id: number;
   estoque_id: number;
   tipo_item: OperationType | string;
   nome: string;
   principio_ativo?: string;
-  validade?: string | null;
+  validade: string;
   quantidade: number;
   minimo?: number;
-  origem?: string;
-  tipo?: string;
+  origem: string;
+  tipo: string;
   paciente?: string | null;
   armario_id?: number | null;
+  gaveta_id?: number | null;
   casela_id?: number | null;
   detalhes?: string;
+  setor: string;
 }
 
 export interface StockItem {
+  id: number;
   name: string;
   description: string;
   expiry: string;
@@ -176,37 +149,32 @@ export interface StockItem {
   patient?: string;
   cabinet?: number | string;
   casela?: string | number;
+  itemType: OperationType;
   stockType: MedicineStockType;
-}
-
-export interface StockOutFormProps {
-  items: {
-    id: string;
-    nome: string;
-    detalhes?: string;
-  }[];
-  cabinets: {
-    value: string;
-    label: string;
-  }[];
-  onSubmit: (data: {
-    itemId: string;
-    armarioId: string;
-    caselaId?: string;
-    quantity: number;
-  }) => void;
+  status?: string | null;
+  sector: string;
+  suspended_at?: Date | null;
 }
 
 export interface InputFormProps {
   inputs: Input[];
   cabinets: Cabinet[];
+  drawers: Drawer[];
+
   onSubmit: (data: {
     inputId: number;
-    cabinetId: number;
-    caselaId?: number;
     quantity: number;
-    validity: Date;
+
+    cabinetId?: number | null;
+    drawerId?: number | null;
+
+    isEmergencyCart: boolean;
+
+    caselaId?: number;
+    validity?: Date | null;
     stockType: string;
+    sector: string;
+    lot?: string | null;
   }) => void;
 }
 
@@ -214,14 +182,22 @@ export interface MedicineFormProps {
   medicines: Medicine[];
   caselas: Patient[];
   cabinets: Cabinet[];
+  drawers: Drawer[];
+  initialData?: MedicineFormInitialData;
+
   onSubmit: (data: {
     id: number;
     quantity: number;
-    cabinet: number;
+
+    cabinetId?: number | null;
+    drawerId?: number | null;
+    isEmergencyCart: boolean;
+
     casela?: number;
-    expirationDate?: Date;
-    origin?: string;
+    expirationDate: Date;
+    origin: string;
     stockType: string;
+    sector: string;
   }) => void;
 }
 
@@ -241,8 +217,8 @@ export interface StockStatusItem {
   name: string;
   quantity: number;
   expiry: string | null;
-  st_quantidade: "low" | "ok" | "zero";
-  st_expiracao: "expired" | "warning" | "critical" | "ok";
+  st_quantidade: StockQuantityStatus;
+  st_expiracao: StockExpiryStatus;
   minimo?: number;
   paciente?: string | null;
   armario_id?: number | null;
@@ -260,22 +236,17 @@ export interface CabinetStockItem {
   total: number;
 }
 
+export interface DrawerStockItem {
+  drawer: number;
+  total: number;
+}
+
 export interface MedicineRankingItem {
   name: string;
   substance: string;
   total: number;
   entradas: number;
   saidas: number;
-}
-
-export interface RawMedicineMovement {
-  tipo: string;
-  quantidade: number;
-  data: string;
-  MedicamentoModel?: { nome: string };
-  LoginModel?: { login: string };
-  ResidenteModel?: { nome: string; num_casela: number };
-  ArmarioModel?: { num_armario: number };
 }
 
 export interface RawMovement {
@@ -303,4 +274,28 @@ export interface RawMovement {
   CabinetModel?: {
     num_armario: number;
   };
+}
+
+export interface Drawer {
+  numero: number;
+  categoria_id: number;
+  categoria: string;
+}
+
+export interface DrawerCategory {
+  id: number;
+  nome: string;
+}
+
+export interface MedicineFormInitialData {
+  id: number | null;
+  quantity: number;
+  stockType: MedicineStockType;
+  expirationDate: Date | null;
+  resident: string;
+  casela: number | null;
+  cabinetId: number | null;
+  drawerId: number | null;
+  origin: OriginType | "";
+  sector: SectorType | "";
 }

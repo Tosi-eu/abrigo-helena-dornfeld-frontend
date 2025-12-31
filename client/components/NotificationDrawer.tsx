@@ -20,6 +20,7 @@ export function NotificationDrawer() {
   const [items, setItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
 
   const [mode, setMode] = useState<"list" | "create">("list");
   const [editingNotification, setEditingNotification] = useState<any | null>(
@@ -27,27 +28,30 @@ export function NotificationDrawer() {
   );
 
   const fetchNotifications = async (p = 1, append = false) => {
-    setLoading(true);
     try {
-      const { items: data, total } = await getNotifications(
-        p,
-        5,
-        EventStatus.PENDENTE,
-      );
+      const {
+        items: data,
+        total,
+        hasNext,
+      } = await getNotifications(p, 5, EventStatus.PENDENTE);
+
+      console.log(hasNext);
+
       setItems((prev) => (append ? [...prev, ...data] : data));
       setCount(total);
+      setHasNext(hasNext);
     } catch {
       toast({
         title: "Erro",
         description: "Não foi possível carregar as notificações.",
         variant: "error",
       });
+
       if (!append) {
         setItems([]);
         setCount(0);
+        setHasNext(false);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -93,85 +97,75 @@ export function NotificationDrawer() {
 
         {mode === "list" && (
           <>
-            {loading && items.length === 0 ? (
-              <div className="text-center py-10 text-slate-500">
-                Carregando...
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-                {items.length === 0 ? (
-                  <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
-                    Nenhuma notificação pendente.
-                  </div>
-                ) : (
-                  <AnimatePresence>
-                    {items.map((n) => (
-                      <motion.div
-                        key={n.id}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{
-                          opacity: 0,
-                          y: -10,
-                          transition: { duration: 0.3 },
-                        }}
-                        layout
-                      >
-                        <NotificationCard
-                          residentName={n.residente_nome}
-                          medicineName={n.medicamento_nome}
-                          dateToGo={n.data_prevista}
-                          destiny={n.destino}
-                          createdBy={n.usuario?.login}
-                          onComplete={() =>
-                            handleRemove(n.id, "sent", "Notificação concluída")
-                          }
-                          onCancel={() =>
-                            handleRemove(
-                              n.id,
-                              "cancelled",
-                              "Notificação cancelada",
-                            )
-                          }
-                          onRemove={() =>
-                            setItems((prev) =>
-                              prev.filter((item) => item.id !== n.id),
-                            )
-                          }
-                          onEdit={() => {
-                            setMode("create");
-                            setEditingNotification({
-                              medicamento_id: n.medicamento_id,
-                              residente_id: n.residente_id,
-                              destino: n.destino,
-                              data_prevista: n.data_prevista,
-                              criado_por: n.usuario?.id,
-                              status: n.status,
-                              id: n.id,
-                            });
-                          }}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                )}
-
-                {!loading && items.length > 0 && (
-                  <div className="text-center py-2">
-                    <button
-                      className="text-sky-600 hover:text-sky-700 font-medium"
-                      onClick={() => {
-                        const nextPage = page + 1;
-                        setPage(nextPage);
-                        fetchNotifications(nextPage, true);
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              {items.length === 0 ? (
+                <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
+                  Nenhuma notificação pendente.
+                </div>
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  {items.map((n) => (
+                    <motion.div
+                      key={n.id}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{
+                        opacity: 0,
+                        scale: 0.97,
+                        y: -8,
                       }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      layout
                     >
-                      Mostrar mais registros
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                      <NotificationCard
+                        residentName={n.residente_nome}
+                        medicineName={n.medicamento_nome}
+                        dateToGo={n.data_prevista}
+                        destiny={n.destino}
+                        createdBy={n.usuario?.login}
+                        onComplete={() =>
+                          handleRemove(n.id, "sent", "Notificação concluída")
+                        }
+                        onCancel={() =>
+                          handleRemove(
+                            n.id,
+                            "cancelled",
+                            "Notificação cancelada",
+                          )
+                        }
+                        onEdit={() => {
+                          setMode("create");
+                          setEditingNotification({
+                            medicamento_id: n.medicamento_id,
+                            residente_id: n.residente_id,
+                            destino: n.destino,
+                            data_prevista: n.data_prevista,
+                            criado_por: n.usuario?.id,
+                            status: n.status,
+                            id: n.id,
+                          });
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              )}
+
+              {items.length > 0 && hasNext && (
+                <div className="text-center py-2">
+                  <button
+                    className="text-sky-600 hover:text-sky-700 font-medium"
+                    onClick={() => {
+                      const nextPage = page + 1;
+                      setPage(nextPage);
+                      fetchNotifications(nextPage, true);
+                    }}
+                  >
+                    Mostrar mais registros
+                  </button>
+                </div>
+              )}
+            </div>
 
             <DrawerFooter>
               <button

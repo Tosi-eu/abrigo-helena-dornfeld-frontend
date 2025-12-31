@@ -20,6 +20,7 @@ export default function EditInput() {
     id: "",
     nome: "",
     descricao: "",
+    estoque_minimo: 0,
   });
 
   useEffect(() => {
@@ -39,11 +40,15 @@ export default function EditInput() {
       id: item.id,
       nome: item.nome || "",
       descricao: item.descricao || "",
+      estoque_minimo: item.estoque_minimo || 0,
     });
   }, [location.state, navigate]);
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: field === "estoque_minimo" ? Number(value) : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,12 +63,22 @@ export default function EditInput() {
       return;
     }
 
+    if (formData.estoque_minimo < 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O estoque mínimo não pode ser negativo.",
+        variant: "warning",
+      });
+      return;
+    }
+
     setSaving(true);
 
     try {
       await updateInput(parseInt(formData.id), {
         nome: formData.nome,
         descricao: formData.descricao,
+        estoque_minimo: formData.estoque_minimo,
       });
 
       toast({
@@ -111,6 +126,18 @@ export default function EditInput() {
                 value={formData.descricao}
                 onChange={(e) => handleChange("descricao", e.target.value)}
                 placeholder="Ex: Material de injeção"
+                disabled={saving}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label>Estoque mínimo</Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.estoque_minimo}
+                onChange={(e) => handleChange("estoque_minimo", e.target.value)}
+                placeholder="Ex: 10"
                 disabled={saving}
               />
             </div>

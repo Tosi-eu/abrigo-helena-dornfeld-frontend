@@ -1,5 +1,12 @@
-import { EventStatus, MovementType, OperationType } from "@/utils/enums";
+import {
+  EventStatus,
+  MovementType,
+  NotificationDestiny,
+  OperationType,
+  SectorType,
+} from "@/utils/enums";
 import { api } from "./canonical";
+import { StockItemType } from "@/interfaces/types";
 
 export const getCabinets = (page = 1, limit = 10) =>
   api.get("/armarios", {
@@ -21,6 +28,9 @@ export const getMedicines = (page = 1, limit = 10) =>
   });
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
+
+export const getStockProportions = (sector?: string) =>
+  api.get(`/estoque/proporcao${sector ? `?setor=${sector}` : ""}`);
 
 export const getInputMovements = ({
   page = 1,
@@ -139,10 +149,13 @@ export const createStockIn = (payload: {
   medicamento_id?: number;
   insumo_id?: number;
   quantidade: number;
-  armario_id: number;
+  armario_id?: number | null;
+  gaveta_id?: number | null;
   casela_id?: number | null;
   validade?: Date | null;
   origem?: string | null;
+  setor: string;
+  lote?: string | null;
 }) => api.post("/estoque/entrada", payload);
 
 export const createMovement = (payload: {
@@ -151,15 +164,18 @@ export const createMovement = (payload: {
   armario_id: number;
   quantidade: number;
   casela_id?: number;
+  gaveta_id?: number;
   medicamento_id?: number;
   validade: string;
   insumo_id?: number;
+  setor: string;
+  lote?: string | null;
 }) => api.post("/movimentacoes", payload);
 
 export const createNotificationEvent = (payload: {
   medicamento_id: number;
   residente_id: number;
-  destino: string;
+  destino: NotificationDestiny;
   data_prevista: Date;
   criado_por: number;
   status: EventStatus;
@@ -174,15 +190,17 @@ export const getNotifications = async (
     const res = await api.get("/notificacao", {
       params: { page, limit, status },
     });
+
     const data = res.data;
 
     return {
       items: Array.isArray(data) ? data : [],
-      total: typeof data.total === "number" ? data.total : 0,
+      total: res.total ? res.total : 0,
+      hasNext: res.hasNext ? res.hasNext : false,
     };
   } catch (err) {
     console.error("Erro ao buscar notificações:", err);
-    return { items: [], total: 0 };
+    return { items: [], total: 0, hasNext: false };
   }
 };
 
@@ -224,3 +242,61 @@ export const getMedicineRanking = (
   api.get("/movimentacoes/medicamentos/ranking", {
     params: { type, page, limit },
   });
+
+export const getDrawers = (page = 1, limit = 10) =>
+  api.get("/gavetas", {
+    params: { page, limit },
+  });
+
+export const getDrawerByNumber = (numero: number) =>
+  api.get(`/gavetas/${numero}`);
+
+export const createDrawer = (numero: number, categoria_id: number) =>
+  api.post("/gavetas", { numero, categoria_id });
+
+export const updateDrawer = (numero: number, categoria_id: number) =>
+  api.put(`/gavetas/${numero}`, { categoria_id });
+
+export const deleteDrawer = (numero: number) =>
+  api.delete(`/gavetas/${numero}`);
+
+export const getDrawerCategories = (page = 1, limit = 10) =>
+  api.get("/categoria-gaveta", {
+    params: { page, limit },
+  });
+
+export const getDrawerCategoryById = (id: number) =>
+  api.get(`/categoria-gaveta/${id}`);
+
+export const createDrawerCategory = (nome: string) =>
+  api.post("/categoria-gaveta", { nome });
+
+export const updateDrawerCategory = (id: number, nome: string) =>
+  api.put(`/categoria-gaveta/${id}`, { nome });
+
+export const deleteDrawerCategory = (id: number) =>
+  api.delete(`/categoria-gaveta/${id}`);
+
+export const removeIndividualMedicineFromStock = (stockId: number) =>
+  api.patch(`/estoque/medicamento/${stockId}/remover-individual`);
+
+export const suspendMedicineFromStock = (stockId: number) =>
+  api.patch(`/estoque/medicamento/${stockId}/suspender`);
+
+export const resumeMedicineFromStock = (stockId: number) =>
+  api.patch(`/estoque/medicamento/${stockId}/retomar`);
+
+export const deleteStockItem = (stockId: number, type: StockItemType) =>
+  api.delete(`/estoque/${type}/${stockId}`);
+
+export const transferStockSector = (payload: {
+  estoque_id: number;
+  setor: SectorType;
+}) =>
+  api.patch(`/estoque/medicamento/${payload.estoque_id}/transferir-setor`, {
+    setor: payload.setor,
+  });
+
+export const getBackendLoadingStatus = () => api.get("/status");
+
+export const logoutRequest = () => api.post("/login/logout");

@@ -1,31 +1,31 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
-import { getCabinets } from "@/api/requests";
+import { getDrawers } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
 
 const DEFAULT_LIMIT = 10;
 
-export default function Cabinets() {
+export default function Drawers() {
   const columns = [
     { key: "numero", label: "Número", editable: false },
     { key: "categoria", label: "Categoria", editable: false },
   ];
 
-  const [cabinets, setCabinets] = useState<any[]>([]);
+  const [drawers, setDrawers] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
-  async function fetchCabinets(pageNumber: number) {
+  async function fetchDrawers(pageNumber: number) {
     try {
-      const res = await getCabinets(pageNumber, DEFAULT_LIMIT);
+      const res = await getDrawers(pageNumber, DEFAULT_LIMIT);
 
-      setCabinets(Array.isArray(res.data) ? res.data : []);
+      setDrawers(Array.isArray(res.data) ? res.data : []);
       setPage(res.page ?? pageNumber);
       setHasNextPage(Boolean(res.hasNext));
     } catch (err: any) {
       toast({
-        title: "Erro ao carregar armários",
+        title: "Erro ao carregar gavetas",
         description: err.message ?? "Erro inesperado",
         variant: "error",
       });
@@ -33,27 +33,27 @@ export default function Cabinets() {
   }
 
   useEffect(() => {
-    fetchCabinets(1);
+    fetchDrawers(1);
   }, []);
 
   return (
-    <Layout title="Armários">
+    <Layout title="Gavetas">
       <div className="pt-12">
-        <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           <EditableTable
-            data={cabinets}
+            data={drawers}
             columns={columns}
-            entityType="cabinets"
+            entityType="drawers"
             currentPage={page}
             hasNextPage={hasNextPage}
             onNextPage={() => {
               if (hasNextPage) {
-                fetchCabinets(page + 1);
+                fetchDrawers(page + 1);
               }
             }}
             onPrevPage={() => {
               if (page > 1) {
-                fetchCabinets(page - 1);
+                fetchDrawers(page - 1);
               }
             }}
           />

@@ -8,7 +8,6 @@ export default function Inputs() {
   const [data, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const columns = [
@@ -19,8 +18,6 @@ export default function Inputs() {
 
   async function fetchInputs(pageNumber: number) {
     try {
-      setLoading(true);
-
       const res = await getInputs(pageNumber, 10);
 
       setData(Array.isArray(res.data) ? res.data : []);
@@ -32,8 +29,6 @@ export default function Inputs() {
         description: err.message ?? "Erro inesperado",
         variant: "error",
       });
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -44,31 +39,25 @@ export default function Inputs() {
   return (
     <Layout title="Insumos">
       <div className="pt-12">
-        {!loading && (
-          <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-            <EditableTable
-              data={data}
-              columns={columns}
-              entityType="inputs"
-              currentPage={page}
-              hasNextPage={hasNextPage}
-              onNextPage={() => {
-                if (hasNextPage) {
-                  fetchInputs(page + 1);
-                }
-              }}
-              onPrevPage={() => {
-                if (page > 1) {
-                  fetchInputs(page - 1);
-                }
-              }}
-            />
-
-            <div className="text-sm text-slate-500 text-center mt-4">
-              Página {page}
-            </div>
-          </div>
-        )}
+        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <EditableTable
+            data={data}
+            columns={columns}
+            entityType="inputs"
+            currentPage={page}
+            hasNextPage={hasNextPage}
+            onNextPage={() => {
+              if (hasNextPage) {
+                fetchInputs(page + 1);
+              }
+            }}
+            onPrevPage={() => {
+              if (page > 1) {
+                fetchInputs(page - 1);
+              }
+            }}
+          />
+        </div>
       </div>
     </Layout>
   );

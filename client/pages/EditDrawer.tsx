@@ -3,12 +3,8 @@ import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
 
-import {
-  getCabinets,
-  updateCabinet,
-  getCabinetCategories,
-} from "@/api/requests";
-import { Cabinet } from "@/interfaces/interfaces";
+import { getDrawers, updateDrawer, getDrawerCategories } from "@/api/requests";
+import { Drawer } from "@/interfaces/interfaces";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,77 +18,75 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-export default function EditCabinet() {
+export default function EditDrawer() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const item = location.state?.item as Cabinet | undefined;
+  const item = location.state?.item as Drawer | undefined;
 
-  const [cabinets, setCabinets] = useState<Cabinet[]>([]);
+  const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [categories, setCategories] = useState<{ id: number; nome: string }[]>(
     [],
   );
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    id: 0,
-    categoryId: 0,
+    numero: 0,
+    categoriaId: 0,
   });
 
   useEffect(() => {
-    getCabinets()
-      .then((res) => setCabinets(res.data))
+    getDrawers()
+      .then((res) => setDrawers(res.data))
       .catch(() =>
         toast({
-          title: "Erro ao carregar armários",
-          description: "Não foi possível buscar os armários do servidor.",
+          title: "Erro ao carregar gavetas",
+          description: "Não foi possível buscar as gavetas do servidor.",
           variant: "error",
         }),
       );
   }, []);
 
   useEffect(() => {
-    getCabinetCategories(1, 200)
+    getDrawerCategories(1, 20)
       .then((res) => setCategories(res.data))
       .catch(() =>
         toast({
           title: "Erro",
-          description: "Não foi possível carregar as categorias.",
+          description: "Não foi possível carregar as categorias de gavetas.",
           variant: "error",
         }),
       );
   }, []);
 
   useEffect(() => {
-    if (item && cabinets.length > 0 && categories.length > 0) {
-      const cab = cabinets.find((c) => c.numero === item.numero);
+    if (item && drawers.length > 0 && categories.length > 0) {
+      const dr = drawers.find((d) => d.numero === item.numero);
 
-      if (cab) {
-        const matchedCategory = categories.find(
-          (c) => c.nome === cab.categoria,
-        );
+      if (dr) {
+        const matchedCategory = categories.find((c) => c.nome === dr.categoria);
 
         setFormData({
-          id: cab.numero,
-          categoryId: matchedCategory?.id ?? 0,
+          numero: dr.numero,
+          categoriaId: matchedCategory?.id ?? 0,
         });
       }
     }
-  }, [item, cabinets, categories]);
+  }, [item, drawers, categories]);
 
   const handleSelectChange = (value: string) => {
-    const cab = cabinets.find((c) => c.numero === Number(value));
+    const dr = drawers.find((d) => d.numero === Number(value));
 
-    if (!cab) {
-      setFormData({ id: 0, categoryId: 0 });
+    if (!dr) {
+      setFormData({ numero: 0, categoriaId: 0 });
       return;
     }
 
-    const matchedCategory = categories.find((c) => c.nome === cab.categoria);
+    const matchedCategory = categories.find((c) => c.nome === dr.categoria);
 
     setFormData({
-      id: cab.numero,
-      categoryId: matchedCategory?.id ?? 0,
+      numero: dr.numero,
+      categoriaId: matchedCategory?.id ?? 0,
     });
   };
 
@@ -104,10 +98,10 @@ export default function EditCabinet() {
   };
 
   const handleSave = async () => {
-    if (!formData.id || !formData.categoryId) {
+    if (!formData.numero || !formData.categoriaId) {
       toast({
         title: "Campos obrigatórios",
-        description: "Selecione um armário e uma categoria.",
+        description: "Selecione uma gaveta e uma categoria.",
         variant: "warning",
       });
       return;
@@ -116,22 +110,19 @@ export default function EditCabinet() {
     setLoading(true);
 
     try {
-      await updateCabinet(formData.id, {
-        numero: formData.id,
-        categoria_id: formData.categoryId,
-      });
+      await updateDrawer(formData.numero, formData.categoriaId);
 
       toast({
-        title: "Armário atualizado",
-        description: `O armário ${formData.id} foi atualizado com sucesso.`,
+        title: "Gaveta atualizada",
+        description: `A gaveta ${formData.numero} foi atualizada com sucesso.`,
         variant: "success",
       });
 
-      navigate("/cabinets");
+      navigate("/drawers");
     } catch {
       toast({
-        title: "Erro ao editar armário",
-        description: "Não foi possível atualizar o armário.",
+        title: "Erro ao editar gaveta",
+        description: "Não foi possível atualizar a gaveta.",
         variant: "error",
       });
     } finally {
@@ -140,48 +131,48 @@ export default function EditCabinet() {
   };
 
   return (
-    <Layout title="Editar Armário">
+    <Layout title="Editar Gaveta">
       <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800">
-            Editar Armário
+            Editar Gaveta
           </CardTitle>
         </CardHeader>
 
         <CardContent>
           <form className="space-y-6">
             <div className="space-y-1">
-              <Label>Armário</Label>
+              <Label>Gaveta</Label>
 
               <Select
-                value={formData.id ? String(formData.id) : ""}
+                value={formData.numero ? String(formData.numero) : ""}
                 onValueChange={handleSelectChange}
               >
                 <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Selecione o armário" />
+                  <SelectValue placeholder="Selecione a gaveta" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {cabinets.map((c) => (
-                    <SelectItem key={c.numero} value={String(c.numero)}>
-                      Armário {c.numero} ({c.categoria})
+                  {drawers.map((d) => (
+                    <SelectItem key={d.numero} value={String(d.numero)}>
+                      Gaveta {d.numero} ({d.categoria})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {formData.id !== 0 && (
+            {formData.numero !== 0 && (
               <>
                 <div className="space-y-1">
-                  <Label>Número do armário</Label>
+                  <Label>Número da gaveta</Label>
                   <Input
-                    className="bg-slate-100 text-slate-500"
                     type="number"
-                    value={formData.id}
-                    onChange={(e) => handleChange("id", Number(e.target.value))}
-                    disabled={loading}
-                    readOnly
+                    value={formData.numero}
+                    onChange={(e) =>
+                      handleChange("numero", Number(e.target.value))
+                    }
+                    disabled={true}
                   />
                 </div>
 
@@ -189,8 +180,10 @@ export default function EditCabinet() {
                   <Label>Categoria</Label>
 
                   <Select
-                    value={String(formData.categoryId)}
-                    onValueChange={(v) => handleChange("categoryId", Number(v))}
+                    value={String(formData.categoriaId)}
+                    onValueChange={(v) =>
+                      handleChange("categoriaId", Number(v))
+                    }
                   >
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Selecione a categoria" />
@@ -210,7 +203,7 @@ export default function EditCabinet() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate("/cabinets")}
+                    onClick={() => navigate("/drawers")}
                     disabled={loading}
                     className="rounded-lg"
                   >

@@ -14,13 +14,23 @@ function buildQueryString(params?: Record<string, any>) {
 }
 
 async function request(path: string, options: RequestInit = {}) {
+  const token = localStorage.getItem("token");
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
     ...options,
   });
+
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/user/login";
+    throw new Error("Sessão expirada");
+  }
 
   const data = await res.json().catch(() => null);
 

@@ -55,3 +55,14 @@ export enum EventStatus {
   ENVIADO = "sent",
   CANCELADO = "cancelled",
 }
+
+export enum SectorType {
+  FARMACIA = "farmacia",
+  ENFERMAGEM = "enfermagem",
+}
+
+export enum NotificationDestiny {
+  SUS = "sus",
+  FAMILY = "familia",
+  PHARMACY = "farmacia",
+}

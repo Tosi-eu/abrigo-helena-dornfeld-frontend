@@ -3,19 +3,26 @@ import { useState, useEffect } from "react";
 import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
-import { Input, Medicine, Patient, Cabinet } from "@/interfaces/interfaces";
+import {
+  Input,
+  Medicine,
+  Patient,
+  Cabinet,
+  Drawer,
+} from "@/interfaces/interfaces";
 import { useAuth } from "@/hooks/use-auth.hook";
 import {
   createMovement,
   createStockIn,
   getCabinets,
+  getDrawers,
   getInputs,
   getMedicines,
   getResidents,
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
 import { MovementType, OperationType } from "@/utils/enums";
-import { fetchAllPaginated } from "@/helpers/pagination.helper";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 export default function StockIn() {
   const [operationType, setOperationType] = useState<
@@ -24,38 +31,35 @@ export default function StockIn() {
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [inputs, setInputs] = useState<Input[]>([]);
   const [caselas, setCaselas] = useState<Patient[]>([]);
+  const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true);
-
       try {
-        const [medicines, inputs, residents, cabinets] = await Promise.all([
-          fetchAllPaginated(getMedicines),
-          fetchAllPaginated(getInputs),
-          fetchAllPaginated(getResidents),
-          fetchAllPaginated(getCabinets),
-        ]);
-
-        console.log(cabinets);
+        const [medicines, inputs, residents, cabinets, drawers] =
+          await Promise.all([
+            fetchAllPaginated(getMedicines),
+            fetchAllPaginated(getInputs),
+            fetchAllPaginated(getResidents),
+            fetchAllPaginated(getCabinets),
+            fetchAllPaginated(getDrawers),
+          ]);
 
         setMedicines(medicines as Medicine[]);
         setInputs(inputs as Input[]);
         setCaselas(residents as Patient[]);
         setCabinets(cabinets as Cabinet[]);
+        setDrawers(drawers as Drawer[]);
       } catch (err) {
         console.error("Erro ao carregar dados da tela de entrada:", err);
         setMedicines([]);
         setInputs([]);
         setCaselas([]);
         setCabinets([]);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -68,22 +72,28 @@ export default function StockIn() {
         tipo: data.stockType,
         medicamento_id: data.id,
         quantidade: data.quantity,
-        armario_id: data.cabinet,
+        armario_id: data.cabinetId ?? null,
+        gaveta_id: data.drawerId ?? null,
         casela_id: data.casela ?? null,
         validade: data.expirationDate ?? null,
         origem: data.origin ?? null,
+        setor: data.sector,
+        lote: data.lot ?? null,
       };
 
       await createStockIn(payload);
 
       await createMovement({
         tipo: MovementType.IN,
-        login_id: user?.id!,
-        medicamento_id: data.id,
-        armario_id: data.cabinet,
-        casela_id: data.casela ?? null,
+        login_id: user?.id,
+        armario_id: data.cabinetId ?? null,
         quantidade: data.quantity,
-        validade: data.expirationDate ?? null,
+        casela_id: data.casela ?? null,
+        gaveta_id: data.drawerId ?? null,
+        medicamento_id: data.id,
+        validade: data.expirationDate,
+        setor: data.sector,
+        lote: data.lot ?? null,
       });
 
       toast({
@@ -108,8 +118,11 @@ export default function StockIn() {
         tipo: data.stockType,
         insumo_id: data.inputId,
         quantidade: data.quantity,
-        armario_id: data.cabinetId,
+        armario_id: data.cabinetId ?? null,
+        gaveta_id: data.drawerId ?? null,
         validade: data.validity,
+        setor: data.sector,
+        lote: data.lot ?? null,
       };
 
       await createStockIn(payload);
@@ -118,9 +131,12 @@ export default function StockIn() {
         tipo: MovementType.IN,
         login_id: user?.id!,
         insumo_id: data.inputId,
-        armario_id: data.cabinetId,
+        armario_id: data.cabinetId ?? null,
+        gaveta_id: data.drawerId ?? null,
         quantidade: data.quantity,
         validade: data.validity,
+        setor: data.sector,
+        lote: data.lot ?? null,
       });
 
       toast({
@@ -157,52 +173,50 @@ export default function StockIn() {
 
   return (
     <Layout title="Entrada de Estoque">
-      {!loading && (
-        <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
-          <h2 className="text-lg font-semibold text-slate-800">
-            Registrar Entrada
-          </h2>
+      <div className="max-w-lg mx-auto mt-10 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
+        <h2 className="text-lg font-semibold text-slate-800">
+          Registrar Entrada
+        </h2>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Tipo de entrada
-            </label>
-            <select
-              value={operationType === "Selecione" ? "" : operationType}
-              onChange={(e) =>
-                setOperationType(e.target.value as OperationType)
-              }
-              className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-            >
-              <option value="" disabled hidden>
-                Selecione
-              </option>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Tipo de entrada
+          </label>
+          <select
+            value={operationType === "Selecione" ? "" : operationType}
+            onChange={(e) => setOperationType(e.target.value as OperationType)}
+            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
+          >
+            <option value="" disabled hidden>
+              Selecione
+            </option>
 
-              <option value={OperationType.MEDICINE}>
-                {OperationType.MEDICINE}
-              </option>
-              <option value={OperationType.INPUT}>{OperationType.INPUT}</option>
-            </select>
-          </div>
-
-          {operationType === OperationType.MEDICINE && (
-            <MedicineForm
-              medicines={canonicalMedicines}
-              caselas={caselas}
-              cabinets={cabinets}
-              onSubmit={handleMedicineSubmit}
-            />
-          )}
-
-          {operationType === OperationType.INPUT && (
-            <InputForm
-              inputs={canonicalInputs}
-              cabinets={cabinets}
-              onSubmit={handleInputSubmit}
-            />
-          )}
+            <option value={OperationType.MEDICINE}>
+              {OperationType.MEDICINE}
+            </option>
+            <option value={OperationType.INPUT}>{OperationType.INPUT}</option>
+          </select>
         </div>
-      )}
+
+        {operationType === OperationType.MEDICINE && (
+          <MedicineForm
+            medicines={canonicalMedicines}
+            caselas={caselas}
+            cabinets={cabinets}
+            drawers={drawers}
+            onSubmit={handleMedicineSubmit}
+          />
+        )}
+
+        {operationType === OperationType.INPUT && (
+          <InputForm
+            inputs={canonicalInputs}
+            cabinets={cabinets}
+            drawers={drawers}
+            onSubmit={handleInputSubmit}
+          />
+        )}
+      </div>
     </Layout>
   );
 }
