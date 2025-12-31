@@ -298,3 +298,6 @@ export const transferStockSector = (payload: {
   });
 
 export const getBackendLoadingStatus = () => api.get('/status')
+
+export const logoutRequest = () =>
+  api.post("/login/logout");

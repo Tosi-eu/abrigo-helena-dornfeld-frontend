@@ -39,7 +39,7 @@ export function prepareStockDistributionData(
       rawValue: totais.carrinho_insumos,
     },
     {
-      name: "Medicamentos na Casela",
+      name: "Medicamentos em Caselas",
       value: percentuais.medicamentos_individual,
       rawValue: totais.medicamentos_individual,
     },
