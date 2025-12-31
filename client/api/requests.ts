@@ -297,7 +297,6 @@ export const transferStockSector = (payload: {
     setor: payload.setor,
   });
 
-export const getBackendLoadingStatus = () => api.get('/status')
+export const getBackendLoadingStatus = () => api.get("/status");
 
-export const logoutRequest = () =>
-  api.post("/login/logout");
+export const logoutRequest = () => api.post("/login/logout");

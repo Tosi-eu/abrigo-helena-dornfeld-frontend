@@ -79,14 +79,13 @@ export default function Dashboard() {
   const [nonMovementProducts, setNonMovementProducts] = useState<any[]>([]);
   const [loadingNonMovement, setLoadingNonMovement] = useState(true);
   const [loadingRecentMovements, setLoadingRecentMovements] = useState(true);
-  
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifList, setNotifList] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      try {      
+      try {
         setLoadingNonMovement(true);
         setLoadingRecentMovements(true);
         const [
@@ -216,8 +215,8 @@ export default function Dashboard() {
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
-          setLoadingNonMovement(false);
-          setLoadingRecentMovements(false);
+        setLoadingNonMovement(false);
+        setLoadingRecentMovements(false);
       }
     };
 

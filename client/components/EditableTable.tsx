@@ -171,8 +171,7 @@ export default function EditableTable({
     if (route) navigate(route);
   };
 
-  const canTransfer = (row: any) =>
-    row?.casela && row.casela !== "-";
+  const canTransfer = (row: any) => row?.casela && row.casela !== "-";
 
   const handleEditClick = (row: any) => {
     if (row.status === "suspended") {
@@ -286,7 +285,10 @@ export default function EditableTable({
                       }`}
                     >
                       {columns.map((col) => (
-                        <td key={col.key} className="px-4 py-3 text-sm text-center">
+                        <td
+                          key={col.key}
+                          className="px-4 py-3 text-sm text-center"
+                        >
                           {renderCell(row, col.key)}
                         </td>
                       ))}

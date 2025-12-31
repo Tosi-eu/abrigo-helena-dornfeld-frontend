@@ -7,8 +7,7 @@ export const authStorage = {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   },
-  setUser: (user: any) =>
-    localStorage.setItem("user", JSON.stringify(user)),
+  setUser: (user: any) => localStorage.setItem("user", JSON.stringify(user)),
   clearUser: () => localStorage.removeItem("user"),
 
   clearAll: () => {
