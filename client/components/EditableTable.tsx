@@ -279,7 +279,7 @@ export default function EditableTable({
                       className={`border-b ${
                         row
                           ? row.status === "suspended"
-                            ? "bg-slate-50 opacity-70"
+                            ? "bg-slate-200 opacity-70"
                             : "hover:bg-sky-50"
                           : "bg-white"
                       }`}
