@@ -13,8 +13,37 @@ function buildQueryString(params?: Record<string, any>) {
   return query ? `?${query}` : "";
 }
 
+// Sanitize error messages to prevent information disclosure
+function sanitizeErrorMessage(message: string): string {
+  // Remove potential sensitive information patterns
+  const sensitivePatterns = [
+    /database/i,
+    /sql/i,
+    /connection/i,
+    /password/i,
+    /token/i,
+    /secret/i,
+    /api[_-]?key/i,
+    /file[_-]?path/i,
+    /stack[_-]?trace/i,
+  ];
+
+  // If message contains sensitive patterns, return generic error
+  if (sensitivePatterns.some((pattern) => pattern.test(message))) {
+    return "Ocorreu um erro. Por favor, tente novamente.";
+  }
+
+  // Limit message length to prevent DoS
+  const maxLength = 200;
+  if (message.length > maxLength) {
+    return message.substring(0, maxLength) + "...";
+  }
+
+  return message;
+}
+
 async function request(path: string, options: RequestInit = {}) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
@@ -26,8 +55,8 @@ async function request(path: string, options: RequestInit = {}) {
   });
 
   if (res.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     window.location.href = "/user/login";
     throw new Error("Sessão expirada");
   }
@@ -35,8 +64,9 @@ async function request(path: string, options: RequestInit = {}) {
   const data = await res.json().catch(() => null);
 
   if (!res.ok) {
-    const msg = data?.error || data?.message || "Erro inesperado";
-    throw new Error(msg);
+    const rawMsg = data?.error || data?.message || "Erro inesperado";
+    const sanitizedMsg = sanitizeErrorMessage(String(rawMsg));
+    throw new Error(sanitizedMsg);
   }
 
   return data;

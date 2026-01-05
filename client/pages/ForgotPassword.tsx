@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
 import { resetPassword } from "@/api/requests";
+import {
+  validateEmail,
+  validatePassword,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -16,14 +21,40 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<
+    "weak" | "medium" | "strong" | null
+  >(null);
+
+  const handlePasswordChange = (value: string) => {
+    const sanitized = sanitizeInput(value);
+    setNewPassword(sanitized);
+    if (sanitized.length > 0) {
+      const validation = validatePassword(sanitized);
+      setPasswordStrength(validation.strength || null);
+    } else {
+      setPasswordStrength(null);
+    }
+  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !newPassword) {
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
       return toast({
-        title: "Erro",
-        description: "Informe e-mail e nova senha",
+        title: "E-mail inválido",
+        description: emailValidation.error || "Informe um e-mail válido",
+        variant: "error",
+      });
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return toast({
+        title: "Senha inválida",
+        description: passwordValidation.error || "A senha não atende aos requisitos",
         variant: "error",
       });
     }
@@ -31,7 +62,9 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await resetPassword(email, newPassword);
+      const sanitizedEmail = sanitizeInput(email);
+      const sanitizedPassword = sanitizeInput(newPassword);
+      await resetPassword(sanitizedEmail, sanitizedPassword);
 
       toast({
         title: "Sucesso!",
@@ -81,7 +114,8 @@ export default function ForgotPassword() {
                 <Input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(sanitizeInput(e.target.value))}
+                  maxLength={255}
                   placeholder="email@exemplo.com"
                   disabled={loading}
                   required
@@ -89,15 +123,41 @@ export default function ForgotPassword() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label>Nova senha</Label>
+                <Label>
+                  Nova senha
+                  <span className="text-xs text-slate-500 ml-2">
+                    (mín. 8 caracteres, incluir maiúscula, minúscula, número e especial)
+                  </span>
+                </Label>
                 <Input
                   type="password"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  maxLength={128}
                   placeholder="••••••••"
                   disabled={loading}
                   required
                 />
+                {passwordStrength && (
+                  <div className="text-xs mt-1">
+                    <span
+                      className={
+                        passwordStrength === "strong"
+                          ? "text-green-600"
+                          : passwordStrength === "medium"
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                      }
+                    >
+                      Força:{" "}
+                      {passwordStrength === "strong"
+                        ? "Forte"
+                        : passwordStrength === "medium"
+                          ? "Média"
+                          : "Fraca"}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <Button

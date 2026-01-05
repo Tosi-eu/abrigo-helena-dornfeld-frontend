@@ -2,6 +2,11 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import {
+  validateTextInput,
+  validateNumberInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 import { createInput } from "@/api/requests";
 
@@ -23,11 +28,50 @@ export default function RegisterInput() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.description) {
+    // Validate name
+    const nameValidation = validateTextInput(formData.name, {
+      maxLength: 255,
+      required: true,
+      fieldName: "Nome do insumo",
+    });
+
+    if (!nameValidation.valid) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos para cadastrar o Insumo.",
-        variant: "warning",
+        title: "Erro de validação",
+        description: nameValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    // Validate description
+    const descValidation = validateTextInput(formData.description, {
+      maxLength: 1000,
+      required: true,
+      fieldName: "Descrição",
+    });
+
+    if (!descValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: descValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    // Validate minimum stock
+    const minValidation = validateNumberInput(formData.minimum || "0", {
+      min: 0,
+      max: 999999,
+      fieldName: "Estoque mínimo",
+    });
+
+    if (!minValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: minValidation.error,
+        variant: "error",
       });
       return;
     }
@@ -36,14 +80,14 @@ export default function RegisterInput() {
 
     try {
       await createInput(
-        formData.name,
-        formData.description,
-        parseInt(formData.minimum || "0", 10),
+        nameValidation.sanitized!,
+        descValidation.sanitized!,
+        minValidation.value || 0,
       );
 
       toast({
         title: "Insumo cadastrado",
-        description: `${formData.name} foi adicionado ao sistema.`,
+        description: `${nameValidation.sanitized} foi adicionado ao sistema.`,
         variant: "success",
       });
 
@@ -77,10 +121,15 @@ export default function RegisterInput() {
               <Input
                 value={formData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({
+                    ...formData,
+                    name: sanitizeInput(e.target.value),
+                  })
                 }
+                maxLength={255}
                 placeholder="Seringa 5ml"
                 disabled={saving}
+                required
               />
             </div>
 
@@ -89,10 +138,15 @@ export default function RegisterInput() {
               <Input
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData({
+                    ...formData,
+                    description: sanitizeInput(e.target.value),
+                  })
                 }
+                maxLength={1000}
                 placeholder="Material de Injeção"
                 disabled={saving}
+                required
               />
             </div>
 
@@ -102,8 +156,13 @@ export default function RegisterInput() {
                 type="number"
                 value={formData.minimum}
                 onChange={(e) =>
-                  setFormData({ ...formData, minimum: e.target.value })
+                  setFormData({
+                    ...formData,
+                    minimum: e.target.value.replace(/[^0-9]/g, ""),
+                  })
                 }
+                min={0}
+                max={999999}
                 placeholder="5"
                 disabled={saving}
               />

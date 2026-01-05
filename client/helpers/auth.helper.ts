@@ -1,17 +1,19 @@
+// Using sessionStorage instead of localStorage for better security
+// sessionStorage is cleared when browser tab/window is closed, reducing XSS attack window
 export const authStorage = {
-  getToken: () => localStorage.getItem("token"),
-  setToken: (token: string) => localStorage.setItem("token", token),
-  clearToken: () => localStorage.removeItem("token"),
+  getToken: () => sessionStorage.getItem("token"),
+  setToken: (token: string) => sessionStorage.setItem("token", token),
+  clearToken: () => sessionStorage.removeItem("token"),
 
   getUser: () => {
-    const user = localStorage.getItem("user");
+    const user = sessionStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   },
-  setUser: (user: any) => localStorage.setItem("user", JSON.stringify(user)),
-  clearUser: () => localStorage.removeItem("user"),
+  setUser: (user: any) => sessionStorage.setItem("user", JSON.stringify(user)),
+  clearUser: () => sessionStorage.removeItem("user"),
 
   clearAll: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
   },
 };

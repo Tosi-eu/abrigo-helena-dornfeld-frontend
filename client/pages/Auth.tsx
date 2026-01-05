@@ -4,6 +4,11 @@ import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { register } from "@/api/requests";
+import {
+  validateEmail,
+  validatePassword,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -15,30 +20,61 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<
+    "weak" | "medium" | "strong" | null
+  >(null);
 
-  const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const handlePasswordChange = (value: string) => {
+    const sanitized = sanitizeInput(value);
+    setPassword(sanitized);
+    if (!isLogin && sanitized.length > 0) {
+      const validation = validatePassword(sanitized);
+      setPasswordStrength(validation.strength || null);
+    } else {
+      setPasswordStrength(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (!isValidEmail(login)) {
+      // Validate email
+      const emailValidation = validateEmail(login);
+      if (!emailValidation.valid) {
         toast({
           title: "E-mail inválido",
-          description: "Por favor, insira um e-mail válido.",
+          description: emailValidation.error || "Por favor, insira um e-mail válido.",
           variant: "error",
         });
+        setLoading(false);
         return;
       }
 
+      // Validate password (only for registration)
+      if (!isLogin) {
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+          toast({
+            title: "Senha inválida",
+            description: passwordValidation.error || "A senha não atende aos requisitos.",
+            variant: "error",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      const sanitizedLogin = sanitizeInput(login);
+      const sanitizedPassword = sanitizeInput(password);
+
       if (isLogin) {
-        await authLogin(login, password);
+        await authLogin(sanitizedLogin, sanitizedPassword);
         toast({ title: "Login realizado!", variant: "success" });
       } else {
-        await register(login, password);
-        await authLogin(login, password);
+        await register(sanitizedLogin, sanitizedPassword);
+        await authLogin(sanitizedLogin, sanitizedPassword);
         toast({ title: "Cadastro realizado!", variant: "success" });
       }
 
@@ -81,7 +117,8 @@ export default function Auth() {
                   <input
                     type="email"
                     value={login}
-                    onChange={(e) => setLogin(e.target.value)}
+                    onChange={(e) => setLogin(sanitizeInput(e.target.value))}
+                    maxLength={255}
                     className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
                     placeholder="fulana@gmail.com"
                     required
@@ -91,15 +128,41 @@ export default function Auth() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Senha
+                    {!isLogin && (
+                      <span className="text-xs text-slate-500 ml-2">
+                        (mín. 8 caracteres, incluir maiúscula, minúscula, número e especial)
+                      </span>
+                    )}
                   </label>
                   <input
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    maxLength={128}
                     className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
                     placeholder="••••••••••••"
                     required
                   />
+                  {!isLogin && passwordStrength && (
+                    <div className="mt-1 text-xs">
+                      <span
+                        className={
+                          passwordStrength === "strong"
+                            ? "text-green-600"
+                            : passwordStrength === "medium"
+                              ? "text-yellow-600"
+                              : "text-red-600"
+                        }
+                      >
+                        Força:{" "}
+                        {passwordStrength === "strong"
+                          ? "Forte"
+                          : passwordStrength === "medium"
+                            ? "Média"
+                            : "Fraca"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {isLogin && (
@@ -154,3 +217,4 @@ export default function Auth() {
     </div>
   );
 }
+
