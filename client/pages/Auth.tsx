@@ -9,6 +9,12 @@ import {
   validatePassword,
   sanitizeInput,
 } from "@/helpers/validation.helper";
+import {
+  checkRateLimit,
+  recordAttempt,
+  resetRateLimit,
+  getRemainingAttempts,
+} from "@/helpers/rate-limit.helper";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -23,6 +29,10 @@ export default function Auth() {
   const [passwordStrength, setPasswordStrength] = useState<
     "weak" | "medium" | "strong" | null
   >(null);
+  const [passwordValidation, setPasswordValidation] = useState<{
+    valid: boolean;
+    error?: string;
+  } | null>(null);
 
   const handlePasswordChange = (value: string) => {
     const sanitized = sanitizeInput(value);
@@ -30,8 +40,13 @@ export default function Auth() {
     if (!isLogin && sanitized.length > 0) {
       const validation = validatePassword(sanitized);
       setPasswordStrength(validation.strength || null);
+      setPasswordValidation({
+        valid: validation.valid,
+        error: validation.error,
+      });
     } else {
       setPasswordStrength(null);
+      setPasswordValidation(null);
     }
   };
 
@@ -40,7 +55,21 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // Validate email
+      const rateLimitKey = isLogin ? `login:${login}` : "register";
+      const rateLimitCheck = checkRateLimit(rateLimitKey);
+
+      if (!rateLimitCheck.allowed) {
+        toast({
+          title: "Muitas tentativas",
+          description:
+            rateLimitCheck.message ||
+            `Tente novamente em ${rateLimitCheck.remainingTime} minutos.`,
+          variant: "error",
+        });
+        setLoading(false);
+        return;
+      }
+
       const emailValidation = validateEmail(login);
       if (!emailValidation.valid) {
         toast({
@@ -52,7 +81,6 @@ export default function Auth() {
         return;
       }
 
-      // Validate password (only for registration)
       if (!isLogin) {
         const passwordValidation = validatePassword(password);
         if (!passwordValidation.valid) {
@@ -71,18 +99,29 @@ export default function Auth() {
 
       if (isLogin) {
         await authLogin(sanitizedLogin, sanitizedPassword);
+        resetRateLimit(rateLimitKey);
         toast({ title: "Login realizado!", variant: "success" });
       } else {
         await register(sanitizedLogin, sanitizedPassword);
         await authLogin(sanitizedLogin, sanitizedPassword);
+        resetRateLimit(rateLimitKey);
         toast({ title: "Cadastro realizado!", variant: "success" });
       }
 
       navigate("/dashboard");
     } catch (err: any) {
+      const rateLimitKey = isLogin ? `login:${login}` : "register";
+      recordAttempt(rateLimitKey);
+
+      const remaining = getRemainingAttempts(rateLimitKey);
+      const errorMessage =
+        remaining > 0
+          ? `${err?.message ?? "Erro ao autenticar"}. Tentativas restantes: ${remaining}`
+          : err?.message ?? "Erro ao autenticar";
+
       toast({
         title: "Erro",
-        description: err?.message ?? "Erro ao autenticar",
+        description: errorMessage,
         variant: "error",
       });
     } finally {
@@ -129,8 +168,8 @@ export default function Auth() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Senha
                     {!isLogin && (
-                      <span className="text-xs text-slate-500 ml-2">
-                        (mín. 8 caracteres, incluir maiúscula, minúscula, número e especial)
+                      <span className="text-xs text-slate-500 ml-2 block mt-1">
+                        (mín. 8 caracteres, deve incluir: maiúscula, minúscula, número e caractere especial)
                       </span>
                     )}
                   </label>
@@ -139,28 +178,38 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => handlePasswordChange(e.target.value)}
                     maxLength={128}
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                      !isLogin && passwordValidation && !passwordValidation.valid
+                        ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                        : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
+                    }`}
                     placeholder="••••••••••••"
                     required
                   />
-                  {!isLogin && passwordStrength && (
+                  {!isLogin && passwordValidation && (
                     <div className="mt-1 text-xs">
-                      <span
-                        className={
-                          passwordStrength === "strong"
-                            ? "text-green-600"
+                      {passwordValidation.valid ? (
+                        <span
+                          className={
+                            passwordStrength === "strong"
+                              ? "text-green-600"
+                              : passwordStrength === "medium"
+                                ? "text-yellow-600"
+                                : "text-orange-600"
+                          }
+                        >
+                          ✓ Senha válida - Força:{" "}
+                          {passwordStrength === "strong"
+                            ? "Forte"
                             : passwordStrength === "medium"
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                        }
-                      >
-                        Força:{" "}
-                        {passwordStrength === "strong"
-                          ? "Forte"
-                          : passwordStrength === "medium"
-                            ? "Média"
-                            : "Fraca"}
-                      </span>
+                              ? "Média"
+                              : "Aceitável"}
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          ✗ {passwordValidation.error}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -190,11 +239,23 @@ export default function Auth() {
 
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50"
+                  disabled={
+                    loading ||
+                    (!isLogin &&
+                      passwordValidation !== null &&
+                      !passwordValidation.valid)
+                  }
+                  className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLogin ? "Entrar" : "Cadastrar"}
                 </button>
+                {!isLogin &&
+                  passwordValidation !== null &&
+                  !passwordValidation.valid && (
+                    <p className="text-xs text-red-600 text-center mt-1">
+                      Corrija a senha antes de continuar
+                    </p>
+                  )}
               </form>
 
               <div className="mt-4 text-center text-sm text-slate-600">
@@ -217,4 +278,3 @@ export default function Auth() {
     </div>
   );
 }
-

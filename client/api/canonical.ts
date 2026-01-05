@@ -1,21 +1,46 @@
 const API_BASE_URL =
-  import.meta.env.API_BASE_URL || "http://localhost:3001/api";
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.API_BASE_URL ||
+  (import.meta.env.DEV ? "http://localhost:3001/api/v1" : "");
 
-function buildQueryString(params?: Record<string, any>) {
-  if (!params) return "";
-  const query = Object.entries(params)
-    .filter(([, value]) => value !== undefined && value !== null)
-    .map(
-      ([key, value]) =>
-        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
-    )
-    .join("&");
-  return query ? `?${query}` : "";
+if (!API_BASE_URL) {
+  console.warn(
+    "⚠️ API_BASE_URL environment variable is not set.",
+    "\nFor Docker builds, set VITE_API_BASE_URL in docker-compose.yml build args or .env file.",
+    "\nFor local builds, set VITE_API_BASE_URL in frontend/.env file.",
+  );
 }
 
-// Sanitize error messages to prevent information disclosure
+function buildQueryString(params?: Record<string, any>): string {
+  if (!params) return "";
+
+  try {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            searchParams.append(key, String(item));
+          });
+        } else {
+          const sanitizedKey = String(key).replace(/[^a-zA-Z0-9_-]/g, "");
+          if (sanitizedKey) {
+            searchParams.append(sanitizedKey, String(value));
+          }
+        }
+      }
+    });
+
+    const query = searchParams.toString();
+    return query ? `?${query}` : "";
+  } catch (error) {
+    console.error("Error building query string:", error);
+    return "";
+  }
+}
+
 function sanitizeErrorMessage(message: string): string {
-  // Remove potential sensitive information patterns
   const sensitivePatterns = [
     /database/i,
     /sql/i,
@@ -28,12 +53,10 @@ function sanitizeErrorMessage(message: string): string {
     /stack[_-]?trace/i,
   ];
 
-  // If message contains sensitive patterns, return generic error
   if (sensitivePatterns.some((pattern) => pattern.test(message))) {
     return "Ocorreu um erro. Por favor, tente novamente.";
   }
 
-  // Limit message length to prevent DoS
   const maxLength = 200;
   if (message.length > maxLength) {
     return message.substring(0, maxLength) + "...";

@@ -8,6 +8,12 @@ import {
   validatePassword,
   sanitizeInput,
 } from "@/helpers/validation.helper";
+import {
+  checkRateLimit,
+  recordAttempt,
+  resetRateLimit,
+  getRemainingAttempts,
+} from "@/helpers/rate-limit.helper";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,6 +30,10 @@ export default function ForgotPassword() {
   const [passwordStrength, setPasswordStrength] = useState<
     "weak" | "medium" | "strong" | null
   >(null);
+  const [passwordValidation, setPasswordValidation] = useState<{
+    valid: boolean;
+    error?: string;
+  } | null>(null);
 
   const handlePasswordChange = (value: string) => {
     const sanitized = sanitizeInput(value);
@@ -31,15 +41,32 @@ export default function ForgotPassword() {
     if (sanitized.length > 0) {
       const validation = validatePassword(sanitized);
       setPasswordStrength(validation.strength || null);
+      setPasswordValidation({
+        valid: validation.valid,
+        error: validation.error,
+      });
     } else {
       setPasswordStrength(null);
+      setPasswordValidation(null);
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate email
+    const rateLimitKey = `password-reset:${email}`;
+    const rateLimitCheck = checkRateLimit(rateLimitKey);
+
+    if (!rateLimitCheck.allowed) {
+      return toast({
+        title: "Muitas tentativas",
+        description:
+          rateLimitCheck.message ||
+          `Tente novamente em ${rateLimitCheck.remainingTime} minutos.`,
+        variant: "error",
+      });
+    }
+
     const emailValidation = validateEmail(email);
     if (!emailValidation.valid) {
       return toast({
@@ -49,7 +76,6 @@ export default function ForgotPassword() {
       });
     }
 
-    // Validate password
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.valid) {
       return toast({
@@ -66,6 +92,8 @@ export default function ForgotPassword() {
       const sanitizedPassword = sanitizeInput(newPassword);
       await resetPassword(sanitizedEmail, sanitizedPassword);
 
+      resetRateLimit(rateLimitKey);
+
       toast({
         title: "Sucesso!",
         description: "Senha redefinida. Faça login com a nova senha.",
@@ -74,9 +102,17 @@ export default function ForgotPassword() {
 
       setTimeout(() => navigate("/user/login"), 1500);
     } catch (err: any) {
+      recordAttempt(rateLimitKey);
+      const remaining = getRemainingAttempts(rateLimitKey);
+
+      const errorMessage =
+        remaining > 0
+          ? `${err.message}. Tentativas restantes: ${remaining}`
+          : err.message;
+
       toast({
         title: "Erro",
-        description: err.message,
+        description: errorMessage,
         variant: "error",
       });
     } finally {
@@ -125,8 +161,8 @@ export default function ForgotPassword() {
               <div className="flex flex-col gap-2">
                 <Label>
                   Nova senha
-                  <span className="text-xs text-slate-500 ml-2">
-                    (mín. 8 caracteres, incluir maiúscula, minúscula, número e especial)
+                  <span className="text-xs text-slate-500 ml-2 block mt-1">
+                    (mín. 8 caracteres, deve incluir: maiúscula, minúscula, número e caractere especial)
                   </span>
                 </Label>
                 <Input
@@ -137,36 +173,55 @@ export default function ForgotPassword() {
                   placeholder="••••••••"
                   disabled={loading}
                   required
+                  className={
+                    passwordValidation && !passwordValidation.valid
+                      ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                      : ""
+                  }
                 />
-                {passwordStrength && (
+                {passwordValidation && (
                   <div className="text-xs mt-1">
-                    <span
-                      className={
-                        passwordStrength === "strong"
-                          ? "text-green-600"
+                    {passwordValidation.valid ? (
+                      <span
+                        className={
+                          passwordStrength === "strong"
+                            ? "text-green-600"
+                            : passwordStrength === "medium"
+                              ? "text-yellow-600"
+                              : "text-orange-600"
+                        }
+                      >
+                        ✓ Senha válida - Força:{" "}
+                        {passwordStrength === "strong"
+                          ? "Forte"
                           : passwordStrength === "medium"
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                      }
-                    >
-                      Força:{" "}
-                      {passwordStrength === "strong"
-                        ? "Forte"
-                        : passwordStrength === "medium"
-                          ? "Média"
-                          : "Fraca"}
-                    </span>
+                            ? "Média"
+                            : "Aceitável"}
+                      </span>
+                    ) : (
+                      <span className="text-red-600">
+                        ✗ {passwordValidation.error}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
 
               <Button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-sky-600 hover:bg-sky-700"
+                disabled={
+                  loading ||
+                  (passwordValidation !== null && !passwordValidation.valid)
+                }
+                className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Processando..." : "Redefinir Senha"}
               </Button>
+              {passwordValidation !== null && !passwordValidation.valid && (
+                <p className="text-xs text-red-600 text-center mt-1">
+                  Corrija a senha antes de continuar
+                </p>
+              )}
 
               <Button
                 type="button"

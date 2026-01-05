@@ -28,7 +28,6 @@ export default function RegisterInput() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate name
     const nameValidation = validateTextInput(formData.name, {
       maxLength: 255,
       required: true,
@@ -44,7 +43,6 @@ export default function RegisterInput() {
       return;
     }
 
-    // Validate description
     const descValidation = validateTextInput(formData.description, {
       maxLength: 1000,
       required: true,
@@ -60,7 +58,6 @@ export default function RegisterInput() {
       return;
     }
 
-    // Validate minimum stock
     const minValidation = validateNumberInput(formData.minimum || "0", {
       min: 0,
       max: 999999,

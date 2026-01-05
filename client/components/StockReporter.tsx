@@ -155,7 +155,14 @@ export function createStockPDF(
         <View style={styles.topLine} />
 
         <View style={styles.header}>
-          <Image src="http://localhost:8081/logo.png" style={styles.logo} />
+          <Image
+            src={
+              import.meta.env.VITE_LOGO_URL ||
+              import.meta.env.LOGO_URL ||
+              "/logo.png"
+            }
+            style={styles.logo}
+          />
           <Text style={styles.title}>ESTOQUE ATUAL</Text>
         </View>
 

@@ -1,24 +1,15 @@
-// Input validation and sanitization utilities
-
-/**
- * Sanitizes string input to prevent XSS and injection attacks
- */
 export function sanitizeInput(input: string): string {
   if (typeof input !== "string") {
     return "";
   }
 
-  // Remove potentially dangerous characters and patterns
   return input
-    .replace(/[<>]/g, "") // Remove < and > to prevent HTML injection
-    .replace(/javascript:/gi, "") // Remove javascript: protocol
-    .replace(/on\w+=/gi, "") // Remove event handlers like onclick=
+    .replace(/[<>]/g, "") 
+    .replace(/javascript:/gi, "") 
+    .replace(/on\w+=/gi, "") 
     .trim();
 }
 
-/**
- * Validates and sanitizes email address
- */
 export function validateEmail(email: string): { valid: boolean; error?: string } {
   if (!email || typeof email !== "string") {
     return { valid: false, error: "E-mail é obrigatório" };
@@ -38,9 +29,6 @@ export function validateEmail(email: string): { valid: boolean; error?: string }
   return { valid: true };
 }
 
-/**
- * Validates password strength
- */
 export function validatePassword(password: string): {
   valid: boolean;
   error?: string;
@@ -69,31 +57,29 @@ export function validatePassword(password: string): {
   const hasNumbers = /\d/.test(password);
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
-  const requirementsMet =
-    [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
+  const missingRequirements: string[] = [];
+  if (!hasUpperCase) missingRequirements.push("letra maiúscula");
+  if (!hasLowerCase) missingRequirements.push("letra minúscula");
+  if (!hasNumbers) missingRequirements.push("número");
+  if (!hasSpecialChar) missingRequirements.push("caractere especial");
 
-  if (requirementsMet < 3) {
+  if (missingRequirements.length > 0) {
     return {
       valid: false,
-      error:
-        "Senha deve conter pelo menos 3 dos seguintes: letra maiúscula, letra minúscula, número, caractere especial",
+      error: `Senha deve conter: ${missingRequirements.join(", ")}`,
     };
   }
 
-  // Calculate strength
   let strength: "weak" | "medium" | "strong" = "weak";
-  if (password.length >= 12 && requirementsMet === 4) {
+  if (password.length >= 12) {
     strength = "strong";
-  } else if (password.length >= 10 || requirementsMet === 4) {
+  } else if (password.length >= 10) {
     strength = "medium";
   }
 
   return { valid: true, strength };
 }
 
-/**
- * Validates text input with length constraints
- */
 export function validateTextInput(
   input: string,
   options: {
@@ -132,9 +118,6 @@ export function validateTextInput(
   return { valid: true, sanitized };
 }
 
-/**
- * Validates number input
- */
 export function validateNumberInput(
   input: string | number,
   options: {
