@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import {
+  validateTextInput,
+  validateNumberInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 import { updateInput } from "@/api/requests";
 
@@ -45,29 +50,61 @@ export default function EditInput() {
   }, [location.state, navigate]);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
+    const sanitized = field === "estoque_minimo" 
+      ? value.replace(/[^0-9]/g, "")
+      : sanitizeInput(value);
+    
     setFormData((prev) => ({
       ...prev,
-      [field]: field === "estoque_minimo" ? Number(value) : value,
+      [field]: field === "estoque_minimo" ? Number(sanitized) : sanitized,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.nome) {
+    const nameValidation = validateTextInput(formData.nome, {
+      maxLength: 100,
+      required: true,
+      fieldName: "Nome do insumo",
+    });
+
+    if (!nameValidation.valid) {
       toast({
-        title: "Campo obrigatório",
-        description: "O nome do insumo é obrigatório.",
-        variant: "warning",
+        title: "Erro de validação",
+        description: nameValidation.error,
+        variant: "error",
       });
       return;
     }
 
-    if (formData.estoque_minimo < 0) {
+    const descValidation = validateTextInput(formData.descricao, {
+      maxLength: 255,
+      required: false,
+      fieldName: "Descrição",
+    });
+
+    if (!descValidation.valid) {
       toast({
-        title: "Valor inválido",
-        description: "O estoque mínimo não pode ser negativo.",
-        variant: "warning",
+        title: "Erro de validação",
+        description: descValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const minValidation = validateNumberInput(formData.estoque_minimo, {
+      min: 0,
+      max: 999999,
+      required: false,
+      fieldName: "Estoque mínimo",
+    });
+
+    if (!minValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: minValidation.error,
+        variant: "error",
       });
       return;
     }
@@ -76,14 +113,14 @@ export default function EditInput() {
 
     try {
       await updateInput(parseInt(formData.id), {
-        nome: formData.nome,
-        descricao: formData.descricao,
-        estoque_minimo: formData.estoque_minimo,
+        nome: nameValidation.sanitized!,
+        descricao: descValidation.sanitized || "",
+        estoque_minimo: minValidation.value || 0,
       });
 
       toast({
         title: "Insumo atualizado",
-        description: `${formData.nome} foi atualizado com sucesso.`,
+        description: `${nameValidation.sanitized} foi atualizado com sucesso.`,
         variant: "success",
       });
 
@@ -115,8 +152,10 @@ export default function EditInput() {
               <Input
                 value={formData.nome}
                 onChange={(e) => handleChange("nome", e.target.value)}
+                maxLength={100}
                 placeholder="Ex: Seringa 5ml"
                 disabled={saving}
+                required
               />
             </div>
 
@@ -125,6 +164,7 @@ export default function EditInput() {
               <Input
                 value={formData.descricao}
                 onChange={(e) => handleChange("descricao", e.target.value)}
+                maxLength={255}
                 placeholder="Ex: Material de injeção"
                 disabled={saving}
               />
@@ -135,6 +175,7 @@ export default function EditInput() {
               <Input
                 type="number"
                 min={0}
+                max={999999}
                 value={formData.estoque_minimo}
                 onChange={(e) => handleChange("estoque_minimo", e.target.value)}
                 placeholder="Ex: 10"

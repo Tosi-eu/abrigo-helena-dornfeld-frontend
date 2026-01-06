@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import {
+  validateTextInput,
+  validateNumberInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 import { updateMedicine } from "@/api/requests";
 
@@ -49,7 +54,8 @@ export default function EditMedicine() {
   }, [location.state]);
 
   const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const sanitized = typeof value === "string" ? sanitizeInput(value) : value;
+    setFormData((prev) => ({ ...prev, [field]: sanitized }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,17 +70,81 @@ export default function EditMedicine() {
       return;
     }
 
+    const nameValidation = validateTextInput(formData.nome, {
+      maxLength: 100,
+      required: true,
+      fieldName: "Nome do medicamento",
+    });
+
+    if (!nameValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: nameValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const activePrincipleValidation = validateTextInput(formData.principio_ativo, {
+      maxLength: 100,
+      required: true,
+      fieldName: "Princípio ativo",
+    });
+
+    if (!activePrincipleValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: activePrincipleValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const dosageValidation = validateTextInput(formData.dosagem, {
+      maxLength: 30,
+      required: true,
+      fieldName: "Dosagem",
+    });
+
+    if (!dosageValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: dosageValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const minValidation = validateNumberInput(formData.estoque_minimo, {
+      min: 0,
+      max: 999999,
+      required: false,
+      fieldName: "Estoque mínimo",
+    });
+
+    if (!minValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: minValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
     setSaving(true);
 
     try {
       await updateMedicine(medicineId, {
-        ...formData,
+        nome: nameValidation.sanitized!,
+        principio_ativo: activePrincipleValidation.sanitized!,
+        dosagem: dosageValidation.sanitized!,
         unidade_medida: formData.unidade_medida || null,
+        estoque_minimo: minValidation.value || 0,
       });
 
       toast({
         title: "Medicamento atualizado",
-        description: `${formData.nome} foi atualizado com sucesso.`,
+        description: `${nameValidation.sanitized} foi atualizado com sucesso.`,
         variant: "success",
       });
 
@@ -106,7 +176,9 @@ export default function EditMedicine() {
               <Input
                 value={formData.nome}
                 onChange={(e) => handleChange("nome", e.target.value)}
+                maxLength={100}
                 disabled={saving}
+                required
               />
             </div>
 
@@ -117,7 +189,9 @@ export default function EditMedicine() {
                 onChange={(e) =>
                   handleChange("principio_ativo", e.target.value)
                 }
+                maxLength={100}
                 disabled={saving}
+                required
               />
             </div>
 
@@ -127,7 +201,9 @@ export default function EditMedicine() {
                 <Input
                   value={formData.dosagem}
                   onChange={(e) => handleChange("dosagem", e.target.value)}
+                  maxLength={30}
                   disabled={saving}
+                  required
                 />
               </div>
 

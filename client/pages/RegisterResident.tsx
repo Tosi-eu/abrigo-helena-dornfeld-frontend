@@ -2,6 +2,11 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
+import {
+  validateTextInput,
+  validateNumberInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 import { createResident } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -19,10 +24,42 @@ export default function RegisterResident() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const nameValidation = validateTextInput(name, {
+      maxLength: 60,
+      required: true,
+      fieldName: "Nome do residente",
+    });
+
+    if (!nameValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: nameValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const caselaValidation = validateNumberInput(casela, {
+      min: 1,
+      max: 200,
+      required: true,
+      fieldName: "Casela",
+    });
+
+    if (!caselaValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: caselaValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await createResident(name, casela);
+      await createResident(nameValidation.sanitized!, caselaValidation.value!.toString());
 
       toast({
         title: "Residente cadastrado",
@@ -58,7 +95,8 @@ export default function RegisterResident() {
               <Label>Nome do residente</Label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setName(sanitizeInput(e.target.value))}
+                maxLength={255}
                 placeholder="Digite o nome do residente"
                 disabled={loading}
                 required
@@ -68,9 +106,12 @@ export default function RegisterResident() {
             <div className="space-y-1">
               <Label>Casela</Label>
               <Input
+                type="number"
                 value={casela}
-                onChange={(e) => setCasela(e.target.value)}
-                placeholder="120"
+                onChange={(e) => setCasela(e.target.value.replace(/[^0-9]/g, ""))}
+                min={1}
+                max={200}
+                placeholder="1"
                 disabled={loading}
                 required
               />

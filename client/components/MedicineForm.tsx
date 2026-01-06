@@ -7,6 +7,11 @@ import { useNavigate } from "react-router-dom";
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
 import {
+  validateNumberInput,
+  validateTextInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
+import {
   MedicineStockType,
   OriginType,
   SectorType,
@@ -92,17 +97,45 @@ export function MedicineForm({
   };
 
   const handleSubmit = () => {
-    const quantity = Number(formData.quantity);
-
     if (!formData.id) {
       toast({ title: "Selecione um medicamento", variant: "error" });
       return;
     }
 
-    if (isNaN(quantity) || quantity <= 0) {
-      toast({ title: "Informe uma quantidade válida", variant: "error" });
+    const quantityValidation = validateNumberInput(formData.quantity, {
+      min: 1,
+      max: 999999,
+      required: true,
+      fieldName: "Quantidade",
+    });
+
+    if (!quantityValidation.valid || !quantityValidation.value) {
+      toast({
+        title: "Erro de validação",
+        description: quantityValidation.error || "Informe uma quantidade válida",
+        variant: "error",
+      });
       return;
     }
+
+    if (formData.lot) {
+      const lotValidation = validateTextInput(formData.lot, {
+        maxLength: 100,
+        required: false,
+        fieldName: "Lote",
+      });
+
+      if (!lotValidation.valid) {
+        toast({
+          title: "Erro de validação",
+          description: lotValidation.error,
+          variant: "error",
+        });
+        return;
+      }
+    }
+
+    const quantity = quantityValidation.value;
 
     if (isEmergencyCart && !formData.drawerId) {
       toast({ title: "Selecione uma gaveta", variant: "error" });
@@ -126,6 +159,7 @@ export function MedicineForm({
     onSubmit({
       ...formData,
       quantity,
+      lot: formData.lot ? sanitizeInput(formData.lot) : undefined,
       expirationDate: formData.expirationDate
         ? new Date(formData.expirationDate)
         : null,
@@ -194,8 +228,11 @@ export function MedicineForm({
           <input
             type="number"
             value={formData.quantity}
-            onChange={(e) => updateField("quantity", e.target.value)}
+            onChange={(e) => updateField("quantity", e.target.value.replace(/[^0-9]/g, ""))}
+            min={1}
+            max={999999}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+            required
           />
         </div>
         <div className="grid gap-2">
@@ -348,7 +385,8 @@ export function MedicineForm({
         <input
           type="text"
           value={formData.lot}
-          onChange={(e) => updateField("lot", e.target.value)}
+          onChange={(e) => updateField("lot", sanitizeInput(e.target.value))}
+          maxLength={100}
           placeholder="Ex: L2024-01"
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
         />

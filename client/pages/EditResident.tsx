@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
+import {
+  validateTextInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 import { updateResident } from "@/api/requests";
 
@@ -40,15 +44,31 @@ export default function EditResident() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const sanitized = sanitizeInput(value);
+    setFormData((prev) => ({ ...prev, [name]: sanitized }));
   };
 
   const handleSave = async () => {
-    if (!formData.nome || !formData.num_casela) {
+    if (!formData.num_casela) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos antes de salvar.",
-        variant: "warning",
+        title: "Erro",
+        description: "Casela não identificada.",
+        variant: "error",
+      });
+      return;
+    }
+
+    const nameValidation = validateTextInput(formData.nome, {
+      maxLength: 100,
+      required: true,
+      fieldName: "Nome do residente",
+    });
+
+    if (!nameValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: nameValidation.error,
+        variant: "error",
       });
       return;
     }
@@ -57,7 +77,7 @@ export default function EditResident() {
 
     try {
       const updated = await updateResident(formData.num_casela, {
-        nome: formData.nome,
+        nome: nameValidation.sanitized!,
       });
 
       toast({
@@ -96,7 +116,9 @@ export default function EditResident() {
                 name="nome"
                 value={formData.nome}
                 onChange={handleChange}
+                maxLength={100}
                 disabled={saving}
+                required
               />
             </div>
 

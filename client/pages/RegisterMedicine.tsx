@@ -2,6 +2,11 @@ import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import {
+  validateTextInput,
+  validateNumberInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 import { createMedicine, getMedicines } from "@/api/requests";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,20 +87,72 @@ export default function SignUpMedicine() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { name, substance, dosageValue, measurementUnit, minimumStock } =
-      formData;
+    const nameValidation = validateTextInput(formData.name, {
+      maxLength: 100,
+      required: true,
+      fieldName: "Nome do medicamento",
+    });
 
-    if (
-      !name ||
-      !substance ||
-      !dosageValue ||
-      !measurementUnit ||
-      !minimumStock
-    ) {
+    if (!nameValidation.valid) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos antes de continuar.",
-        variant: "warning",
+        title: "Erro de validação",
+        description: nameValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const substanceValidation = validateTextInput(formData.substance, {
+      maxLength: 100,
+      required: true,
+      fieldName: "Princípio ativo",
+    });
+
+    if (!substanceValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: substanceValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    const dosageValidation = validateTextInput(formData.dosageValue, {
+      maxLength: 30,
+      required: true,
+      fieldName: "Dosagem",
+    });
+
+    if (!dosageValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: dosageValidation.error,
+        variant: "error",
+      });
+      return;
+    }
+
+    if (!formData.measurementUnit) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Selecione a unidade de medida.",
+        variant: "error",
+      });
+      return;
+    }
+
+    const minStockValidation = validateNumberInput(formData.minimumStock, {
+      min: 0,
+      max: 999999,
+      required: false,
+      fieldName: "Estoque mínimo",
+    });
+
+    if (!minStockValidation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: minStockValidation.error,
+        variant: "error",
       });
       return;
     }
@@ -104,16 +161,16 @@ export default function SignUpMedicine() {
 
     try {
       await createMedicine(
-        name,
-        substance,
-        dosageValue,
-        measurementUnit,
-        parseInt(minimumStock, 10) ?? null,
+        nameValidation.sanitized!,
+        substanceValidation.sanitized!,
+        dosageValidation.sanitized!,
+        formData.measurementUnit,
+        minStockValidation.value ?? null,
       );
 
       toast({
         title: "Medicamento cadastrado!",
-        description: `${name} (${dosageValue}${measurementUnit}) foi registrado com sucesso.`,
+        description: `${nameValidation.sanitized} (${dosageValidation.sanitized}${formData.measurementUnit}) foi registrado com sucesso.`,
         variant: "success",
       });
 
@@ -147,9 +204,11 @@ export default function SignUpMedicine() {
               <Input
                 list="lista-medicamentos"
                 value={formData.name}
-                onChange={(e) => handleMedicineSelect(e.target.value)}
+                onChange={(e) => handleMedicineSelect(sanitizeInput(e.target.value))}
+                maxLength={255}
                 placeholder="Digite o nome do medicamento"
                 disabled={saving}
+                required
               />
               <datalist id="lista-medicamentos">
                 {medicines.map((m) => (
@@ -163,8 +222,13 @@ export default function SignUpMedicine() {
               <Input
                 value={formData.substance}
                 onChange={(e) =>
-                  setFormData({ ...formData, substance: e.target.value })
+                  setFormData({
+                    ...formData,
+                    substance: sanitizeInput(e.target.value),
+                  })
                 }
+                maxLength={255}
+                required
                 placeholder="Paracetamol"
                 disabled={saving}
               />
@@ -178,9 +242,11 @@ export default function SignUpMedicine() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      dosageValue: sanitizeDosage(e.target.value),
+                      dosageValue: sanitizeInput(sanitizeDosage(e.target.value)),
                     })
                   }
+                  maxLength={50}
+                  required
                   placeholder="10,5 ou 10/100"
                   disabled={saving}
                 />

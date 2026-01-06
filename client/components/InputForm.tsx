@@ -7,6 +7,11 @@ import { ptBR } from "date-fns/locale";
 import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
 import { InputStockType, StockTypeLabels, SectorType } from "@/utils/enums";
+import {
+  validateNumberInput,
+  validateTextInput,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -73,16 +78,42 @@ export function InputForm({
   };
 
   const handleSubmit = () => {
-    const quantity = Number(formData.quantity);
-
     if (!formData.inputId) {
       toast({ title: "Selecione um insumo", variant: "error" });
       return;
     }
 
-    if (isNaN(quantity) || quantity <= 0) {
-      toast({ title: "Informe uma quantidade válida", variant: "error" });
+    const quantityValidation = validateNumberInput(formData.quantity, {
+      min: 1,
+      max: 999999,
+      required: true,
+      fieldName: "Quantidade",
+    });
+
+    if (!quantityValidation.valid || !quantityValidation.value) {
+      toast({
+        title: "Erro de validação",
+        description: quantityValidation.error || "Informe uma quantidade válida",
+        variant: "error",
+      });
       return;
+    }
+
+    if (formData.lot) {
+      const lotValidation = validateTextInput(formData.lot, {
+        maxLength: 100,
+        required: false,
+        fieldName: "Lote",
+      });
+
+      if (!lotValidation.valid) {
+        toast({
+          title: "Erro de validação",
+          description: lotValidation.error,
+          variant: "error",
+        });
+        return;
+      }
     }
 
     if (isEmergencyCart && !formData.drawerId) {
@@ -97,14 +128,14 @@ export function InputForm({
 
     onSubmit({
       inputId: formData.inputId,
-      quantity,
+      quantity: quantityValidation.value,
       isEmergencyCart,
       drawerId: formData.drawerId || undefined,
       cabinetId: formData.cabinetId || undefined,
       validity: formData.validity,
       stockType: formData.stockType,
       sector: formData.sector,
-      lot: formData.lot,
+      lot: formData.lot ? sanitizeInput(formData.lot) : undefined,
     });
   };
 
@@ -163,8 +194,11 @@ export function InputForm({
           <input
             type="number"
             value={formData.quantity}
-            onChange={(e) => updateField("quantity", e.target.value)}
+            onChange={(e) => updateField("quantity", e.target.value.replace(/[^0-9]/g, ""))}
+            min={1}
+            max={999999}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+            required
           />
         </div>
         <div className="grid gap-2">
@@ -260,7 +294,8 @@ export function InputForm({
         <input
           type="text"
           value={formData.lot}
-          onChange={(e) => updateField("lot", e.target.value)}
+          onChange={(e) => updateField("lot", sanitizeInput(e.target.value))}
+          maxLength={100}
           placeholder="Ex: L2024-01"
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
         />

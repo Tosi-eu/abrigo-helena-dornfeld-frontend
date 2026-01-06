@@ -198,6 +198,7 @@ export interface MedicineFormProps {
     origin: string;
     stockType: string;
     sector: string;
+    lot?: string | null;
   }) => void;
 }
 

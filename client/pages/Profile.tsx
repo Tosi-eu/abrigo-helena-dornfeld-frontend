@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import Layout from "@/components/Layout";
 import { updateUser } from "@/api/requests";
+import {
+  validateEmail,
+  validatePassword,
+  sanitizeInput,
+} from "@/helpers/validation.helper";
+import { authStorage } from "@/helpers/auth.helper";
 
 import {
   Card,
@@ -28,18 +34,21 @@ export default function Profile() {
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [newPasswordValidation, setNewPasswordValidation] = useState<{
+    valid: boolean;
+    error?: string;
+  } | null>(null);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        const u = JSON.parse(raw);
-        setCurrentEmail(u?.login || "");
-        setNewEmail(u?.login || "");
-        setUserId(u.id || null);
+      const user = authStorage.getUser();
+      if (user) {
+        setCurrentEmail(user?.login || "");
+        setNewEmail(user?.login || "");
+        setUserId(user.id || null);
       }
     } catch (e) {
-      console.error("Erro ao ler usuário do localStorage", e);
+      console.error("Erro ao ler usuário do sessionStorage", e);
     }
   }, []);
 
@@ -47,25 +56,75 @@ export default function Profile() {
     e.preventDefault();
     if (!userId)
       return toast({ title: "Usuário não identificado", variant: "error" });
+
+    // Validate current email
+    const currentEmailValidation = validateEmail(currentEmail);
+    if (!currentEmailValidation.valid) {
+      return toast({
+        title: "E-mail atual inválido",
+        description: currentEmailValidation.error,
+        variant: "error",
+      });
+    }
+
+    // Validate new email
+    const newEmailValidation = validateEmail(newEmail);
+    if (!newEmailValidation.valid) {
+      return toast({
+        title: "Novo e-mail inválido",
+        description: newEmailValidation.error,
+        variant: "error",
+      });
+    }
+
+    // Validate current password
+    if (!currentPassword) {
+      return toast({
+        title: "Senha atual obrigatória",
+        description: "A senha atual é obrigatória para autenticar",
+        variant: "error",
+      });
+    }
+
+    // Validate new password
+    if (!newPassword) {
+      return toast({
+        title: "Nova senha obrigatória",
+        description: "Informe a nova senha",
+        variant: "error",
+      });
+    }
+
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return toast({
+        title: "Senha inválida",
+        description: passwordValidation.error,
+        variant: "error",
+      });
+    }
+
     setLoading(true);
 
     try {
-      if (!currentPassword)
-        throw new Error("Senha atual é obrigatória para autenticar");
-      if (!newPassword) throw new Error("Informe a nova senha");
+      const sanitizedNewEmail = sanitizeInput(newEmail);
+      const sanitizedNewPassword = sanitizeInput(newPassword);
+      const sanitizedCurrentEmail = sanitizeInput(currentEmail);
+      const sanitizedCurrentPassword = sanitizeInput(currentPassword);
 
       const data = await updateUser(userId, {
-        login: newEmail,
-        password: newPassword,
-        currentLogin: currentEmail,
-        currentPassword,
+        login: sanitizedNewEmail,
+        password: sanitizedNewPassword,
+        currentLogin: sanitizedCurrentEmail,
+        currentPassword: sanitizedCurrentPassword,
       });
 
-      localStorage.setItem("user", JSON.stringify(data));
+      authStorage.setUser(data);
 
       toast({ title: "Perfil atualizado", variant: "success" });
       setCurrentPassword("");
       setNewPassword("");
+      setNewPasswordValidation(null);
       setCurrentEmail(data?.login || "");
       setNewEmail(data?.login || "");
     } catch (err: any) {
@@ -76,7 +135,7 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    authStorage.clearAll();
     navigate("/user/login");
   };
 
@@ -99,7 +158,8 @@ export default function Profile() {
                     id="currentEmail"
                     type="email"
                     value={currentEmail}
-                    onChange={(e) => setCurrentEmail(e.target.value)}
+                    onChange={(e) => setCurrentEmail(sanitizeInput(e.target.value))}
+                    maxLength={255}
                     required
                   />
                 </div>
@@ -110,31 +170,72 @@ export default function Profile() {
                     id="currentPassword"
                     type="password"
                     value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    onChange={(e) => setCurrentPassword(sanitizeInput(e.target.value))}
+                    maxLength={128}
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="newEmail">Novo e-mail</Label>
+                  <Label htmlFor="newEmail">
+                    Novo e-mail
+                    <span className="text-xs text-slate-500 ml-2 block mt-1">
+                      (máximo 255 caracteres)
+                    </span>
+                  </Label>
                   <Input
                     id="newEmail"
                     type="email"
                     value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
+                    onChange={(e) => setNewEmail(sanitizeInput(e.target.value))}
+                    maxLength={255}
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="newPassword">Nova senha</Label>
+                  <Label htmlFor="newPassword">
+                    Nova senha
+                    <span className="text-xs text-slate-500 ml-2 block mt-1">
+                      (mín. 8 caracteres, incluir: maiúscula, minúscula, número e caractere especial)
+                    </span>
+                  </Label>
                   <Input
                     id="newPassword"
                     type="password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => {
+                      const sanitized = sanitizeInput(e.target.value);
+                      setNewPassword(sanitized);
+                      if (sanitized.length > 0) {
+                        const validation = validatePassword(sanitized);
+                        setNewPasswordValidation({
+                          valid: validation.valid,
+                          error: validation.error,
+                        });
+                      } else {
+                        setNewPasswordValidation(null);
+                      }
+                    }}
+                    maxLength={128}
                     required
+                    className={
+                      newPasswordValidation && !newPasswordValidation.valid
+                        ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                        : ""
+                    }
                   />
+                  {newPasswordValidation && (
+                    <div className="text-xs mt-1">
+                      {newPasswordValidation.valid ? (
+                        <span className="text-green-600">✓ Senha válida</span>
+                      ) : (
+                        <span className="text-red-600">
+                          ✗ {newPasswordValidation.error}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -142,10 +243,18 @@ export default function Profile() {
                 <Button
                   type="submit"
                   className="w-full bg-sky-600 hover:bg-sky-700"
-                  disabled={loading}
+                  disabled={
+                    loading ||
+                    (newPasswordValidation !== null && !newPasswordValidation.valid)
+                  }
                 >
                   Salvar
                 </Button>
+                {newPasswordValidation !== null && !newPasswordValidation.valid && (
+                  <p className="text-xs text-red-600 text-center mt-1">
+                    Corrija a senha antes de continuar
+                  </p>
+                )}
 
                 <Button
                   type="button"
