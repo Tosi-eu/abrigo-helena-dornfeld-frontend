@@ -41,28 +41,71 @@ function buildQueryString(params?: Record<string, any>): string {
 }
 
 function sanitizeErrorMessage(message: string): string {
+  if (!message || typeof message !== "string") {
+    return "Ocorreu um erro. Por favor, tente novamente.";
+  }
+
   const sensitivePatterns = [
     /database/i,
     /sql/i,
+    /query/i,
     /connection/i,
+    /postgres/i,
+    /mysql/i,
+    /mongodb/i,
+    /sequelize/i,
+    /prisma/i,
+    /orm/i,
     /password/i,
     /token/i,
     /secret/i,
     /api[_-]?key/i,
+    /auth/i,
+    /credential/i,
+    /bearer/i,
+    /jwt/i,
+    /session/i,
     /file[_-]?path/i,
+    /directory/i,
+    /\.env/i,
+    /config/i,
     /stack[_-]?trace/i,
+    /error[_-]?code/i,
+    /exception/i,
+    /at\s+\w+\.\w+/i, 
+    /line\s+\d+/i,
+    /column\s+\d+/i,
+    /host/i,
+    /port/i,
+    /endpoint/i,
+    /url/i,
+    /uri/i,
+    /process\.env/i,
+    /environment/i,
+    /os/i,
+    /platform/i,
   ];
 
   if (sensitivePatterns.some((pattern) => pattern.test(message))) {
     return "Ocorreu um erro. Por favor, tente novamente.";
   }
 
-  const maxLength = 200;
-  if (message.length > maxLength) {
-    return message.substring(0, maxLength) + "...";
+  const cleanedMessage = message
+    .split("\n")[0] 
+    .replace(/at\s+.*/gi, "") 
+    .replace(/\(.*\)/g, "") 
+    .trim();
+
+  const maxLength = 150;
+  if (cleanedMessage.length > maxLength) {
+    return cleanedMessage.substring(0, maxLength) + "...";
   }
 
-  return message;
+  if (cleanedMessage.length < 3) {
+    return "Ocorreu um erro. Por favor, tente novamente.";
+  }
+
+  return cleanedMessage;
 }
 
 async function request(path: string, options: RequestInit = {}) {

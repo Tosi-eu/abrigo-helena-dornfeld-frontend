@@ -179,9 +179,6 @@ export default function Profile() {
                 <div>
                   <Label htmlFor="newEmail">
                     Novo e-mail
-                    <span className="text-xs text-slate-500 ml-2 block mt-1">
-                      (máximo 255 caracteres)
-                    </span>
                   </Label>
                   <Input
                     id="newEmail"
@@ -196,9 +193,6 @@ export default function Profile() {
                 <div>
                   <Label htmlFor="newPassword">
                     Nova senha
-                    <span className="text-xs text-slate-500 ml-2 block mt-1">
-                      (mín. 8 caracteres, incluir: maiúscula, minúscula, número e caractere especial)
-                    </span>
                   </Label>
                   <Input
                     id="newPassword"

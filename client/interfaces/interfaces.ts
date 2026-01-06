@@ -142,7 +142,8 @@ export interface StockItemRaw {
 export interface StockItem {
   id: number;
   name: string;
-  description: string;
+  description?: string | null;
+  activeSubstance?: string | null;
   expiry: string;
   quantity: number;
   minimumStock?: number;

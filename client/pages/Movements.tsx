@@ -130,7 +130,7 @@ export default function InputMovements() {
   return (
     <Layout title="Movimentações">
       <div className="w-full flex justify-center p-10">
-        <Card className="w-full max-w-6xl bg-white border shadow-md p-8 space-y-6">
+        <Card className="w-full max-w-[95%] xl:max-w-7xl bg-white border shadow-md p-8 space-y-6 overflow-x-auto">
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Entradas</h2>
 

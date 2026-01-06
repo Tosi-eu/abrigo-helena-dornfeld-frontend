@@ -167,11 +167,6 @@ export default function Auth() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Senha
-                    {!isLogin && (
-                      <span className="text-xs text-slate-500 ml-2 block mt-1">
-                        (mín. 8 caracteres, deve incluir: maiúscula, minúscula, número e caractere especial)
-                      </span>
-                    )}
                   </label>
                   <input
                     type="password"

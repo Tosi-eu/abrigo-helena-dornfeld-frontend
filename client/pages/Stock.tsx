@@ -20,6 +20,7 @@ import {
   actionTitles,
 } from "@/helpers/toaster.helper";
 import { toast } from "@/hooks/use-toast.hook";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 export default function Stock() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function Stock() {
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
+  const [allRawData, setAllRawData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
@@ -42,7 +44,8 @@ export default function Stock() {
     return raw.map((item) => ({
       id: item.estoque_id,
       name: item.nome || "-",
-      description: item.principio_ativo || item.descricao || "-",
+      activeSubstance: item.principio_ativo || "-",
+      description: item.descricao || "-",
       expiry: item.validade || "-",
       quantity: Number(item.quantidade) || 0,
       cabinet: item.armario_id ?? "-",
@@ -81,6 +84,18 @@ export default function Stock() {
     }
   }
 
+  async function loadAllStock() {
+    try {
+      const allItems = await fetchAllPaginated(
+        (page, limit) => getStock(page, limit),
+        100,
+      );
+      setAllRawData(allItems);
+    } catch (err) {
+      console.error("Erro ao carregar todos os itens:", err);
+    }
+  }
+
   useEffect(() => {
     async function init() {
       if (data) {
@@ -90,6 +105,7 @@ export default function Stock() {
       }
 
       await loadStock(1);
+      await loadAllStock();
     }
 
     init();
@@ -101,14 +117,12 @@ export default function Stock() {
     }
   }, [page]);
 
+  
   const columns = [
-    { key: "stockType", label: "Tipo de Estoque", editable: false },
+    { key: "stockType", label: "Tipo", editable: false },
     { key: "name", label: "Nome", editable: true },
-    {
-      key: "description",
-      label: "Descrição / Princípio Ativo",
-      editable: true,
-    },
+    { key: "activeSubstance", label: "P. Ativo", editable: true },
+    { key: "description", label: "Descrição", editable: true },
     { key: "expiry", label: "Validade", editable: true },
     { key: "quantity", label: "Quantidade", editable: true },
     { key: "patient", label: "Residente", editable: false },
@@ -263,7 +277,11 @@ export default function Stock() {
           </button>
 
           <button
-            onClick={() => navigate("/stock/out")}
+            onClick={() =>
+              navigate("/stock/out", {
+                state: { data: allRawData.length > 0 ? allRawData : undefined },
+              })
+            }
             className="
               h-12 px-6 rounded-lg font-semibold
               bg-red-600 text-white

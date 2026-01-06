@@ -161,9 +161,6 @@ export default function ForgotPassword() {
               <div className="flex flex-col gap-2">
                 <Label>
                   Nova senha
-                  <span className="text-xs text-slate-500 ml-2 block mt-1">
-                    (mín. 8 caracteres, deve incluir: maiúscula, minúscula, número e caractere especial)
-                  </span>
                 </Label>
                 <Input
                   type="password"

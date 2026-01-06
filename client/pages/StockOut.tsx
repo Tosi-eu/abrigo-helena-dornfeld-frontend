@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   createMovement,
   createStockOut,
@@ -39,6 +39,8 @@ const UI_PAGE_SIZE = 6;
 export default function StockOut() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { data: passedData } = location.state || {};
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<StockItemRaw[]>([]);
@@ -62,16 +64,16 @@ export default function StockOut() {
   async function fetchStock() {
     setLoading(true);
     try {
-      const allItems = await fetchAllPaginated(
-        (page, limit) =>
-          apiGetStock(
-            page,
-            limit,
-            operationType !== "Selecione" ? operationType : undefined,
-          ),
-        100,
-      );
-      setItems(allItems as StockItemRaw[]);
+
+      if (passedData && passedData.length > 0) {
+        const filtered =
+          operationType !== "Selecione"
+            ? passedData.filter(
+                (item: StockItemRaw) => item.tipo_item === operationType,
+              )
+            : passedData;
+        setItems(filtered as StockItemRaw[]);
+      }
     } catch (err) {
       console.error(err);
       toast({
@@ -335,7 +337,6 @@ export default function StockOut() {
         </div>
       </div>
 
-      {/* Wizard Steps */}
       <div className="relative overflow-hidden max-w-7xl mx-auto bg-white border border-slate-400 rounded-xl p-10 px-16 shadow-sm mt-10">
         {step !== StockWizardSteps.TIPO && (
           <button

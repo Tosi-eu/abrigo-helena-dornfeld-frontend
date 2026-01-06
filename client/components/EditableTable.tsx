@@ -245,15 +245,19 @@ export default function EditableTable({
       </div>
 
       <div className="overflow-hidden">
-        <table className="w-full">
+        <table className="w-full min-w-max">
           <thead>
             <tr className="bg-sky-100 border-b">
               {columns.map((col) => (
-                <th key={col.key} className="px-4 py-3 text-sm font-semibold">
+                <th key={col.key} className="px-4 py-3 text-xs font-semibold">
                   {col.label}
                 </th>
               ))}
-              {showAddons && <th className="px-4 py-3">Ações</th>}
+              {showAddons && (
+                <th className="px-4 py-3 text-xs font-semibold sticky right-0 bg-sky-100 z-10 min-w-[120px]">
+                  Ações
+                </th>
+              )}
             </tr>
           </thead>
 
@@ -276,7 +280,7 @@ export default function EditableTable({
                       variants={rowVariants}
                       initial="initial"
                       animate="animate"
-                      className={`border-b ${
+                      className={`border-b group ${
                         row
                           ? row.status === "suspended"
                             ? "bg-slate-200 opacity-70"
@@ -287,28 +291,34 @@ export default function EditableTable({
                       {columns.map((col) => (
                         <td
                           key={col.key}
-                          className="px-4 py-3 text-sm text-center"
+                          className="px-4 py-3 text-xs text-center"
                         >
                           {renderCell(row, col.key)}
                         </td>
                       ))}
 
                       {showAddons && (
-                        <td className="px-4 py-3 flex justify-center gap-4">
+                        <td
+                          className={`px-4 py-3 flex justify-center gap-4 sticky right-0 z-10 min-w-[120px] ${
+                            row?.status === "suspended"
+                              ? "bg-slate-200 opacity-70"
+                              : "bg-white group-hover:bg-sky-50"
+                          }`}
+                        >
                           {row && (
                             <>
                               <button
                                 onClick={() => handleEditClick(row)}
                                 className="text-sky-700 hover:text-sky-900"
                               >
-                                <Pencil size={18} />
+                                <Pencil size={16} />
                               </button>
 
                               <button
                                 onClick={() => setDeleteIndex(i)}
                                 className="text-red-600 hover:text-red-800"
                               >
-                                <Trash2 size={18} />
+                                <Trash2 size={16} />
                               </button>
 
                               <button
@@ -319,7 +329,7 @@ export default function EditableTable({
                                   disabledActionClass
                                 }`}
                               >
-                                <UserMinus size={18} />
+                                <UserMinus size={16} />
                               </button>
 
                               <button
@@ -339,9 +349,9 @@ export default function EditableTable({
                                 }`}
                               >
                                 {isActive(row) ? (
-                                  <PauseCircle size={18} />
+                                  <PauseCircle size={16} />
                                 ) : (
-                                  <PlayCircle size={18} />
+                                  <PlayCircle size={16} />
                                 )}
                               </button>
                               {entityType === "stock" && onTransferSector && (
@@ -355,7 +365,7 @@ export default function EditableTable({
                                     !canTransfer(row) && disabledActionClass
                                   }`}
                                 >
-                                  <ArrowLeftRight size={18} />
+                                  <ArrowLeftRight size={16} />
                                 </button>
                               )}
                             </>
