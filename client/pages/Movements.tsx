@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
+import { toast } from "@/hooks/use-toast.hook";
 
 import { getInputMovements, getMedicineMovements } from "@/api/requests";
 import { Card } from "@/components/ui/card";
@@ -58,65 +59,85 @@ export default function InputMovements() {
   async function fetchEntries() {
     const requestId = +entriesRequestId.current;
 
-    const [insumos, medicamentos] = await Promise.all([
-      getInputMovements({
-        type: "entrada",
-        limit: REQUEST_LIMIT,
-        page: entriesInputPage,
-      }),
-      getMedicineMovements({
-        type: "entrada",
-        limit: REQUEST_LIMIT,
-        page: entriesMedicinePage,
-      }),
-    ]);
+    try {
+      const [insumos, medicamentos] = await Promise.all([
+        getInputMovements({
+          type: "entrada",
+          limit: REQUEST_LIMIT,
+          page: entriesInputPage,
+        }),
+        getMedicineMovements({
+          type: "entrada",
+          limit: REQUEST_LIMIT,
+          page: entriesMedicinePage,
+        }),
+      ]);
 
-    if (requestId !== entriesRequestId.current) return;
+      if (requestId !== entriesRequestId.current) return;
 
-    const merged = [
-      ...insumos.data.map(normalizeMovement),
-      ...medicamentos.data.map(normalizeMovement),
-    ].sort(
-      (a, b) =>
-        new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
-    );
+      const merged = [
+        ...insumos.data.map(normalizeMovement),
+        ...medicamentos.data.map(normalizeMovement),
+      ].sort(
+        (a, b) =>
+          new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
+      );
 
-    setEntries(merged.slice(0, TABLE_LIMIT));
-    setEntriesHasNext(
-      insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
-    );
+      setEntries(merged.slice(0, TABLE_LIMIT));
+      setEntriesHasNext(
+        insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
+      );
+    } catch (err: any) {
+      toast({
+        title: "Erro ao carregar entradas",
+        description: err?.message || "Não foi possível carregar as movimentações de entrada.",
+        variant: "error",
+      });
+      setEntries([]);
+      setEntriesHasNext(false);
+    }
   }
 
   async function fetchExits() {
     const requestId = +exitsRequestId.current;
 
-    const [insumos, medicamentos] = await Promise.all([
-      getInputMovements({
-        type: "saida",
-        limit: REQUEST_LIMIT,
-        page: exitsInputPage,
-      }),
-      getMedicineMovements({
-        type: "saida",
-        limit: REQUEST_LIMIT,
-        page: exitsMedicinePage,
-      }),
-    ]);
+    try {
+      const [insumos, medicamentos] = await Promise.all([
+        getInputMovements({
+          type: "saida",
+          limit: REQUEST_LIMIT,
+          page: exitsInputPage,
+        }),
+        getMedicineMovements({
+          type: "saida",
+          limit: REQUEST_LIMIT,
+          page: exitsMedicinePage,
+        }),
+      ]);
 
-    if (requestId !== exitsRequestId.current) return;
+      if (requestId !== exitsRequestId.current) return;
 
-    const merged = [
-      ...insumos.data.map(normalizeMovement),
-      ...medicamentos.data.map(normalizeMovement),
-    ].sort(
-      (a, b) =>
-        new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
-    );
+      const merged = [
+        ...insumos.data.map(normalizeMovement),
+        ...medicamentos.data.map(normalizeMovement),
+      ].sort(
+        (a, b) =>
+          new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
+      );
 
-    setExits(merged.slice(0, TABLE_LIMIT));
-    setExitsHasNext(
-      insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
-    );
+      setExits(merged.slice(0, TABLE_LIMIT));
+      setExitsHasNext(
+        insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
+      );
+    } catch (err: any) {
+      toast({
+        title: "Erro ao carregar saídas",
+        description: err?.message || "Não foi possível carregar as movimentações de saída.",
+        variant: "error",
+      });
+      setExits([]);
+      setExitsHasNext(false);
+    }
   }
 
   useEffect(() => {

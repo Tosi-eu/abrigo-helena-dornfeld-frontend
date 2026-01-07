@@ -54,8 +54,6 @@ export default function Profile() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId)
-      return toast({ title: "Usuário não identificado", variant: "error" });
 
     // Validate current email
     const currentEmailValidation = validateEmail(currentEmail);
@@ -112,7 +110,7 @@ export default function Profile() {
       const sanitizedCurrentEmail = sanitizeInput(currentEmail);
       const sanitizedCurrentPassword = sanitizeInput(currentPassword);
 
-      const data = await updateUser(userId, {
+      const data = await updateUser({
         login: sanitizedNewEmail,
         password: sanitizedNewPassword,
         currentLogin: sanitizedCurrentEmail,
@@ -244,11 +242,6 @@ export default function Profile() {
                 >
                   Salvar
                 </Button>
-                {newPasswordValidation !== null && !newPasswordValidation.valid && (
-                  <p className="text-xs text-red-600 text-center mt-1">
-                    Corrija a senha antes de continuar
-                  </p>
-                )}
 
                 <Button
                   type="button"

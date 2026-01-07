@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
+import { toast } from "@/hooks/use-toast.hook";
 import { getResidents } from "@/api/requests";
 
 export default function Resident() {
@@ -21,7 +22,13 @@ export default function Resident() {
       setHasNextPage(res.hasNext);
       setPage(pageNumber);
     } catch (err: any) {
-      console.error("Erro ao buscar residentes:", err);
+      toast({
+        title: "Erro ao carregar residentes",
+        description: err?.message || "Não foi possível carregar a lista de residentes.",
+        variant: "error",
+      });
+      setResidents([]);
+      setHasNextPage(false);
     }
   }
 

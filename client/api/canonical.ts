@@ -120,13 +120,6 @@ async function request(path: string, options: RequestInit = {}) {
     ...options,
   });
 
-  if (res.status === 401) {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    window.location.href = "/user/login";
-    throw new Error("Sessão expirada");
-  }
-
   const data = await res.json().catch(() => null);
 
   if (!res.ok) {

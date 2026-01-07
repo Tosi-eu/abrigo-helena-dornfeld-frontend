@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast.hook";
 
 import {
   ResponsiveContainer,
@@ -212,7 +213,12 @@ export default function Dashboard() {
           total: Number(drawer.total_geral) || 0,
         }));
         setDrawerStockData(formattedDrawerData);
-      } catch (err) {
+      } catch (err: any) {
+        toast({
+          title: "Erro ao carregar dados",
+          description: err?.message || "Não foi possível carregar os dados do dashboard.",
+          variant: "error",
+        });
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
         setLoadingNonMovement(false);
@@ -240,7 +246,12 @@ export default function Dashboard() {
             ),
           );
         }
-      } catch (err) {
+      } catch (err: any) {
+        toast({
+          title: "Erro ao carregar notificações",
+          description: err?.message || "Não foi possível carregar as notificações do dia.",
+          variant: "error",
+        });
         console.error("Erro ao buscar notificações do dia", err);
       }
     }

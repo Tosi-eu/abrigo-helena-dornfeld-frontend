@@ -9,12 +9,6 @@ import {
   validatePassword,
   sanitizeInput,
 } from "@/helpers/validation.helper";
-import {
-  checkRateLimit,
-  recordAttempt,
-  resetRateLimit,
-  getRemainingAttempts,
-} from "@/helpers/rate-limit.helper";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -55,21 +49,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const rateLimitKey = isLogin ? `login:${login}` : "register";
-      const rateLimitCheck = checkRateLimit(rateLimitKey);
-
-      if (!rateLimitCheck.allowed) {
-        toast({
-          title: "Muitas tentativas",
-          description:
-            rateLimitCheck.message ||
-            `Tente novamente em ${rateLimitCheck.remainingTime} minutos.`,
-          variant: "error",
-        });
-        setLoading(false);
-        return;
-      }
-
       const emailValidation = validateEmail(login);
       if (!emailValidation.valid) {
         toast({
@@ -99,29 +78,60 @@ export default function Auth() {
 
       if (isLogin) {
         await authLogin(sanitizedLogin, sanitizedPassword);
-        resetRateLimit(rateLimitKey);
         toast({ title: "Login realizado!", variant: "success" });
       } else {
         await register(sanitizedLogin, sanitizedPassword);
         await authLogin(sanitizedLogin, sanitizedPassword);
-        resetRateLimit(rateLimitKey);
         toast({ title: "Cadastro realizado!", variant: "success" });
       }
 
       navigate("/dashboard");
     } catch (err: any) {
-      const rateLimitKey = isLogin ? `login:${login}` : "register";
-      recordAttempt(rateLimitKey);
+      const rawMessage = err?.message?.toLowerCase() || "";
+      
+      let errorTitle = "Erro";
+      let errorDescription = "Ocorreu um erro inesperado. Tente novamente.";
 
-      const remaining = getRemainingAttempts(rateLimitKey);
-      const errorMessage =
-        remaining > 0
-          ? `${err?.message ?? "Erro ao autenticar"}. Tentativas restantes: ${remaining}`
-          : err?.message ?? "Erro ao autenticar";
+      if (isLogin) {
+        if (rawMessage.includes("credenciais")) {
+          errorTitle = "Login ou senha incorretos";
+          errorDescription = "Verifique seu e-mail e senha. Se esqueceu sua senha, use a opção 'Esqueci minha senha'.";
+        } else if (rawMessage.includes("login e senha obrigatórios") || 
+                   rawMessage.includes("obrigatóri")) {
+          errorTitle = "Campos obrigatórios";
+          errorDescription = "Por favor, preencha o e-mail e a senha.";
+        } else if (rawMessage.includes("sessão expirada") || 
+                   rawMessage.includes("token expirado") || 
+                   rawMessage.includes("sessão inválida")) {
+          errorTitle = "Sessão expirada";
+          errorDescription = "Sua sessão expirou. Por favor, faça login novamente.";
+        } else {
+          errorTitle = "Erro ao fazer login";
+          errorDescription = err?.message || "Não foi possível fazer login. Verifique suas credenciais e tente novamente.";
+        }
+      } else {
+        if (rawMessage.includes("login já cadastrado") || 
+            rawMessage.includes("duplicate") || 
+            rawMessage.includes("já existe")) {
+          errorTitle = "E-mail já cadastrado";
+          errorDescription = "Este e-mail já está em uso. Tente fazer login ou use outro e-mail.";
+        } else if (rawMessage.includes("login e senha obrigatórios") || 
+                   rawMessage.includes("obrigatóri")) {
+          errorTitle = "Campos obrigatórios";
+          errorDescription = "Por favor, preencha o e-mail e a senha.";
+        } else if (rawMessage.includes("senha inválida") || 
+                   rawMessage.includes("senha não atende")) {
+          errorTitle = "Senha inválida";
+          errorDescription = "A senha não atende aos requisitos de segurança. Verifique as regras de senha.";
+        } else {
+          errorTitle = "Erro ao cadastrar";
+          errorDescription = err?.message || "Não foi possível criar a conta. Verifique os dados e tente novamente.";
+        }
+      }
 
       toast({
-        title: "Erro",
-        description: errorMessage,
+        title: errorTitle,
+        description: errorDescription,
         variant: "error",
       });
     } finally {

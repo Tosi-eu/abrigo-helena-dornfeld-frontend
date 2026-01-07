@@ -4,28 +4,17 @@ import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
 import { resetPassword } from "@/api/requests";
 import {
-  validateEmail,
   validatePassword,
   sanitizeInput,
 } from "@/helpers/validation.helper";
-import {
-  checkRateLimit,
-  recordAttempt,
-  resetRateLimit,
-  getRemainingAttempts,
-} from "@/helpers/rate-limit.helper";
-
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<
     "weak" | "medium" | "strong" | null
@@ -54,24 +43,10 @@ export default function ForgotPassword() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const rateLimitKey = `password-reset:${email}`;
-    const rateLimitCheck = checkRateLimit(rateLimitKey);
-
-    if (!rateLimitCheck.allowed) {
+    if (!login.trim()) {
       return toast({
-        title: "Muitas tentativas",
-        description:
-          rateLimitCheck.message ||
-          `Tente novamente em ${rateLimitCheck.remainingTime} minutos.`,
-        variant: "error",
-      });
-    }
-
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.valid) {
-      return toast({
-        title: "E-mail inválido",
-        description: emailValidation.error || "Informe um e-mail válido",
+        title: "Login obrigatório",
+        description: "Informe seu login",
         variant: "error",
       });
     }
@@ -85,14 +60,20 @@ export default function ForgotPassword() {
       });
     }
 
+    if (newPassword !== confirmPassword) {
+      return toast({
+        title: "Senhas não coincidem",
+        description: "A nova senha e a confirmação devem ser iguais.",
+        variant: "error",
+      });
+    }
+
     setLoading(true);
 
     try {
-      const sanitizedEmail = sanitizeInput(email);
-      const sanitizedPassword = sanitizeInput(newPassword);
-      await resetPassword(sanitizedEmail, sanitizedPassword);
-
-      resetRateLimit(rateLimitKey);
+      const sanitizedLogin = sanitizeInput(login);
+      const sanitizedNewPassword = sanitizeInput(newPassword);
+      await resetPassword(sanitizedLogin, sanitizedNewPassword);
 
       toast({
         title: "Sucesso!",
@@ -100,19 +81,23 @@ export default function ForgotPassword() {
         variant: "success",
       });
 
-      setTimeout(() => navigate("/user/login"), 1500);
+      navigate("/user/login");
     } catch (err: any) {
-      recordAttempt(rateLimitKey);
-      const remaining = getRemainingAttempts(rateLimitKey);
+      const rawMessage = err?.message?.toLowerCase() || "";
+      let errorTitle = "Erro";
+      let errorDescription = "Ocorreu um erro ao redefinir a senha.";
 
-      const errorMessage =
-        remaining > 0
-          ? `${err.message}. Tentativas restantes: ${remaining}`
-          : err.message;
+      if (rawMessage.includes("login não encontrado") || 
+          rawMessage.includes("não encontrado")) {
+        errorTitle = "Login não encontrado";
+        errorDescription = "O login informado não existe no sistema. Verifique o login e tente novamente.";
+      } else {
+        errorDescription = err?.message || "Erro ao redefinir senha. Verifique os dados e tente novamente.";
+      }
 
       toast({
-        title: "Erro",
-        description: errorMessage,
+        title: errorTitle,
+        description: errorDescription,
         variant: "error",
       });
     } finally {
@@ -121,116 +106,154 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-4">
-              <img src={logo} alt="Logo" className="h-20 w-auto" />
-              <h1 className="text-lg md:text-xl font-semibold text-slate-900 hidden md:block">
-                Abrigo Helena Dornfeld
-              </h1>
-            </div>
-          </div>
+    <div className="min-h-screen bg-sky-100 flex flex-col">
+      <header className="shrink-0 border-b border-sky-200 bg-sky-100">
+        <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
+          <img src={logo} alt="Logo" className="h-12 w-auto" />
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight hidden sm:block">
+            Abrigo Helena Dornfeld
+          </h1>
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <Card className="w-full max-w-md shadow-sm border border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-center text-lg">
-              Redefinir Senha
-            </CardTitle>
-          </CardHeader>
+      <main className="flex-1 bg-slate-50">
+        <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 pt-28">
+          <div className="max-w-md mx-auto">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8">
+              <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-6">
+                Redefinir Senha
+              </h2>
 
-          <CardContent>
-            <form onSubmit={handleResetPassword} className="space-y-5">
-              <div className="flex flex-col gap-2">
-                <Label>E-mail cadastrado</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(sanitizeInput(e.target.value))}
-                  maxLength={255}
-                  placeholder="email@exemplo.com"
-                  disabled={loading}
-                  required
-                />
-              </div>
+              <form onSubmit={handleResetPassword} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Login
+                  </label>
+                  <input
+                    type="text"
+                    value={login}
+                    onChange={(e) => setLogin(sanitizeInput(e.target.value))}
+                    maxLength={255}
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
+                    placeholder="Seu login"
+                    disabled={loading}
+                    required
+                  />
+                </div>
 
-              <div className="flex flex-col gap-2">
-                <Label>
-                  Nova senha
-                </Label>
-                <Input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
-                  maxLength={128}
-                  placeholder="••••••••"
-                  disabled={loading}
-                  required
-                  className={
-                    passwordValidation && !passwordValidation.valid
-                      ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                      : ""
-                  }
-                />
-                {passwordValidation && (
-                  <div className="text-xs mt-1">
-                    {passwordValidation.valid ? (
-                      <span
-                        className={
-                          passwordStrength === "strong"
-                            ? "text-green-600"
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Nova senha
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    maxLength={128}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                      passwordValidation && !passwordValidation.valid
+                        ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                        : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
+                    }`}
+                    placeholder="••••••••"
+                    disabled={loading}
+                    required
+                  />
+                  {passwordValidation && (
+                    <div className="mt-1 text-xs">
+                      {passwordValidation.valid ? (
+                        <span
+                          className={
+                            passwordStrength === "strong"
+                              ? "text-green-600"
+                              : passwordStrength === "medium"
+                                ? "text-yellow-600"
+                                : "text-orange-600"
+                          }
+                        >
+                          ✓ Senha válida - Força:{" "}
+                          {passwordStrength === "strong"
+                            ? "Forte"
                             : passwordStrength === "medium"
-                              ? "text-yellow-600"
-                              : "text-orange-600"
-                        }
-                      >
-                        ✓ Senha válida - Força:{" "}
-                        {passwordStrength === "strong"
-                          ? "Forte"
-                          : passwordStrength === "medium"
-                            ? "Média"
-                            : "Aceitável"}
-                      </span>
-                    ) : (
-                      <span className="text-red-600">
-                        ✗ {passwordValidation.error}
-                      </span>
-                    )}
-                  </div>
+                              ? "Média"
+                              : "Aceitável"}
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          ✗ {passwordValidation.error}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Confirmar nova senha
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(sanitizeInput(e.target.value))}
+                    maxLength={128}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                      confirmPassword && newPassword !== confirmPassword
+                        ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                        : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
+                    }`}
+                    placeholder="••••••••"
+                    disabled={loading}
+                    required
+                  />
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <span className="text-xs text-red-600 mt-1 block">
+                      ✗ As senhas não coincidem
+                    </span>
+                  )}
+                  {confirmPassword && newPassword === confirmPassword && newPassword.length > 0 && (
+                    <span className="text-xs text-green-600 mt-1 block">
+                      ✓ As senhas coincidem
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={
+                    loading ||
+                    (passwordValidation !== null && !passwordValidation.valid) ||
+                    (confirmPassword && newPassword !== confirmPassword)
+                  }
+                  className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Processando..." : "Redefinir Senha"}
+                </button>
+                {(passwordValidation !== null && !passwordValidation.valid) && (
+                  <p className="text-xs text-red-600 text-center mt-1">
+                    Corrija a senha antes de continuar
+                  </p>
                 )}
-              </div>
+                {confirmPassword && newPassword !== confirmPassword && (
+                  <p className="text-xs text-red-600 text-center mt-1">
+                    As senhas devem coincidir
+                  </p>
+                )}
 
-              <Button
-                type="submit"
-                disabled={
-                  loading ||
-                  (passwordValidation !== null && !passwordValidation.valid)
-                }
-                className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Processando..." : "Redefinir Senha"}
-              </Button>
-              {passwordValidation !== null && !passwordValidation.valid && (
-                <p className="text-xs text-red-600 text-center mt-1">
-                  Corrija a senha antes de continuar
-                </p>
-              )}
+                <button
+                  type="button"
+                  onClick={() => navigate("/user/login")}
+                  className="w-full h-11 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold transition"
+                >
+                  Voltar
+                </button>
+              </form>
+            </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/user/login")}
-                className="w-full"
-              >
-                Voltar
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            <div className="mt-6 text-center text-xs text-slate-400">
+              © {new Date().getFullYear()} Abrigo Helena Dornfeld
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );
