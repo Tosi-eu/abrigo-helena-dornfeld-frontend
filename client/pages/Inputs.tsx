@@ -1,22 +1,25 @@
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
+import { SkeletonTable } from "@/components/SkeletonTable";
 import { useToast } from "@/hooks/use-toast.hook";
 import { getInputs } from "@/api/requests";
+
+const columns = [
+  { key: "nome", label: "Nome", editable: true },
+  { key: "descricao", label: "Descrição", editable: true },
+  { key: "estoque_minimo", label: "Estoque Mínimo", editable: true },
+];
 
 export default function Inputs() {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const columns = [
-    { key: "nome", label: "Nome", editable: true },
-    { key: "descricao", label: "Descrição", editable: true },
-    { key: "estoque_minimo", label: "Estoque Mínimo", editable: true },
-  ];
-
   async function fetchInputs(pageNumber: number) {
+    setLoading(true);
     try {
       const res = await getInputs(pageNumber, 10);
 
@@ -31,6 +34,8 @@ export default function Inputs() {
         description: errorMessage,
         variant: "error",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -42,23 +47,27 @@ export default function Inputs() {
     <Layout title="Insumos">
       <div className="pt-12">
         <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-          <EditableTable
-            data={data}
-            columns={columns}
-            entityType="inputs"
-            currentPage={page}
-            hasNextPage={hasNextPage}
-            onNextPage={() => {
-              if (hasNextPage) {
-                fetchInputs(page + 1);
-              }
-            }}
-            onPrevPage={() => {
-              if (page > 1) {
-                fetchInputs(page - 1);
-              }
-            }}
-          />
+          {loading ? (
+            <SkeletonTable rows={5} cols={columns.length} />
+          ) : (
+            <EditableTable
+              data={data}
+              columns={columns}
+              entityType="inputs"
+              currentPage={page}
+              hasNextPage={hasNextPage}
+              onNextPage={() => {
+                if (hasNextPage) {
+                  fetchInputs(page + 1);
+                }
+              }}
+              onPrevPage={() => {
+                if (page > 1) {
+                  fetchInputs(page - 1);
+                }
+              }}
+            />
+          )}
         </div>
       </div>
     </Layout>

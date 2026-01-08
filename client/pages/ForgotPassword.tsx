@@ -1,79 +1,34 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
 import { resetPassword } from "@/api/requests";
-import {
-  validatePassword,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/schemas/password.schema";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [login, setLogin] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState<
-    "weak" | "medium" | "strong" | null
-  >(null);
-  const [passwordValidation, setPasswordValidation] = useState<{
-    valid: boolean;
-    error?: string;
-  } | null>(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      login: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-  const handlePasswordChange = (value: string) => {
-    const sanitized = sanitizeInput(value);
-    setNewPassword(sanitized);
-    if (sanitized.length > 0) {
-      const validation = validatePassword(sanitized);
-      setPasswordStrength(validation.strength || null);
-      setPasswordValidation({
-        valid: validation.valid,
-        error: validation.error,
-      });
-    } else {
-      setPasswordStrength(null);
-      setPasswordValidation(null);
-    }
-  };
+  const watchedPassword = watch("newPassword");
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!login.trim()) {
-      return toast({
-        title: "Login obrigatório",
-        description: "Informe seu login",
-        variant: "error",
-      });
-    }
-
-    const passwordValidation = validatePassword(newPassword);
-    if (!passwordValidation.valid) {
-      return toast({
-        title: "Senha inválida",
-        description: passwordValidation.error || "A senha não atende aos requisitos",
-        variant: "error",
-      });
-    }
-
-    if (newPassword !== confirmPassword) {
-      return toast({
-        title: "Senhas não coincidem",
-        description: "A nova senha e a confirmação devem ser iguais.",
-        variant: "error",
-      });
-    }
-
-    setLoading(true);
-
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      const sanitizedLogin = sanitizeInput(login);
-      const sanitizedNewPassword = sanitizeInput(newPassword);
-      await resetPassword(sanitizedLogin, sanitizedNewPassword);
+      await resetPassword(data.login.trim(), data.newPassword);
 
       toast({
         title: "Sucesso!",
@@ -82,8 +37,9 @@ export default function ForgotPassword() {
       });
 
       navigate("/user/login");
-    } catch (err: any) {
-      const rawMessage = err?.message?.toLowerCase() || "";
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "";
+      const rawMessage = errorMessage.toLowerCase();
       let errorTitle = "Erro";
       let errorDescription = "Ocorreu um erro ao redefinir a senha.";
 
@@ -92,7 +48,7 @@ export default function ForgotPassword() {
         errorTitle = "Login não encontrado";
         errorDescription = "O login informado não existe no sistema. Verifique o login e tente novamente.";
       } else {
-        errorDescription = err?.message || "Erro ao redefinir senha. Verifique os dados e tente novamente.";
+        errorDescription = errorMessage || "Erro ao redefinir senha. Verifique os dados e tente novamente.";
       }
 
       toast({
@@ -100,8 +56,6 @@ export default function ForgotPassword() {
         description: errorDescription,
         variant: "error",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -124,120 +78,86 @@ export default function ForgotPassword() {
                 Redefinir Senha
               </h2>
 
-              <form onSubmit={handleResetPassword} className="space-y-5">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="login" className="block text-sm font-medium text-slate-700 mb-2">
                     Login
                   </label>
                   <input
-                    type="text"
-                    value={login}
-                    onChange={(e) => setLogin(sanitizeInput(e.target.value))}
+                    id="login"
+                    type="email"
+                    {...register("login")}
                     maxLength={255}
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                      errors.login
+                        ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                        : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
+                    }`}
                     placeholder="Seu login"
-                    disabled={loading}
-                    required
+                    disabled={isSubmitting}
+                    aria-invalid={errors.login ? "true" : "false"}
                   />
+                  {errors.login && (
+                    <p className="text-xs text-red-600 mt-1">{errors.login.message}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-2">
                     Nova senha
                   </label>
                   <input
+                    id="newPassword"
                     type="password"
-                    value={newPassword}
-                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    {...register("newPassword")}
                     maxLength={128}
                     className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                      passwordValidation && !passwordValidation.valid
+                      errors.newPassword
                         ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                         : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
                     }`}
                     placeholder="••••••••"
-                    disabled={loading}
-                    required
+                    disabled={isSubmitting}
+                    aria-invalid={errors.newPassword ? "true" : "false"}
                   />
-                  {passwordValidation && (
-                    <div className="mt-1 text-xs">
-                      {passwordValidation.valid ? (
-                        <span
-                          className={
-                            passwordStrength === "strong"
-                              ? "text-green-600"
-                              : passwordStrength === "medium"
-                                ? "text-yellow-600"
-                                : "text-orange-600"
-                          }
-                        >
-                          ✓ Senha válida - Força:{" "}
-                          {passwordStrength === "strong"
-                            ? "Forte"
-                            : passwordStrength === "medium"
-                              ? "Média"
-                              : "Aceitável"}
-                        </span>
-                      ) : (
-                        <span className="text-red-600">
-                          ✗ {passwordValidation.error}
-                        </span>
-                      )}
-                    </div>
+                  {errors.newPassword && (
+                    <p className="text-xs text-red-600 mt-1">{errors.newPassword.message}</p>
+                  )}
+                  {watchedPassword && !errors.newPassword && watchedPassword.length >= 8 && (
+                    <p className="text-xs text-green-600 mt-1">✓ Senha válida</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
                     Confirmar nova senha
                   </label>
                   <input
+                    id="confirmPassword"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(sanitizeInput(e.target.value))}
+                    {...register("confirmPassword")}
                     maxLength={128}
                     className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                      confirmPassword && newPassword !== confirmPassword
+                      errors.confirmPassword
                         ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                         : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
                     }`}
                     placeholder="••••••••"
-                    disabled={loading}
-                    required
+                    disabled={isSubmitting}
+                    aria-invalid={errors.confirmPassword ? "true" : "false"}
                   />
-                  {confirmPassword && newPassword !== confirmPassword && (
-                    <span className="text-xs text-red-600 mt-1 block">
-                      ✗ As senhas não coincidem
-                    </span>
-                  )}
-                  {confirmPassword && newPassword === confirmPassword && newPassword.length > 0 && (
-                    <span className="text-xs text-green-600 mt-1 block">
-                      ✓ As senhas coincidem
-                    </span>
+                  {errors.confirmPassword && (
+                    <p className="text-xs text-red-600 mt-1">{errors.confirmPassword.message}</p>
                   )}
                 </div>
 
                 <button
                   type="submit"
-                  disabled={
-                    loading ||
-                    (passwordValidation !== null && !passwordValidation.valid) ||
-                    (confirmPassword && newPassword !== confirmPassword)
-                  }
+                  disabled={isSubmitting}
                   className="w-full h-11 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Processando..." : "Redefinir Senha"}
+                  {isSubmitting ? "Processando..." : "Redefinir Senha"}
                 </button>
-                {(passwordValidation !== null && !passwordValidation.valid) && (
-                  <p className="text-xs text-red-600 text-center mt-1">
-                    Corrija a senha antes de continuar
-                  </p>
-                )}
-                {confirmPassword && newPassword !== confirmPassword && (
-                  <p className="text-xs text-red-600 text-center mt-1">
-                    As senhas devem coincidir
-                  </p>
-                )}
 
                 <button
                   type="button"

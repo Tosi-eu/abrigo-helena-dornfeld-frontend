@@ -1,14 +1,11 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  validateTextInput,
-  validateNumberInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
-
+import { getErrorMessage } from "@/helpers/validation.helper";
 import { createInput } from "@/api/requests";
+import { inputSchema, type InputFormData } from "@/schemas/input.schema";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,88 +14,41 @@ import { Button } from "@/components/ui/button";
 
 export default function RegisterInput() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    minimum: "",
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<InputFormData>({
+    resolver: zodResolver(inputSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      minimum: "",
+    },
   });
 
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const nameValidation = validateTextInput(formData.name, {
-      maxLength: 255,
-      required: true,
-      fieldName: "Nome do insumo",
-    });
-
-    if (!nameValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: nameValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    const descValidation = validateTextInput(formData.description, {
-      maxLength: 1000,
-      required: true,
-      fieldName: "Descrição",
-    });
-
-    if (!descValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: descValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    const minValidation = validateNumberInput(formData.minimum || "0", {
-      min: 0,
-      max: 999999,
-      fieldName: "Estoque mínimo",
-    });
-
-    if (!minValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: minValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    setSaving(true);
-
+  const onSubmit = async (data: InputFormData) => {
     try {
       await createInput(
-        nameValidation.sanitized!,
-        descValidation.sanitized!,
-        minValidation.value || 0,
+        data.name.trim(),
+        data.description.trim(),
+        Number(data.minimum) || 0,
       );
 
       toast({
         title: "Insumo cadastrado",
-        description: `${nameValidation.sanitized} foi adicionado ao sistema.`,
+        description: `${data.name} foi adicionado ao sistema.`,
         variant: "success",
       });
 
-      setFormData({ name: "", description: "", minimum: "" });
       navigate("/inputs");
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar insumo",
-        description: "Não foi possível salvar o insumo no banco.",
+        description: getErrorMessage(err, "Não foi possível salvar o insumo no banco."),
         variant: "error",
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -112,57 +62,52 @@ export default function RegisterInput() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Nome do insumo</Label>
+              <Label htmlFor="name">Nome do insumo</Label>
               <Input
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    name: sanitizeInput(e.target.value),
-                  })
-                }
+                id="name"
+                {...register("name")}
                 maxLength={255}
                 placeholder="Seringa 5ml"
-                disabled={saving}
-                required
+                disabled={isSubmitting}
+                aria-invalid={errors.name ? "true" : "false"}
               />
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Descrição</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    description: sanitizeInput(e.target.value),
-                  })
-                }
+                id="description"
+                {...register("description")}
                 maxLength={1000}
                 placeholder="Material de Injeção"
-                disabled={saving}
-                required
+                disabled={isSubmitting}
+                aria-invalid={errors.description ? "true" : "false"}
               />
+              {errors.description && (
+                <p className="text-sm text-red-600 mt-1">{errors.description.message}</p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Estoque mínimo</Label>
+              <Label htmlFor="minimum">Estoque mínimo</Label>
               <Input
+                id="minimum"
                 type="number"
-                value={formData.minimum}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    minimum: e.target.value.replace(/[^0-9]/g, ""),
-                  })
-                }
+                {...register("minimum")}
                 min={0}
                 max={999999}
                 placeholder="5"
-                disabled={saving}
+                disabled={isSubmitting}
+                aria-invalid={errors.minimum ? "true" : "false"}
               />
+              {errors.minimum && (
+                <p className="text-sm text-red-600 mt-1">{errors.minimum.message}</p>
+              )}
             </div>
 
             <div className="flex justify-end pt-4 gap-2">
@@ -170,7 +115,7 @@ export default function RegisterInput() {
                 variant="outline"
                 type="button"
                 onClick={() => navigate("/inputs")}
-                disabled={saving}
+                disabled={isSubmitting}
                 className="rounded-lg"
               >
                 Cancelar
@@ -178,10 +123,10 @@ export default function RegisterInput() {
 
               <Button
                 type="submit"
-                disabled={saving}
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
               >
-                {saving ? "Cadastrando..." : "Cadastrar"}
+                {isSubmitting ? "Cadastrando..." : "Cadastrar"}
               </Button>
             </div>
           </form>

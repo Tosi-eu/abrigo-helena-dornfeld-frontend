@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
 
 import {
   createDrawer,
@@ -9,6 +12,7 @@ import {
   getDrawerCategories,
 } from "@/api/requests";
 import { DrawerCategory } from "@/interfaces/interfaces";
+import { drawerSchema, type DrawerFormData } from "@/schemas/drawer.schema";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,17 +21,27 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export default function RegisterDrawer() {
-  const [numero, setNumero] = useState<number>(0);
-  const [category, setCategory] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<DrawerFormData>({
+    resolver: zodResolver(drawerSchema),
+    defaultValues: {
+      numero: "",
+      categoria_id: "",
+    },
+  });
 
   const [categories, setCategories] = useState<DrawerCategory[]>([]);
   const [page, setPage] = useState(1);
-
-  const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const watchedCategory = watch("categoria_id");
 
   useEffect(() => {
     loadCategories(page);
@@ -37,56 +51,36 @@ export default function RegisterDrawer() {
     try {
       const res = await getDrawerCategories(p, 20);
       setCategories(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
       toast({
         title: "Erro",
-        description: "Não foi possível carregar as categorias de gaveta.",
+        description: getErrorMessage(err, "Não foi possível carregar as categorias de gaveta."),
         variant: "error",
       });
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (numero <= 0) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Informe um número de gaveta válido.",
-        variant: "warning",
-      });
-      return;
-    }
-
-    if (!category.trim()) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Informe uma categoria.",
-        variant: "warning",
-      });
-      return;
-    }
-
-    const existing = categories.find((c) => c.nome === category);
+  const onSubmit = async (data: DrawerFormData) => {
+    const categoryName = data.categoria_id;
+    const existing = categories.find((c) => c.nome === categoryName);
 
     if (!existing) {
       setModalOpen(true);
       return;
     }
 
-    await createDrawerFlow(existing.id);
+    await createDrawerFlow(Number(data.numero), existing.id);
   };
 
-  const createDrawerFlow = async (categoryId?: number) => {
-    setSaving(true);
+  const createDrawerFlow = async (numero: number, categoryId?: number) => {
     try {
       let finalCategoryId: number;
+      const categoryName = watchedCategory;
 
       if (categoryId) {
         finalCategoryId = categoryId;
       } else {
-        const createRes = await createDrawerCategory(category);
+        const createRes = await createDrawerCategory(categoryName);
         finalCategoryId = createRes?.id;
       }
 
@@ -99,15 +93,13 @@ export default function RegisterDrawer() {
       });
 
       navigate("/drawers");
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar",
-        description: "Não foi possível cadastrar a gaveta.",
+        description: getErrorMessage(err, "Não foi possível cadastrar a gaveta."),
         variant: "error",
       });
     } finally {
-      setSaving(false);
       setModalOpen(false);
     }
   };
@@ -122,36 +114,40 @@ export default function RegisterDrawer() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Número da Gaveta</Label>
+              <Label htmlFor="numero">Número da Gaveta</Label>
               <Input
+                id="numero"
                 type="number"
-                value={numero}
-                onChange={(e) =>
-                  setNumero(
-                    e.target.value === "0" ? 0 : parseInt(e.target.value),
-                  )
-                }
+                {...register("numero")}
                 placeholder="Ex: 4"
-                disabled={saving}
+                disabled={isSubmitting}
+                aria-invalid={errors.numero ? "true" : "false"}
               />
+              {errors.numero && (
+                <p className="text-sm text-red-600 mt-1">{errors.numero.message}</p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Categoria</Label>
+              <Label htmlFor="categoria_id">Categoria</Label>
               <Input
+                id="categoria_id"
                 list="drawer-categories"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                {...register("categoria_id")}
                 placeholder="Selecione ou digite uma categoria"
-                disabled={saving}
+                disabled={isSubmitting}
+                aria-invalid={errors.categoria_id ? "true" : "false"}
               />
               <datalist id="drawer-categories">
                 {categories.map((c) => (
                   <option key={c.id} value={c.nome} />
                 ))}
               </datalist>
+              {errors.categoria_id && (
+                <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
@@ -159,17 +155,17 @@ export default function RegisterDrawer() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/drawers")}
-                disabled={saving}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
 
               <Button
                 type="submit"
-                disabled={saving}
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white"
               >
-                {saving ? "Cadastrando..." : "Cadastrar"}
+                {isSubmitting ? "Cadastrando..." : "Cadastrar"}
               </Button>
             </div>
           </form>
@@ -178,8 +174,11 @@ export default function RegisterDrawer() {
 
       <ConfirmationModal
         open={modalOpen}
-        categoryName={category}
-        onConfirm={() => createDrawerFlow()}
+        categoryName={watchedCategory}
+        onConfirm={() => {
+          const numero = watch("numero");
+          createDrawerFlow(Number(numero));
+        }}
         onCancel={() => setModalOpen(false)}
       />
     </Layout>

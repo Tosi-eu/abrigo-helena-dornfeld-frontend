@@ -158,3 +158,15 @@ export function validateNumberInput(
   return { valid: true, value: numValue };
 }
 
+export function getErrorMessage(error: unknown, defaultMessage = "Ocorreu um erro inesperado"): string {
+  if (error instanceof Error) {
+    return error.message || defaultMessage;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return defaultMessage;
+}

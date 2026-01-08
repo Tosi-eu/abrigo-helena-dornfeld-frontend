@@ -1,13 +1,11 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
-import {
-  validateTextInput,
-  validateNumberInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
 import { createResident } from "@/api/requests";
+import { residentSchema, type ResidentFormData } from "@/schemas/resident.schema";
+import { getErrorMessage } from "@/helpers/validation.helper";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,51 +13,24 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export default function RegisterResident() {
-  const [name, setName] = useState("");
-  const [casela, setCasela] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ResidentFormData>({
+    resolver: zodResolver(residentSchema),
+    defaultValues: {
+      name: "",
+      casela: "",
+    },
+  });
 
-    const nameValidation = validateTextInput(name, {
-      maxLength: 60,
-      required: true,
-      fieldName: "Nome do residente",
-    });
-
-    if (!nameValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: nameValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    const caselaValidation = validateNumberInput(casela, {
-      min: 1,
-      max: 200,
-      required: true,
-      fieldName: "Casela",
-    });
-
-    if (!caselaValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: caselaValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    setLoading(true);
-
+  const onSubmit = async (data: ResidentFormData) => {
     try {
-      await createResident(nameValidation.sanitized!, caselaValidation.value!.toString());
+      await createResident(data.name.trim(), data.casela);
 
       toast({
         title: "Residente cadastrado",
@@ -68,15 +39,12 @@ export default function RegisterResident() {
       });
 
       navigate("/residents");
-    } catch (err: any) {
-      console.error("Erro ao cadastrar residente:", err);
+    } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar",
-        description: err?.message ?? "Não foi possível cadastrar o residente.",
+        description: getErrorMessage(err, "Não foi possível cadastrar o residente."),
         variant: "error",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -90,31 +58,37 @@ export default function RegisterResident() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Nome do residente</Label>
+              <Label htmlFor="name">Nome do residente</Label>
               <Input
-                value={name}
-                onChange={(e) => setName(sanitizeInput(e.target.value))}
-                maxLength={255}
+                id="name"
+                {...register("name")}
+                maxLength={60}
                 placeholder="Digite o nome do residente"
-                disabled={loading}
-                required
+                disabled={isSubmitting}
+                aria-invalid={errors.name ? "true" : "false"}
               />
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Casela</Label>
+              <Label htmlFor="casela">Casela</Label>
               <Input
+                id="casela"
                 type="number"
-                value={casela}
-                onChange={(e) => setCasela(e.target.value.replace(/[^0-9]/g, ""))}
+                {...register("casela")}
                 min={1}
                 max={200}
                 placeholder="1"
-                disabled={loading}
-                required
+                disabled={isSubmitting}
+                aria-invalid={errors.casela ? "true" : "false"}
               />
+              {errors.casela && (
+                <p className="text-sm text-red-600 mt-1">{errors.casela.message}</p>
+              )}
             </div>
 
             <div className="flex justify-end pt-4 gap-2">
@@ -122,17 +96,17 @@ export default function RegisterResident() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/residents")}
-                disabled={loading}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white"
               >
-                Cadastrar Residente
+                {isSubmitting ? "Cadastrando..." : "Cadastrar Residente"}
               </Button>
             </div>
           </form>

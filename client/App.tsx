@@ -6,35 +6,38 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
-import ForgotPassword from "./pages/ForgotPassword";
-import Dashboard from "./pages/Dashboard";
-import SignUpMedicine from "./pages/RegisterMedicine";
-import Movements from "./pages/Movements";
-import Stock from "./pages/Stock";
-import StockEntry from "./pages/StockIn";
-import Resident from "./pages/Residents";
-import RegisterResident from "./pages/RegisterResident";
-import EditResident from "./pages/EditResident";
-import StockOut from "./pages/StockOut";
-import EditStock from "./pages/EditStock";
-import EditMedicine from "./pages/EditMedicine";
-import EditInput from "./pages/EditInput";
-import Medicines from "./pages/Medicines";
-import Cabinets from "./pages/Cabinets";
-import RegisterCabinet from "./pages/RegisterCabinet";
-import EditCabinet from "./pages/EditCabinet";
-import RegisterInput from "./pages/RegisterInput";
-import Inputs from "./pages/Inputs";
+import { lazy, Suspense } from "react";
 
 import { AuthProvider } from "./context/auth-context";
 import PrivateRoute from "./pages/PrivateRoute";
 import { NotificationProvider } from "./context/notification.context";
-import Drawers from "./pages/Drawers";
-import EditDrawer from "./pages/EditDrawer";
-import RegisterDrawer from "./pages/RegisterDrawer";
+import { LoadingFallback } from "./components/LoadingFallback";
+
+// Lazy load pages for better performance
+const Auth = lazy(() => import("./pages/Auth"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const SignUpMedicine = lazy(() => import("./pages/RegisterMedicine"));
+const Movements = lazy(() => import("./pages/Movements"));
+const Stock = lazy(() => import("./pages/Stock"));
+const StockEntry = lazy(() => import("./pages/StockIn"));
+const Resident = lazy(() => import("./pages/Residents"));
+const RegisterResident = lazy(() => import("./pages/RegisterResident"));
+const EditResident = lazy(() => import("./pages/EditResident"));
+const StockOut = lazy(() => import("./pages/StockOut"));
+const EditStock = lazy(() => import("./pages/EditStock"));
+const EditMedicine = lazy(() => import("./pages/EditMedicine"));
+const EditInput = lazy(() => import("./pages/EditInput"));
+const Medicines = lazy(() => import("./pages/Medicines"));
+const Cabinets = lazy(() => import("./pages/Cabinets"));
+const RegisterCabinet = lazy(() => import("./pages/RegisterCabinet"));
+const EditCabinet = lazy(() => import("./pages/EditCabinet"));
+const RegisterInput = lazy(() => import("./pages/RegisterInput"));
+const Inputs = lazy(() => import("./pages/Inputs"));
+const Drawers = lazy(() => import("./pages/Drawers"));
+const EditDrawer = lazy(() => import("./pages/EditDrawer"));
+const RegisterDrawer = lazy(() => import("./pages/RegisterDrawer"));
 
 const queryClient = new QueryClient();
 
@@ -48,13 +51,22 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Navigate to="/user/login" replace />} />
-              <Route path="/user/login" element={<Auth />} />
+              <Route
+                path="/user/login"
+                element={
+                  <Suspense fallback={<LoadingFallback title="Carregando login..." />}>
+                    <Auth />
+                  </Suspense>
+                }
+              />
 
               <Route
                 path="/dashboard"
                 element={
                   <PrivateRoute>
-                    <Dashboard />
+                    <Suspense fallback={<LoadingFallback title="Carregando dashboard..." />}>
+                      <Dashboard />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -62,7 +74,9 @@ const App = () => (
                 path="/Movements"
                 element={
                   <PrivateRoute>
-                    <Movements />
+                    <Suspense fallback={<LoadingFallback title="Carregando movimentações..." />}>
+                      <Movements />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -70,7 +84,9 @@ const App = () => (
                 path="/medicines"
                 element={
                   <PrivateRoute>
-                    <Medicines />
+                    <Suspense fallback={<LoadingFallback title="Carregando medicamentos..." />}>
+                      <Medicines />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -78,7 +94,9 @@ const App = () => (
                 path="/medicines/register"
                 element={
                   <PrivateRoute>
-                    <SignUpMedicine />
+                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                      <SignUpMedicine />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -86,7 +104,9 @@ const App = () => (
                 path="/medicines/edit"
                 element={
                   <PrivateRoute>
-                    <EditMedicine />
+                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                      <EditMedicine />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -94,7 +114,9 @@ const App = () => (
                 path="/stock"
                 element={
                   <PrivateRoute>
-                    <Stock />
+                    <Suspense fallback={<LoadingFallback title="Carregando estoque..." />}>
+                      <Stock />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -102,7 +124,9 @@ const App = () => (
                 path="/stock/in"
                 element={
                   <PrivateRoute>
-                    <StockEntry />
+                    <Suspense fallback={<LoadingFallback title="Carregando entrada..." />}>
+                      <StockEntry />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -110,7 +134,9 @@ const App = () => (
                 path="/stock/out"
                 element={
                   <PrivateRoute>
-                    <StockOut />
+                    <Suspense fallback={<LoadingFallback title="Carregando saída..." />}>
+                      <StockOut />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -118,7 +144,9 @@ const App = () => (
                 path="/stock/edit"
                 element={
                   <PrivateRoute>
-                    <EditStock />
+                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                      <EditStock />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -126,7 +154,9 @@ const App = () => (
                 path="/residents"
                 element={
                   <PrivateRoute>
-                    <Resident />
+                    <Suspense fallback={<LoadingFallback title="Carregando residentes..." />}>
+                      <Resident />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -134,7 +164,9 @@ const App = () => (
                 path="/residents/register"
                 element={
                   <PrivateRoute>
-                    <RegisterResident />
+                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                      <RegisterResident />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -142,7 +174,9 @@ const App = () => (
                 path="/residents/edit"
                 element={
                   <PrivateRoute>
-                    <EditResident />
+                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                      <EditResident />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -150,7 +184,9 @@ const App = () => (
                 path="/inputs"
                 element={
                   <PrivateRoute>
-                    <Inputs />
+                    <Suspense fallback={<LoadingFallback title="Carregando insumos..." />}>
+                      <Inputs />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -158,7 +194,9 @@ const App = () => (
                 path="/inputs/register"
                 element={
                   <PrivateRoute>
-                    <RegisterInput />
+                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                      <RegisterInput />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -166,7 +204,9 @@ const App = () => (
                 path="/inputs/edit"
                 element={
                   <PrivateRoute>
-                    <EditInput />
+                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                      <EditInput />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -174,7 +214,9 @@ const App = () => (
                 path="/cabinets"
                 element={
                   <PrivateRoute>
-                    <Cabinets />
+                    <Suspense fallback={<LoadingFallback title="Carregando armários..." />}>
+                      <Cabinets />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -182,7 +224,9 @@ const App = () => (
                 path="/cabinets/register"
                 element={
                   <PrivateRoute>
-                    <RegisterCabinet />
+                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                      <RegisterCabinet />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -190,7 +234,9 @@ const App = () => (
                 path="/cabinets/edit"
                 element={
                   <PrivateRoute>
-                    <EditCabinet />
+                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                      <EditCabinet />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -198,7 +244,9 @@ const App = () => (
                 path="/drawers"
                 element={
                   <PrivateRoute>
-                    <Drawers />
+                    <Suspense fallback={<LoadingFallback title="Carregando gavetas..." />}>
+                      <Drawers />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -206,7 +254,9 @@ const App = () => (
                 path="/drawer/register"
                 element={
                   <PrivateRoute>
-                    <RegisterDrawer />
+                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                      <RegisterDrawer />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -214,7 +264,9 @@ const App = () => (
                 path="/drawers/edit"
                 element={
                   <PrivateRoute>
-                    <EditDrawer />
+                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                      <EditDrawer />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
@@ -222,13 +274,19 @@ const App = () => (
                 path="/user/profile"
                 element={
                   <PrivateRoute>
-                    <Profile />
+                    <Suspense fallback={<LoadingFallback title="Carregando perfil..." />}>
+                      <Profile />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
               <Route
                 path="/user/forgot-password"
-                element={<ForgotPassword />}
+                element={
+                  <Suspense fallback={<LoadingFallback title="Carregando..." />}>
+                    <ForgotPassword />
+                  </Suspense>
+                }
               />
             </Routes>
           </BrowserRouter>
