@@ -339,6 +339,12 @@ export default function Stock() {
               onRemoveIndividual={requestRemoveIndividual}
               onSuspend={requestSuspend}
               onResume={requestResume}
+              onDeleteSuccess={() => {
+                if (!data) {
+                  loadStock(page);
+                  loadAllStock();
+                }
+              }}
               entityType="stock"
             />
           </>

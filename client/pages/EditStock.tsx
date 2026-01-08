@@ -98,7 +98,6 @@ export default function EditStock() {
 
           let validadeDate: Date | null = null;
           if (item.expiry && item.expiry !== "-") {
-            // Try parsing the date - it might be in DD/MM/YYYY or ISO format
             if (item.expiry.includes("/")) {
               validadeDate = parseDateFromString(item.expiry);
             } else {
@@ -107,10 +106,8 @@ export default function EditStock() {
             }
           }
 
-          // Get raw tipo value - reverse map from stockType label if needed
           let rawTipo = item.tipo || "";
           if (!rawTipo && item.stockType) {
-            // Reverse map from label to value
             const tipoMap: Record<string, string> = {
               "Estoque geral": "geral",
               "Estoque individual": "individual",
@@ -167,18 +164,22 @@ export default function EditStock() {
         updated.armario_id = value as number | null;
         if (value !== null) {
           updated.gaveta_id = null;
+        } else {
+          updated.casela_id = null;
         }
       } else if (field === "gaveta_id") {
         updated.gaveta_id = value as number | null;
         if (value !== null) {
           updated.armario_id = null;
           updated.setor = SectorType.ENFERMAGEM;
+          updated.tipo = isMedicine ? MedicineStockType.CARRINHO : InputStockType.CARRINHO;
+          updated.casela_id = null;
         }
       } else if (field === "casela_id") {
+        updated.casela_id = value as number | null;
         if (value !== null && isMedicine) {
           updated.tipo = MedicineStockType.INDIVIDUAL;
         }
-        updated.casela_id = value as number | null;
       } else if (field === "quantidade") {
         updated.quantidade = value as number;
       } else if (field === "validade") {
@@ -207,7 +208,7 @@ export default function EditStock() {
     if (!stockItem) return;
 
     const quantityValidation = validateNumberInput(formData.quantidade, {
-      min: 1,
+      min: 0,
       max: 999999,
       required: true,
       fieldName: "Quantidade",
@@ -298,7 +299,6 @@ export default function EditStock() {
 
   const isMedicine = stockItem.itemType === "medicamento";
   
-  // Get available stock types based on item type
   const availableStockTypes = isMedicine
     ? Object.values(MedicineStockType)
     : Object.values(InputStockType);
@@ -324,21 +324,17 @@ export default function EditStock() {
                 value={formData.quantidade}
                 onChange={(e) => {
                   const value = e.target.value;
-                  // Allow empty string for clearing
                   if (value === "") {
                     handleChange("quantidade", 0);
                     return;
                   }
-                  // Prevent negative values or just minus sign
                   if (value === "-" || value.startsWith("-")) {
                     return;
                   }
                   const numValue = Number(value);
-                  // Only allow positive numbers (greater than 0)
                   if (!isNaN(numValue) && numValue > 0) {
                     handleChange("quantidade", numValue);
                   } else if (numValue === 0) {
-                    // Prevent setting to 0
                     return;
                   }
                 }}
@@ -403,11 +399,14 @@ export default function EditStock() {
                   onChange={(e) =>
                     handleChange("casela_id", e.target.value ? Number(e.target.value) : null)
                   }
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+                  disabled={formData.gaveta_id !== null || formData.armario_id === null}
+                  className={`w-full border border-slate-300 rounded-lg px-3 py-2 text-sm ${
+                    formData.gaveta_id !== null || formData.armario_id === null
+                      ? "bg-slate-100 cursor-not-allowed"
+                      : "bg-white"
+                  }`}
                 >
-                  <option value="" disabled hidden>
-                    Selecione
-                  </option>
+                  <option value="">Nenhuma</option>
                   {residents.map((resident) => (
                     <option key={resident.casela} value={resident.casela}>
                       {resident.casela}

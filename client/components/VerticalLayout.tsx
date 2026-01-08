@@ -36,10 +36,11 @@ export function VerticalLayout({ onLogout }: SidebarProps) {
 
   return (
     <aside className="h-screen w-64 flex flex-col border-r border-sky-200 bg-sky-50">
-      <div className="h-20 shrink-0 flex items-center px-4 border-b border-sky-200 bg-sky-100">
+      <div className="h-24 shrink-0 flex items-center justify-center px-4 border-b border-sky-200 bg-sky-100">
         <img
           src="/logo.png"
-          className="h-20 cursor-pointer"
+          alt="Logo Abrigo Helena Dornfeld"
+          className="h-20 w-auto cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => navigate("/dashboard")}
         />
       </div>

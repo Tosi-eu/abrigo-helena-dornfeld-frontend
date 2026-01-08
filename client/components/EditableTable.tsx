@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import DeletePopUp from "./DeletePopUp";
+import DeleteStockModal from "./DeleteStockModal";
 import { AnimatePresence, motion } from "framer-motion";
 
 import {
@@ -113,6 +114,7 @@ export default function EditableTable({
   onTransferSector,
   onSuspend,
   onResume,
+  onDeleteSuccess,
   minRows = 5,
 }: EditableTableProps & {
   entityType?: string;
@@ -127,9 +129,12 @@ export default function EditableTable({
   onTransferSector?: (row: any) => void;
   onSuspend?: (row: any) => void;
   onResume?: (row: any) => void;
+  onDeleteSuccess?: () => void;
 }) {
   const [rows, setRows] = useState<any[]>([]);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [showStockDeleteModal, setShowStockDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const instanceId = useId();
   const { toast } = useToast();
@@ -219,21 +224,37 @@ export default function EditableTable({
     const row = rows[deleteIndex];
     if (!row) return;
 
+    setIsDeleting(true);
     try {
       if (entityType === "cabinets") await deleteCabinet(row.numero);
       else if (entityType === "drawers") await deleteDrawer(row.numero);
       else if (entityType === "inputs") await deleteInput(row.id);
       else if (entityType === "medicines") await deleteMedicine(row.id);
       else if (entityType === "residents") await deleteResident(row.casela);
-      else if (entityType === "stock")
-        await deleteStockItem(row.id, row.itemType);
+      else if (entityType === "stock") {
+        const itemType = row.itemType as "medicamento" | "insumo";
+        await deleteStockItem(row.id, itemType);
+      }
 
       toast({ title: "Item removido", variant: "success" });
       setRows((prev) => prev.filter((_, i) => i !== deleteIndex));
-    } catch {
-      toast({ title: "Erro ao remover item", variant: "error" });
-    } finally {
+      
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      }
+      
+      if (entityType === "stock") {
+        setShowStockDeleteModal(false);
+      }
       setDeleteIndex(null);
+    } catch (err: any) {
+      toast({ 
+        title: "Erro ao remover item", 
+        description: err?.message || "Não foi possível remover o item.",
+        variant: "error" 
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -321,7 +342,14 @@ export default function EditableTable({
                               </button>
 
                               <button
-                                onClick={() => setDeleteIndex(i)}
+                                onClick={() => {
+                                  if (entityType === "stock") {
+                                    setDeleteIndex(i);
+                                    setShowStockDeleteModal(true);
+                                  } else {
+                                    setDeleteIndex(i);
+                                  }
+                                }}
                                 className="text-red-600 hover:text-red-800"
                               >
                                 <Trash2 size={16} />
@@ -413,12 +441,28 @@ export default function EditableTable({
         </div>
       )}
 
-      <DeletePopUp
-        open={deleteIndex !== null}
-        onCancel={() => setDeleteIndex(null)}
-        onConfirm={handleDeleteConfirmed}
-        message="Tem certeza que deseja remover este item?"
-      />
+      {entityType === "stock" ? (
+        <DeleteStockModal
+          open={showStockDeleteModal && deleteIndex !== null}
+          onCancel={() => {
+            if (!isDeleting) {
+              setShowStockDeleteModal(false);
+              setDeleteIndex(null);
+            }
+          }}
+          onConfirm={handleDeleteConfirmed}
+          itemName={deleteIndex !== null ? rows[deleteIndex]?.name : undefined}
+          itemType={deleteIndex !== null ? rows[deleteIndex]?.itemType : undefined}
+          loading={isDeleting}
+        />
+      ) : (
+        <DeletePopUp
+          open={deleteIndex !== null}
+          onCancel={() => setDeleteIndex(null)}
+          onConfirm={handleDeleteConfirmed}
+          message="Tem certeza que deseja remover este item?"
+        />
+      )}
     </div>
   );
 }
