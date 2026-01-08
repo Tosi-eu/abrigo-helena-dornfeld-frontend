@@ -71,7 +71,11 @@ const SkeletonRow = ({ cols }: { cols: number }) => (
   </motion.tr>
 );
 
-const StatusBadge = ({ row }: { row: any }) => {
+interface StatusBadgeProps {
+  row: Record<string, unknown>;
+}
+
+const StatusBadge = ({ row }: StatusBadgeProps) => {
   if (!row?.status) return "-";
 
   if (row.status === "suspended") {
@@ -84,9 +88,11 @@ const StatusBadge = ({ row }: { row: any }) => {
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            {row.suspended_at
+            {row.suspended_at instanceof Date
               ? `Suspenso em ${row.suspended_at.toLocaleDateString()}`
-              : "Medicamento suspenso"}
+              : row.suspended_at
+                ? `Suspenso em ${new Date(row.suspended_at as string).toLocaleDateString()}`
+                : "Medicamento suspenso"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -131,7 +137,7 @@ export default function EditableTable({
   onResume?: (row: any) => void;
   onDeleteSuccess?: () => void;
 }) {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [showStockDeleteModal, setShowStockDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -153,10 +159,13 @@ export default function EditableTable({
     ];
   }, [rows, minRows]);
 
-  const isIndividualMedicine = (row: any) =>
-    row?.casela !== "-" && row?.stockType?.includes("individual");
+  const isIndividualMedicine = (row: Record<string, unknown>): boolean =>
+    row?.casela !== "-" && 
+    typeof row?.stockType === "string" && 
+    row.stockType.includes("individual");
 
-  const isActive = (row: any) => row?.status === "active";
+  const isActive = (row: Record<string, unknown>): boolean =>
+    row?.status === "active";
 
   const disabledActionClass =
     "opacity-40 cursor-not-allowed pointer-events-none";
@@ -176,7 +185,8 @@ export default function EditableTable({
     if (route) navigate(route);
   };
 
-  const canTransfer = (row: any) => row?.casela && row.casela !== "-";
+  const canTransfer = (row: Record<string, unknown>): boolean =>
+    row?.casela && row.casela !== "-";
 
   const handleEditClick = (row: any) => {
     if (row.status === "suspended") {
@@ -201,7 +211,10 @@ export default function EditableTable({
     navigate(`/${type}/edit`, { state: { item: row } });
   };
 
-  const renderCell = (row: any, colKey: string) => {
+  const renderCell = (
+    row: Record<string, unknown> | null,
+    colKey: string
+  ): React.ReactNode => {
     if (!row) return "\u00A0";
 
     switch (colKey) {
@@ -214,8 +227,10 @@ export default function EditableTable({
       case "quantity":
         return renderQuantityTag(row);
 
-      default:
-        return row[colKey] ?? "-";
+      default: {
+        const value = row[colKey];
+        return value !== null && value !== undefined ? String(value) : "-";
+      }
     }
   };
 
@@ -226,14 +241,38 @@ export default function EditableTable({
 
     setIsDeleting(true);
     try {
-      if (entityType === "cabinets") await deleteCabinet(row.numero);
-      else if (entityType === "drawers") await deleteDrawer(row.numero);
-      else if (entityType === "inputs") await deleteInput(row.id);
-      else if (entityType === "medicines") await deleteMedicine(row.id);
-      else if (entityType === "residents") await deleteResident(row.casela);
-      else if (entityType === "stock") {
+      if (entityType === "cabinets") {
+        const numero = typeof row.numero === "number" ? row.numero : Number(row.numero);
+        if (isNaN(numero)) throw new Error("Número inválido");
+        await deleteCabinet(numero);
+      } else if (entityType === "drawers") {
+        const numero = typeof row.numero === "number" ? row.numero : Number(row.numero);
+        if (isNaN(numero)) throw new Error("Número inválido");
+        await deleteDrawer(numero);
+      } else if (entityType === "inputs") {
+        const id = typeof row.id === "number" ? row.id : Number(row.id);
+        if (isNaN(id)) throw new Error("ID inválido");
+        await deleteInput(id);
+      } else if (entityType === "medicines") {
+        const id = typeof row.id === "number" ? row.id : Number(row.id);
+        if (isNaN(id)) throw new Error("ID inválido");
+        await deleteMedicine(id);
+      } else if (entityType === "residents") {
+        const casela = typeof row.casela === "number" 
+          ? row.casela 
+          : typeof row.casela === "string" 
+            ? Number(row.casela) 
+            : Number(row.casela);
+        if (isNaN(casela)) throw new Error("Casela inválida");
+        await deleteResident(casela);
+      } else if (entityType === "stock") {
+        const id = typeof row.id === "number" ? row.id : Number(row.id);
+        if (isNaN(id)) throw new Error("ID inválido");
         const itemType = row.itemType as "medicamento" | "insumo";
-        await deleteStockItem(row.id, itemType);
+        if (!itemType || (itemType !== "medicamento" && itemType !== "insumo")) {
+          throw new Error("Tipo de item inválido");
+        }
+        await deleteStockItem(id, itemType);
       }
 
       toast({ title: "Item removido", variant: "success" });
@@ -451,8 +490,12 @@ export default function EditableTable({
             }
           }}
           onConfirm={handleDeleteConfirmed}
-          itemName={deleteIndex !== null ? rows[deleteIndex]?.name : undefined}
-          itemType={deleteIndex !== null ? rows[deleteIndex]?.itemType : undefined}
+          itemName={deleteIndex !== null && rows[deleteIndex]?.name 
+            ? String(rows[deleteIndex].name) 
+            : undefined}
+          itemType={deleteIndex !== null && rows[deleteIndex]?.itemType
+            ? String(rows[deleteIndex].itemType) as "medicamento" | "insumo"
+            : undefined}
           loading={isDeleting}
         />
       ) : (
@@ -467,9 +510,9 @@ export default function EditableTable({
   );
 }
 
-const renderExpiryTag = (row: any) => {
-  const status = row.expirationStatus;
-  const message = row.expirationMsg;
+const renderExpiryTag = (row: Record<string, unknown>) => {
+  const status = typeof row.expirationStatus === "string" ? row.expirationStatus : undefined;
+  const message = typeof row.expirationMsg === "string" ? row.expirationMsg : undefined;
 
   if (!status) return "-";
 
@@ -485,20 +528,20 @@ const renderExpiryTag = (row: any) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`px-2 py-1 rounded-full text-[11px] font-medium ${colorMap[status]}`}
+            className={`px-2 py-1 rounded-full text-[11px] font-medium ${colorMap[status] || ""}`}
           >
-            {row.expiry}
+            {typeof row.expiry === "string" ? row.expiry : "-"}
           </span>
         </TooltipTrigger>
-        <TooltipContent>{message}</TooltipContent>
+        <TooltipContent>{message || "-"}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 };
 
-const renderQuantityTag = (row: any) => {
-  const status = row.quantityStatus;
-  const message = row.quantityMsg;
+const renderQuantityTag = (row: Record<string, unknown>) => {
+  const status = typeof row.quantityStatus === "string" ? row.quantityStatus : undefined;
+  const message = typeof row.quantityMsg === "string" ? row.quantityMsg : undefined;
 
   const colorMap: Record<string, string> = {
     empty: "bg-red-100 text-red-700 border border-red-300",
@@ -514,9 +557,9 @@ const renderQuantityTag = (row: any) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status]}`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status || ""] || ""}`}
           >
-            {row.quantity}
+            {row.quantity !== null && row.quantity !== undefined ? String(row.quantity) : "-"}
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">

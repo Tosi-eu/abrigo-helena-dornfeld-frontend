@@ -12,7 +12,7 @@ export default function Cabinets() {
     { key: "categoria", label: "Categoria", editable: false },
   ];
 
-  const [cabinets, setCabinets] = useState<any[]>([]);
+  const [cabinets, setCabinets] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
@@ -23,10 +23,12 @@ export default function Cabinets() {
       setCabinets(Array.isArray(res.data) ? res.data : []);
       setPage(res.page ?? pageNumber);
       setHasNextPage(Boolean(res.hasNext));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
       toast({
         title: "Erro ao carregar armários",
-        description: err.message ?? "Erro inesperado",
+        description: errorMessage,
         variant: "error",
       });
     }

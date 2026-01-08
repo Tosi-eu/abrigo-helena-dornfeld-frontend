@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast.hook";
 import { getResidents } from "@/api/requests";
 
 export default function Resident() {
-  const [residents, setResidents] = useState<any[]>([]);
+  const [residents, setResidents] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
@@ -21,10 +21,14 @@ export default function Resident() {
       setResidents(res.data);
       setHasNextPage(res.hasNext);
       setPage(pageNumber);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar a lista de residentes.";
       toast({
         title: "Erro ao carregar residentes",
-        description: err?.message || "Não foi possível carregar a lista de residentes.",
+        description: errorMessage,
         variant: "error",
       });
       setResidents([]);

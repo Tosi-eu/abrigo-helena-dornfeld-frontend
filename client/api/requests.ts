@@ -196,7 +196,7 @@ export const getNotifications = async (
       hasNext: res.hasNext ? res.hasNext : false,
     };
   } catch (err) {
-    console.error("Erro ao buscar notificações:", err);
+    // Error is already logged by the error handler if needed
     return { items: [], total: 0, hasNext: false };
   }
 };

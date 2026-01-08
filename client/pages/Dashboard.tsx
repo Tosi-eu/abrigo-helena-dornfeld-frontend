@@ -219,7 +219,7 @@ export default function Dashboard() {
           description: err?.message || "Não foi possível carregar os dados do dashboard.",
           variant: "error",
         });
-        console.error("Erro ao carregar dados do dashboard:", err);
+        // Error is already handled by toast notification
       } finally {
         setLoadingNonMovement(false);
         setLoadingRecentMovements(false);
@@ -234,25 +234,31 @@ export default function Dashboard() {
       try {
         const res = await getTodayNotifications();
 
-        const unseenNotifications = res.data.filter((n: any) => !n.visto);
+        const unseenNotifications = res.data.filter(
+          (n: Record<string, unknown>) => !n.visto
+        );
 
         if (unseenNotifications.length > 0) {
           setNotifList(unseenNotifications);
           setNotifOpen(true);
 
           await Promise.all(
-            unseenNotifications.map((n: any) =>
-              updateNotification(n.id, { visto: true }),
-            ),
+            unseenNotifications.map((n: Record<string, unknown>) => {
+              const id = typeof n.id === "number" ? n.id : Number(n.id);
+              return updateNotification(id, { visto: true });
+            })
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Não foi possível carregar as notificações do dia.";
         toast({
           title: "Erro ao carregar notificações",
-          description: err?.message || "Não foi possível carregar as notificações do dia.",
+          description: errorMessage,
           variant: "error",
         });
-        console.error("Erro ao buscar notificações do dia", err);
       }
     }
 

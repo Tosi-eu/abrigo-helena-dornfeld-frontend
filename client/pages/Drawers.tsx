@@ -12,7 +12,7 @@ export default function Drawers() {
     { key: "categoria", label: "Categoria", editable: false },
   ];
 
-  const [drawers, setDrawers] = useState<any[]>([]);
+  const [drawers, setDrawers] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
@@ -23,10 +23,12 @@ export default function Drawers() {
       setDrawers(Array.isArray(res.data) ? res.data : []);
       setPage(res.page ?? pageNumber);
       setHasNextPage(Boolean(res.hasNext));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
       toast({
         title: "Erro ao carregar gavetas",
-        description: err.message ?? "Erro inesperado",
+        description: errorMessage,
         variant: "error",
       });
     }

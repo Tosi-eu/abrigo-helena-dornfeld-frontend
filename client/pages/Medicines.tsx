@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast.hook";
 import { DEFAULT_PAGE_SIZE } from "@/helpers/paginacao.helper";
 
 export default function Medicines() {
-  const [medicines, setMedicines] = useState<any[]>([]);
+  const [medicines, setMedicines] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
@@ -17,11 +17,12 @@ export default function Medicines() {
       setMedicines(Array.isArray(res.data) ? res.data : []);
       setPage(res.page ?? pageNumber);
       setHasNextPage(res.hasNext);
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
       toast({
         title: "Erro ao carregar medicamentos",
-        description: err.message ?? "Erro inesperado",
+        description: errorMessage,
         variant: "error",
       });
     }

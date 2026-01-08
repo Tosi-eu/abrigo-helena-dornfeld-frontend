@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast.hook";
 import { getInputs } from "@/api/requests";
 
 export default function Inputs() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
@@ -23,10 +23,12 @@ export default function Inputs() {
       setData(Array.isArray(res.data) ? res.data : []);
       setPage(res.page ?? pageNumber);
       setHasNextPage(Boolean(res.hasNext));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
       toast({
         title: "Erro ao carregar insumos",
-        description: err.message ?? "Erro inesperado",
+        description: errorMessage,
         variant: "error",
       });
     }

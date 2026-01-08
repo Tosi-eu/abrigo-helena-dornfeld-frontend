@@ -80,13 +80,16 @@ export default function Stock() {
 
       setItems(formatStockItems(res.data));
       setHasNext(res.hasNext);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os itens do estoque.";
       toast({
         title: "Erro ao carregar estoque",
-        description: err?.message || "Não foi possível carregar os itens do estoque.",
+        description: errorMessage,
         variant: "error",
       });
-      console.error("Erro ao buscar estoque:", err);
     }
   }
 
@@ -97,13 +100,16 @@ export default function Stock() {
         100,
       );
       setAllRawData(allItems);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar todos os itens do estoque.";
       toast({
         title: "Erro ao carregar dados",
-        description: err?.message || "Não foi possível carregar todos os itens do estoque.",
+        description: errorMessage,
         variant: "error",
       });
-      console.error("Erro ao carregar todos os itens:", err);
     }
   }
 
@@ -250,7 +256,7 @@ export default function Stock() {
         });
       }
     } catch (err: any) {
-      console.error("Erro ao executar ação", err);
+      // Error is already handled by toast notification
 
       const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
 
