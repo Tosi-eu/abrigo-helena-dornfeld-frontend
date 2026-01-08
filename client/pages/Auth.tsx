@@ -143,7 +143,7 @@ export default function Auth() {
     <div className="min-h-screen bg-sky-100 flex flex-col">
       <header className="shrink-0 border-b border-sky-200 bg-sky-100">
         <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
-          <img src={logo} alt="Logo" className="h-20 w-auto" />
+          <img src={logo} alt="Logo" className="h-12 w-auto" />
           <h1 className="text-xl font-bold text-slate-900 tracking-tight hidden sm:block">
             Abrigo Helena Dornfeld
           </h1>

@@ -9,6 +9,10 @@ interface VirtualizedTableProps {
   className?: string;
 }
 
+/**
+ * Componente de tabela virtualizada para listas grandes
+ * Renderiza apenas os itens visíveis na viewport
+ */
 export function VirtualizedTable({
   data,
   renderRow,

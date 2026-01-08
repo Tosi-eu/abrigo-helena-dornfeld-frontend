@@ -5,7 +5,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
 import { lazy, Suspense } from "react";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
+// Lazy load ReportModal (usa @react-pdf/renderer que é pesado)
 const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
   getStock,
@@ -28,7 +30,7 @@ import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 export default function Stock() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data } = location.state || {};
+  const { data, filter } = location.state || {};
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
@@ -56,7 +58,7 @@ export default function Stock() {
       drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
       stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
-      tipo: item.tipo,
+      tipo: item.tipo, // Store raw tipo value
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
@@ -75,12 +77,6 @@ export default function Stock() {
   async function loadStock(pageToLoad: number) {
     setLoading(true);
     try {
-      if (data) {
-        setItems(formatStockItems(data));
-        setHasNext(false);
-        return;
-      }
-
       const res = await getStock(pageToLoad, limit);
 
       setItems(formatStockItems(res.data));
@@ -122,21 +118,40 @@ export default function Stock() {
 
   useEffect(() => {
     async function init() {
-      if (data) {
-        setItems(formatStockItems(data));
+      setLoading(true);
+      
+      // If data comes from Dashboard (filtered view)
+      if (data && Array.isArray(data)) {
+        if (data.length > 0) {
+          setItems(formatStockItems(data));
+        } else {
+          setItems([]);
+        }
         setHasNext(false);
+        setLoading(false);
+        // Still load all data for other operations (like stock out)
+        try {
+          await loadAllStock();
+        } catch (err) {
+          // Silently fail - not critical for filtered view
+          console.error("Error loading all stock:", err);
+        }
         return;
       }
 
+      // Normal load from API
       await loadStock(1);
       await loadAllStock();
     }
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!data) {
+    // Only load new page if we're not showing filtered data from Dashboard
+    // and page changed (not initial load)
+    if ((!data || !Array.isArray(data)) && page > 1) {
       loadStock(page);
     }
   }, [page]);
@@ -263,6 +278,7 @@ export default function Stock() {
         });
       }
     } catch (err: any) {
+      // Error is already handled by toast notification
 
       const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
 

@@ -61,6 +61,7 @@ export const editStockSchema = z
   )
   .refine(
     (data) => {
+      // Casela só pode ser selecionada se armário estiver selecionado
       if (data.casela_id !== null) {
         return data.armario_id !== null && data.gaveta_id === null;
       }

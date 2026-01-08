@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo, memo } from "react";
+import { useEffect, useState, memo } from "react";
+import { Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
@@ -6,11 +7,9 @@ import { useNavigate } from "react-router-dom";
 
 import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  validateNumberInput,
-  validateTextInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { medicineFormSchema, type MedicineFormData } from "@/schemas/medicine-form.schema";
 import {
   MedicineStockType,
   OriginType,
@@ -41,136 +40,98 @@ export const MedicineForm = memo(function MedicineForm({
   drawers,
   onSubmit,
 }: MedicineFormProps) {
-  const [formData, setFormData] = useState({
-    id: null as number | null,
-    quantity: "",
-    stockType: "" as MedicineStockType | "",
-    expirationDate: null as Date | null,
-    resident: "",
-    casela: null as number | null,
-    cabinetId: null as number | null,
-    drawerId: null as number | null,
-    origin: "" as OriginType | "",
-    sector: "" as SectorType | "",
-    lot: "",
-  });
-
-  const [medicineOpen, setMedicineOpen] = useState(false);
   const navigate = useNavigate();
+  const [medicineOpen, setMedicineOpen] = useState(false);
 
-  const selectedMedicine = medicines.find((m) => m.id === formData.id);
-  const isEmergencyCart = formData.stockType === MedicineStockType.CARRINHO;
-
-  const updateField = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  useEffect(() => {
-    if (isEmergencyCart) {
-      setFormData((prev) => ({
-        ...prev,
-        sector: SectorType.ENFERMAGEM,
-      }));
-    }
-  }, [isEmergencyCart]);
-
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormWithZod(medicineFormSchema, {
+    defaultValues: {
+      id: undefined,
+      quantity: undefined,
+      stockType: undefined,
+      expirationDate: null,
+      casela: null,
       cabinetId: null,
       drawerId: null,
-    }));
-  }, [formData.stockType]);
+      origin: null,
+      sector: SectorType.FARMACIA,
+      lot: null,
+    },
+  });
 
-  const handleCaselaChange = (value: number) => {
-    const selected = caselas.find((c) => c.casela === value);
-    setFormData((prev) => ({
-      ...prev,
-      casela: value,
-      resident: selected ? selected.name : "",
-    }));
-  };
+  const stockType = watch("stockType");
+  const selectedMedicineId = watch("id");
+  const casela = watch("casela");
+
+  const selectedMedicine = medicines.find((m) => m.id === selectedMedicineId);
+  const isEmergencyCart = stockType === MedicineStockType.CARRINHO;
+
+  // Auto-set sector when emergency cart is selected
+  useEffect(() => {
+    if (isEmergencyCart) {
+      setValue("sector", SectorType.ENFERMAGEM);
+    }
+  }, [isEmergencyCart, setValue]);
+
+  // Reset storage when stock type changes
+  useEffect(() => {
+    setValue("cabinetId", null);
+    setValue("drawerId", null);
+  }, [stockType, setValue]);
+
+  // Update resident name when casela changes
+  useEffect(() => {
+    if (casela) {
+      const selected = caselas.find((c) => c.casela === casela);
+      if (selected) {
+        // Resident name is read-only, so we don't need to set it in form
+      }
+    }
+  }, [casela, caselas]);
 
   const handleMedicineSelect = (id: number) => {
-    updateField("id", id);
+    setValue("id", id);
     setMedicineOpen(false);
   };
 
-  const handleSubmit = () => {
-    if (!formData.id) {
-      toast({ title: "Selecione um medicamento", variant: "error" });
-      return;
-    }
-
-    const quantityValidation = validateNumberInput(formData.quantity, {
-      min: 1,
-      max: 999999,
-      required: true,
-      fieldName: "Quantidade",
-    });
-
-    if (!quantityValidation.valid || !quantityValidation.value) {
+  const onFormSubmit = async (data: MedicineFormData) => {
+    try {
+      onSubmit({
+        id: data.id,
+        quantity: data.quantity,
+        stockType: data.stockType,
+        expirationDate: data.expirationDate ?? new Date(),
+        casela: data.casela ?? undefined,
+        cabinetId: data.cabinetId ?? undefined,
+        drawerId: data.drawerId ?? undefined,
+        origin: data.origin ?? "",
+        sector: data.sector,
+        lot: data.lot ?? undefined,
+        isEmergencyCart,
+      });
+    } catch (err: unknown) {
       toast({
-        title: "Erro de validação",
-        description: quantityValidation.error || "Informe uma quantidade válida",
+        title: "Erro ao processar formulário",
+        description: getErrorMessage(err, "Não foi possível processar o formulário."),
         variant: "error",
       });
-      return;
     }
-
-    if (formData.lot) {
-      const lotValidation = validateTextInput(formData.lot, {
-        maxLength: 100,
-        required: false,
-        fieldName: "Lote",
-      });
-
-      if (!lotValidation.valid) {
-        toast({
-          title: "Erro de validação",
-          description: lotValidation.error,
-          variant: "error",
-        });
-        return;
-      }
-    }
-
-    const quantity = quantityValidation.value;
-
-    if (isEmergencyCart && !formData.drawerId) {
-      toast({ title: "Selecione uma gaveta", variant: "error" });
-      return;
-    }
-
-    if (!isEmergencyCart && !formData.cabinetId) {
-      toast({ title: "Selecione um armário", variant: "error" });
-      return;
-    }
-
-    if (formData.stockType === MedicineStockType.GERAL && formData.casela) {
-      toast({
-        title: "Erro de seleção",
-        description: "Não é possível selecionar uma casela para estoque geral.",
-        variant: "error",
-      });
-      return;
-    }
-
-    onSubmit({
-      ...formData,
-      quantity,
-      lot: formData.lot ? sanitizeInput(formData.lot) : undefined,
-      expirationDate: formData.expirationDate
-        ? new Date(formData.expirationDate)
-        : null,
-      isEmergencyCart,
-    });
   };
 
   const storageOptions = isEmergencyCart ? drawers : cabinets;
+  const selectedCasela = caselas.find((c) => c.casela === casela);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
+    <form
+      onSubmit={handleSubmit(onFormSubmit)}
+      className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8"
+    >
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
         <h2 className="text-lg font-semibold text-slate-800">
           Informações do Medicamento
@@ -179,88 +140,114 @@ export const MedicineForm = memo(function MedicineForm({
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          Medicamento
+          Medicamento <span className="text-red-500">*</span>
         </label>
-        <Popover open={medicineOpen} onOpenChange={setMedicineOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              className="w-full justify-between bg-white"
-            >
-              {selectedMedicine
-                ? `${selectedMedicine.name} ${selectedMedicine.dosage} ${selectedMedicine.measurementUnit}`
-                : "Selecione o medicamento"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Buscar medicamento..." />
-              <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>
-              <CommandGroup>
-                {medicines.map((m) => (
-                  <CommandItem
-                    key={m.id}
-                    value={`${m.name} ${m.dosage} ${m.measurementUnit}`}
-                    onSelect={() => handleMedicineSelect(m.id)}
+        <Controller
+          name="id"
+          control={control}
+          render={({ field }) => (
+            <>
+              <Popover open={medicineOpen} onOpenChange={setMedicineOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      "w-full justify-between bg-white",
+                      errors.id && "border-red-500"
+                    )}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        formData.id === m.id ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    {m.name} {m.dosage} {m.measurementUnit}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                    {selectedMedicine
+                      ? `${selectedMedicine.name} ${selectedMedicine.dosage} ${selectedMedicine.measurementUnit}`
+                      : "Selecione o medicamento"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar medicamento..." />
+                    <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {medicines.map((m) => (
+                        <CommandItem
+                          key={m.id}
+                          value={`${m.name} ${m.dosage} ${m.measurementUnit}`}
+                          onSelect={() => {
+                            field.onChange(m.id);
+                            handleMedicineSelect(m.id);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedMedicineId === m.id ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          {m.name} {m.dosage} {m.measurementUnit}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {errors.id && (
+                <p className="text-sm text-red-500 mt-1">{errors.id.message}</p>
+              )}
+            </>
+          )}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            Quantidade
+            Quantidade <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
-            value={formData.quantity}
-            onChange={(e) => updateField("quantity", e.target.value.replace(/[^0-9]/g, ""))}
+            {...register("quantity", { valueAsNumber: true })}
             min={1}
             max={999999}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-            required
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              errors.quantity ? "border-red-500" : "border-slate-300"
+            )}
           />
+          {errors.quantity && (
+            <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
             Validade
           </label>
-          <DatePicker
-            selected={formData.expirationDate}
-            onChange={(date: Date | null) =>
-              updateField("expirationDate", date)
-            }
-            locale={ptBR}
-            dateFormat="dd/MM/yyyy"
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          <Controller
+            name="expirationDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                selected={field.value}
+                onChange={(date: Date | null) => field.onChange(date)}
+                locale={ptBR}
+                dateFormat="dd/MM/yyyy"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              />
+            )}
           />
         </div>
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          Tipo de estoque
+          Tipo de estoque <span className="text-red-500">*</span>
         </label>
         <select
-          value={formData.stockType}
-          onChange={(e) =>
-            updateField("stockType", e.target.value as MedicineStockType)
-          }
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+          {...register("stockType")}
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+            errors.stockType ? "border-red-500" : "border-slate-300"
+          )}
         >
           <option value="" disabled hidden>
             Selecione
@@ -271,25 +258,31 @@ export const MedicineForm = memo(function MedicineForm({
             </option>
           ))}
         </select>
+        {errors.stockType && (
+          <p className="text-sm text-red-500 mt-1">{errors.stockType.message}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">Casela</label>
           <select
-            value={formData.casela ?? ""}
-            onChange={(e) => handleCaselaChange(Number(e.target.value))}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+            {...register("casela", { valueAsNumber: true })}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+              errors.casela ? "border-red-500" : "border-slate-300"
+            )}
           >
-            <option value="" disabled hidden>
-              Selecione
-            </option>
+            <option value="">Selecione</option>
             {caselas.map((c) => (
               <option key={c.casela} value={c.casela}>
                 {c.casela}
               </option>
             ))}
           </select>
+          {errors.casela && (
+            <p className="text-sm text-red-500 mt-1">{errors.casela.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
@@ -297,7 +290,7 @@ export const MedicineForm = memo(function MedicineForm({
           </label>
           <input
             type="text"
-            value={formData.resident}
+            value={selectedCasela?.name || ""}
             readOnly
             className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm"
           />
@@ -307,44 +300,58 @@ export const MedicineForm = memo(function MedicineForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            {isEmergencyCart ? "Gaveta" : "Armário"}
+            {isEmergencyCart ? "Gaveta" : "Armário"} <span className="text-red-500">*</span>
           </label>
-          <select
-            value={
-              isEmergencyCart
-                ? (formData.drawerId ?? "")
-                : (formData.cabinetId ?? "")
-            }
-            onChange={(e) =>
-              isEmergencyCart
-                ? updateField("drawerId", Number(e.target.value))
-                : updateField("cabinetId", Number(e.target.value))
-            }
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-          >
-            <option value="" disabled hidden>
-              Selecione
-            </option>
-            {storageOptions.map((s) => (
-              <option key={s.numero} value={s.numero}>
-                {s.numero}
-              </option>
-            ))}
-          </select>
+          {isEmergencyCart ? (
+            <>
+              <select
+                {...register("drawerId", { valueAsNumber: true })}
+                className={cn(
+                  "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+                  errors.drawerId ? "border-red-500" : "border-slate-300"
+                )}
+              >
+                <option value="">Selecione</option>
+                {storageOptions.map((s) => (
+                  <option key={s.numero} value={s.numero}>
+                    {s.numero}
+                  </option>
+                ))}
+              </select>
+              {errors.drawerId && (
+                <p className="text-sm text-red-500 mt-1">{errors.drawerId.message}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <select
+                {...register("cabinetId", { valueAsNumber: true })}
+                className={cn(
+                  "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+                  errors.cabinetId ? "border-red-500" : "border-slate-300"
+                )}
+              >
+                <option value="">Selecione</option>
+                {storageOptions.map((s) => (
+                  <option key={s.numero} value={s.numero}>
+                    {s.numero}
+                  </option>
+                ))}
+              </select>
+              {errors.cabinetId && (
+                <p className="text-sm text-red-500 mt-1">{errors.cabinetId.message}</p>
+              )}
+            </>
+          )}
         </div>
 
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">Origem</label>
           <select
-            value={formData.origin}
-            onChange={(e) =>
-              updateField("origin", e.target.value as OriginType)
-            }
+            {...register("origin")}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
           >
-            <option value="" disabled hidden>
-              Selecione
-            </option>
+            <option value="">Selecione</option>
             {Object.values(OriginType).map((o) => (
               <option key={o} value={o}>
                 {o.charAt(0) + o.slice(1).toLowerCase()}
@@ -355,41 +362,47 @@ export const MedicineForm = memo(function MedicineForm({
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Setor</label>
-
+        <label className="text-sm font-semibold text-slate-700">
+          Setor <span className="text-red-500">*</span>
+        </label>
         <select
-          value={formData.sector}
-          onChange={(e) => updateField("sector", e.target.value as SectorType)}
+          {...register("sector")}
           disabled={isEmergencyCart}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-            isEmergencyCart
-              ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-              : "border-slate-300",
+            errors.sector ? "border-red-500" : "border-slate-300",
+            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed"
           )}
         >
           <option value="" disabled hidden>
             Selecione
           </option>
-
           {Object.values(SectorType).map((sector) => (
             <option key={sector} value={sector}>
               {sector === SectorType.FARMACIA ? "Farmácia" : "Enfermagem"}
             </option>
           ))}
         </select>
+        {errors.sector && (
+          <p className="text-sm text-red-500 mt-1">{errors.sector.message}</p>
+        )}
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">Lote</label>
         <input
           type="text"
-          value={formData.lot}
-          onChange={(e) => updateField("lot", sanitizeInput(e.target.value))}
+          {...register("lot")}
           maxLength={100}
           placeholder="Ex: L2024-01"
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm",
+            errors.lot ? "border-red-500" : "border-slate-300"
+          )}
         />
+        {errors.lot && (
+          <p className="text-sm text-red-500 mt-1">{errors.lot.message}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
@@ -401,13 +414,12 @@ export const MedicineForm = memo(function MedicineForm({
           Cancelar
         </button>
         <button
-          type="button"
-          onClick={handleSubmit}
-          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm"
+          type="submit"
+          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 transition-colors"
         >
           Confirmar
         </button>
       </div>
-    </div>
+    </form>
   );
 });

@@ -1,17 +1,16 @@
 import "react-datepicker/dist/react-datepicker.css";
-import { useEffect, useState, useMemo, memo } from "react";
+import { useEffect, useState, memo } from "react";
+import { Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 
 import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { inputFormSchema, type InputFormData } from "@/schemas/input-form.schema";
 import { InputStockType, StockTypeLabels, SectorType } from "@/utils/enums";
-import {
-  validateNumberInput,
-  validateTextInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,114 +34,83 @@ export const InputForm = memo(function InputForm({
   drawers,
   onSubmit,
 }: InputFormProps) {
-  const [formData, setFormData] = useState({
-    inputId: null as number | null,
-    category: "",
-    quantity: "",
-    stockType: "" as InputStockType | "",
-    validity: null as Date | null,
-    cabinetId: null as number | null,
-    drawerId: null as number | null,
-    sector: "" as SectorType | "",
-    lot: "",
+  const navigate = useNavigate();
+  const [inputOpen, setInputOpen] = useState(false);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormWithZod(inputFormSchema, {
+    defaultValues: {
+      inputId: undefined,
+      quantity: undefined,
+      stockType: undefined,
+      validity: null,
+      cabinetId: null,
+      drawerId: null,
+      sector: SectorType.FARMACIA,
+      lot: null,
+    },
   });
 
-  const [inputOpen, setInputOpen] = useState(false);
-  const navigate = useNavigate();
+  const stockType = watch("stockType");
+  const selectedInputId = watch("inputId");
 
-  const selectedInput = inputs.find((i) => i.id === formData.inputId);
-  const isEmergencyCart = formData.stockType === InputStockType.CARRINHO;
+  const selectedInput = inputs.find((i) => i.id === selectedInputId);
+  const isEmergencyCart = stockType === InputStockType.CARRINHO;
 
-  const updateField = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
+  // Auto-set sector when emergency cart is selected
   useEffect(() => {
     if (isEmergencyCart) {
-      setFormData((prev) => ({
-        ...prev,
-        sector: SectorType.ENFERMAGEM,
-      }));
+      setValue("sector", SectorType.ENFERMAGEM);
     }
-  }, [isEmergencyCart]);
+  }, [isEmergencyCart, setValue]);
 
+  // Reset storage when stock type changes
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, cabinetId: null, drawerId: null }));
-  }, [formData.stockType]);
+    setValue("cabinetId", null);
+    setValue("drawerId", null);
+  }, [stockType, setValue]);
 
   const handleInputSelect = (id: number) => {
     const selected = inputs.find((i) => i.id === id);
-    updateField("inputId", id);
-    updateField("category", selected?.description ?? "");
+    setValue("inputId", id);
     setInputOpen(false);
   };
 
-  const handleSubmit = () => {
-    if (!formData.inputId) {
-      toast({ title: "Selecione um insumo", variant: "error" });
-      return;
-    }
-
-    const quantityValidation = validateNumberInput(formData.quantity, {
-      min: 1,
-      max: 999999,
-      required: true,
-      fieldName: "Quantidade",
-    });
-
-    if (!quantityValidation.valid || !quantityValidation.value) {
+  const onFormSubmit = async (data: InputFormData) => {
+    try {
+      onSubmit({
+        inputId: data.inputId,
+        quantity: data.quantity,
+        isEmergencyCart,
+        drawerId: data.drawerId ?? undefined,
+        cabinetId: data.cabinetId ?? undefined,
+        validity: data.validity ?? undefined,
+        stockType: data.stockType,
+        sector: data.sector,
+        lot: data.lot ?? undefined,
+      });
+    } catch (err: unknown) {
       toast({
-        title: "Erro de validação",
-        description: quantityValidation.error || "Informe uma quantidade válida",
+        title: "Erro ao processar formulário",
+        description: getErrorMessage(err, "Não foi possível processar o formulário."),
         variant: "error",
       });
-      return;
     }
-
-    if (formData.lot) {
-      const lotValidation = validateTextInput(formData.lot, {
-        maxLength: 100,
-        required: false,
-        fieldName: "Lote",
-      });
-
-      if (!lotValidation.valid) {
-        toast({
-          title: "Erro de validação",
-          description: lotValidation.error,
-          variant: "error",
-        });
-        return;
-      }
-    }
-
-    if (isEmergencyCart && !formData.drawerId) {
-      toast({ title: "Selecione uma gaveta", variant: "error" });
-      return;
-    }
-
-    if (!isEmergencyCart && !formData.cabinetId) {
-      toast({ title: "Selecione um armário", variant: "error" });
-      return;
-    }
-
-    onSubmit({
-      inputId: formData.inputId,
-      quantity: quantityValidation.value,
-      isEmergencyCart,
-      drawerId: formData.drawerId || undefined,
-      cabinetId: formData.cabinetId || undefined,
-      validity: formData.validity,
-      stockType: formData.stockType,
-      sector: formData.sector,
-      lot: formData.lot ? sanitizeInput(formData.lot) : undefined,
-    });
   };
 
   const storageOptions = isEmergencyCart ? drawers : cabinets;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
+    <form
+      onSubmit={handleSubmit(onFormSubmit)}
+      className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8"
+    >
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
         <h2 className="text-lg font-semibold text-slate-800">
           Informações do Insumo
@@ -151,80 +119,111 @@ export const InputForm = memo(function InputForm({
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          Nome do Insumo
+          Nome do Insumo <span className="text-red-500">*</span>
         </label>
-        <Popover open={inputOpen} onOpenChange={setInputOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              {selectedInput ? selectedInput.name : "Selecione o insumo"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Buscar insumo..." />
-              <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
-              <CommandGroup>
-                {inputs.map((i) => (
-                  <CommandItem
-                    key={i.id}
-                    value={i.name}
-                    onSelect={() => handleInputSelect(i.id)}
+        <Controller
+          name="inputId"
+          control={control}
+          render={({ field }) => (
+            <>
+              <Popover open={inputOpen} onOpenChange={setInputOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-between",
+                      errors.inputId && "border-red-500"
+                    )}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        formData.inputId === i.id ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    {i.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                    {selectedInput ? selectedInput.name : "Selecione o insumo"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar insumo..." />
+                    <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {inputs.map((i) => (
+                        <CommandItem
+                          key={i.id}
+                          value={i.name}
+                          onSelect={() => {
+                            field.onChange(i.id);
+                            handleInputSelect(i.id);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedInputId === i.id ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          {i.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {errors.inputId && (
+                <p className="text-sm text-red-500 mt-1">{errors.inputId.message}</p>
+              )}
+            </>
+          )}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            Quantidade
+            Quantidade <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
-            value={formData.quantity}
-            onChange={(e) => updateField("quantity", e.target.value.replace(/[^0-9]/g, ""))}
+            {...register("quantity", { valueAsNumber: true })}
             min={1}
             max={999999}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-            required
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              errors.quantity ? "border-red-500" : "border-slate-300"
+            )}
           />
+          {errors.quantity && (
+            <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
             Validade
           </label>
-          <DatePicker
-            selected={formData.validity}
-            onChange={(date: Date | null) => updateField("validity", date)}
-            locale={ptBR}
-            dateFormat="dd/MM/yyyy"
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          <Controller
+            name="validity"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                selected={field.value}
+                onChange={(date: Date | null) => field.onChange(date)}
+                locale={ptBR}
+                dateFormat="dd/MM/yyyy"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              />
+            )}
           />
         </div>
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          Tipo de Estoque
+          Tipo de Estoque <span className="text-red-500">*</span>
         </label>
         <select
-          value={formData.stockType}
-          onChange={(e) =>
-            updateField("stockType", e.target.value as InputStockType)
-          }
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+          {...register("stockType")}
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+            errors.stockType ? "border-red-500" : "border-slate-300"
+          )}
         >
           <option value="" disabled hidden>
             Selecione
@@ -235,47 +234,69 @@ export const InputForm = memo(function InputForm({
             </option>
           ))}
         </select>
+        {errors.stockType && (
+          <p className="text-sm text-red-500 mt-1">{errors.stockType.message}</p>
+        )}
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          {isEmergencyCart ? "Gaveta" : "Armário"}
+          {isEmergencyCart ? "Gaveta" : "Armário"} <span className="text-red-500">*</span>
         </label>
-        <select
-          value={
-            isEmergencyCart
-              ? (formData.drawerId ?? "")
-              : (formData.cabinetId ?? "")
-          }
-          onChange={(e) =>
-            isEmergencyCart
-              ? updateField("drawerId", Number(e.target.value))
-              : updateField("cabinetId", Number(e.target.value))
-          }
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-        >
-          <option value="" disabled hidden>
-            Selecione
-          </option>
-          {storageOptions.map((s) => (
-            <option key={s.numero} value={s.numero}>
-              {s.numero}
-            </option>
-          ))}
-        </select>
+        {isEmergencyCart ? (
+          <>
+            <select
+              {...register("drawerId", { valueAsNumber: true })}
+              className={cn(
+                "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+                errors.drawerId ? "border-red-500" : "border-slate-300"
+              )}
+            >
+              <option value="">Selecione</option>
+              {storageOptions.map((s) => (
+                <option key={s.numero} value={s.numero}>
+                  {s.numero}
+                </option>
+              ))}
+            </select>
+            {errors.drawerId && (
+              <p className="text-sm text-red-500 mt-1">{errors.drawerId.message}</p>
+            )}
+          </>
+        ) : (
+          <>
+            <select
+              {...register("cabinetId", { valueAsNumber: true })}
+              className={cn(
+                "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+                errors.cabinetId ? "border-red-500" : "border-slate-300"
+              )}
+            >
+              <option value="">Selecione</option>
+              {storageOptions.map((s) => (
+                <option key={s.numero} value={s.numero}>
+                  {s.numero}
+                </option>
+              ))}
+            </select>
+            {errors.cabinetId && (
+              <p className="text-sm text-red-500 mt-1">{errors.cabinetId.message}</p>
+            )}
+          </>
+        )}
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Setor</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Setor <span className="text-red-500">*</span>
+        </label>
         <select
-          value={formData.sector}
-          onChange={(e) => updateField("sector", e.target.value as SectorType)}
+          {...register("sector")}
           disabled={isEmergencyCart}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-            isEmergencyCart
-              ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-              : "border-slate-300",
+            errors.sector ? "border-red-500" : "border-slate-300",
+            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed"
           )}
         >
           <option value="" disabled hidden>
@@ -287,18 +308,26 @@ export const InputForm = memo(function InputForm({
             </option>
           ))}
         </select>
+        {errors.sector && (
+          <p className="text-sm text-red-500 mt-1">{errors.sector.message}</p>
+        )}
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">Lote</label>
         <input
           type="text"
-          value={formData.lot}
-          onChange={(e) => updateField("lot", sanitizeInput(e.target.value))}
+          {...register("lot")}
           maxLength={100}
           placeholder="Ex: L2024-01"
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm",
+            errors.lot ? "border-red-500" : "border-slate-300"
+          )}
         />
+        {errors.lot && (
+          <p className="text-sm text-red-500 mt-1">{errors.lot.message}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
@@ -310,13 +339,12 @@ export const InputForm = memo(function InputForm({
           Cancelar
         </button>
         <button
-          type="button"
-          onClick={handleSubmit}
-          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm"
+          type="submit"
+          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 transition-colors"
         >
           Confirmar
         </button>
       </div>
-    </div>
+    </form>
   );
 });

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
+import { TableFilter } from "@/components/TableFilter";
 import { useToast } from "@/hooks/use-toast.hook";
 import { getInputs } from "@/api/requests";
 
@@ -16,6 +17,7 @@ export default function Inputs() {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchFilter, setSearchFilter] = useState("");
   const { toast } = useToast();
 
   async function fetchInputs(pageNumber: number) {
@@ -23,7 +25,8 @@ export default function Inputs() {
     try {
       const res = await getInputs(pageNumber, 10);
 
-      setData(Array.isArray(res.data) ? res.data : []);
+      const inputData = Array.isArray(res.data) ? res.data : [];
+      setData(inputData);
       setPage(res.page ?? pageNumber);
       setHasNextPage(Boolean(res.hasNext));
     } catch (err: unknown) {
@@ -39,6 +42,19 @@ export default function Inputs() {
     }
   }
 
+  // Filter inputs based on search (only by name)
+  const filteredInputs = useMemo(() => {
+    if (!searchFilter.trim()) {
+      return data;
+    }
+
+    const filterLower = searchFilter.toLowerCase();
+    return data.filter((input) => {
+      const nome = String(input.nome || "").toLowerCase();
+      return nome.includes(filterLower);
+    });
+  }, [data, searchFilter]);
+
   useEffect(() => {
     fetchInputs(1);
   }, []);
@@ -47,11 +63,17 @@ export default function Inputs() {
     <Layout title="Insumos">
       <div className="pt-12">
         <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <div className="mb-4">
+            <TableFilter
+              placeholder="Buscar por nome"
+              onFilterChange={setSearchFilter}
+            />
+          </div>
           {loading ? (
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (
             <EditableTable
-              data={data}
+              data={filteredInputs}
               columns={columns}
               entityType="inputs"
               currentPage={page}

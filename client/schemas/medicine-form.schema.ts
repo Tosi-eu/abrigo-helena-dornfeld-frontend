@@ -31,6 +31,7 @@ export const medicineFormSchema = z
   })
   .refine(
     (data) => {
+      // Se é carrinho de emergência, deve ter gaveta
       if (data.stockType === MedicineStockType.CARRINHO) {
         return data.drawerId !== null;
       }
@@ -43,6 +44,7 @@ export const medicineFormSchema = z
   )
   .refine(
     (data) => {
+      // Se não é carrinho, deve ter armário
       if (data.stockType !== MedicineStockType.CARRINHO) {
         return data.cabinetId !== null;
       }
@@ -55,6 +57,7 @@ export const medicineFormSchema = z
   )
   .refine(
     (data) => {
+      // Estoque geral não pode ter casela
       if (data.stockType === MedicineStockType.GERAL && data.casela !== null) {
         return false;
       }
@@ -67,6 +70,7 @@ export const medicineFormSchema = z
   )
   .refine(
     (data) => {
+      // Armário e gaveta não podem ser selecionados ao mesmo tempo
       if (data.cabinetId !== null && data.drawerId !== null) {
         return false;
       }

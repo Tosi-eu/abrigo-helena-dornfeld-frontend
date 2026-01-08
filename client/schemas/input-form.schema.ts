@@ -29,6 +29,7 @@ export const inputFormSchema = z
   })
   .refine(
     (data) => {
+      // Se é carrinho de emergência, deve ter gaveta
       if (data.stockType === InputStockType.CARRINHO) {
         return data.drawerId !== null;
       }
@@ -41,6 +42,7 @@ export const inputFormSchema = z
   )
   .refine(
     (data) => {
+      // Se não é carrinho, deve ter armário
       if (data.stockType !== InputStockType.CARRINHO) {
         return data.cabinetId !== null;
       }
@@ -53,6 +55,7 @@ export const inputFormSchema = z
   )
   .refine(
     (data) => {
+      // Armário e gaveta não podem ser selecionados ao mesmo tempo
       if (data.cabinetId !== null && data.drawerId !== null) {
         return false;
       }

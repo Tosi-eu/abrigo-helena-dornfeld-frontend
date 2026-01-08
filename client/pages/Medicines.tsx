@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
+import { TableFilter } from "@/components/TableFilter";
 import { getMedicines } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
 import { DEFAULT_PAGE_SIZE } from "@/helpers/paginacao.helper";
@@ -19,13 +20,15 @@ export default function Medicines() {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchFilter, setSearchFilter] = useState("");
 
   async function fetchMedicines(pageNumber: number) {
     setLoading(true);
     try {
       const res = await getMedicines(pageNumber, DEFAULT_PAGE_SIZE);
 
-      setMedicines(Array.isArray(res.data) ? res.data : []);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setMedicines(data);
       setPage(res.page ?? pageNumber);
       setHasNextPage(res.hasNext);
     } catch (err: unknown) {
@@ -41,6 +44,19 @@ export default function Medicines() {
     }
   }
 
+  // Filter medicines based on search (only by name)
+  const filteredMedicines = useMemo(() => {
+    if (!searchFilter.trim()) {
+      return medicines;
+    }
+
+    const filterLower = searchFilter.toLowerCase();
+    return medicines.filter((medicine) => {
+      const nome = String(medicine.nome || "").toLowerCase();
+      return nome.includes(filterLower);
+    });
+  }, [medicines, searchFilter]);
+
   useEffect(() => {
     fetchMedicines(1);
   }, []);
@@ -49,11 +65,17 @@ export default function Medicines() {
     <Layout title="Medicamentos">
       <div className="pt-12">
         <div className="max-w-4xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+          <div className="mb-4">
+            <TableFilter
+              placeholder="Buscar por nome"
+              onFilterChange={setSearchFilter}
+            />
+          </div>
           {loading ? (
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (
             <EditableTable
-              data={medicines}
+              data={filteredMedicines}
               columns={columns}
               entityType="medicines"
               currentPage={page}
