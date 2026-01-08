@@ -294,6 +294,29 @@ export const transferStockSector = (payload: {
     setor: payload.setor,
   });
 
+export const updateStockItem = (
+  estoqueId: number,
+  itemTipo: StockItemType,
+  data: {
+    quantidade?: number;
+    armario_id?: number | null;
+    gaveta_id?: number | null;
+    validade?: string | null;
+    origem?: string | null;
+    setor?: string;
+    lote?: string | null;
+    casela_id?: number | null;
+    tipo?: string;
+  },
+) => {
+  const { tipo: stockTipo, ...restData } = data;
+  return api.put(`/estoque/${estoqueId}`, { 
+    tipo: itemTipo,
+    stockTipo: stockTipo,
+    ...restData 
+  });
+};
+
 export const getBackendLoadingStatus = () => api.get("/status");
 
 export const logoutRequest = () => api.post("/login/logout");

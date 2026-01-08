@@ -187,6 +187,12 @@ export default function EditableTable({
     if (entityType) type = entityType;
 
     if (!type) return;
+    
+    if (entityType === "stock") {
+      navigate("/stock/edit", { state: { item: row } });
+      return;
+    }
+    
     navigate(`/${type}/edit`, { state: { item: row } });
   };
 

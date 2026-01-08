@@ -149,12 +149,16 @@ export interface StockItem {
   minimumStock?: number;
   patient?: string;
   cabinet?: number | string;
+  drawer?: number | string;
   casela?: string | number;
   itemType: OperationType;
-  stockType: MedicineStockType;
+  stockType: MedicineStockType | string;
+  tipo?: string;
   status?: string | null;
   sector: string;
   suspended_at?: Date | null;
+  origin?: string;
+  lot?: string | null;
 }
 
 export interface InputFormProps {

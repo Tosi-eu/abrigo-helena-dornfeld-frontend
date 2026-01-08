@@ -147,6 +147,10 @@ export function validateNumberInput(
     return { valid: false, error: `${fieldName} deve ser no mínimo ${min}` };
   }
 
+  if (min !== undefined && min >= 1 && numValue === 0) {
+    return { valid: false, error: `${fieldName} deve ser maior que zero` };
+  }
+
   if (max !== undefined && numValue > max) {
     return { valid: false, error: `${fieldName} deve ser no máximo ${max}` };
   }

@@ -52,6 +52,7 @@ export default function Stock() {
       drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
       stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
+      tipo: item.tipo, // Store raw tipo value
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,

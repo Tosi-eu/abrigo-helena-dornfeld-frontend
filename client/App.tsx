@@ -19,6 +19,7 @@ import Resident from "./pages/Residents";
 import RegisterResident from "./pages/RegisterResident";
 import EditResident from "./pages/EditResident";
 import StockOut from "./pages/StockOut";
+import EditStock from "./pages/EditStock";
 import EditMedicine from "./pages/EditMedicine";
 import EditInput from "./pages/EditInput";
 import Medicines from "./pages/Medicines";
@@ -110,6 +111,14 @@ const App = () => (
                 element={
                   <PrivateRoute>
                     <StockOut />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/stock/edit"
+                element={
+                  <PrivateRoute>
+                    <EditStock />
                   </PrivateRoute>
                 }
               />
