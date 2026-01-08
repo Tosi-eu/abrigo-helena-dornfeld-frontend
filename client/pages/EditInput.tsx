@@ -2,12 +2,9 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  validateTextInput,
-  validateNumberInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
-
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { editInputSchema } from "@/schemas/edit-input.schema";
 import { updateInput } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -19,13 +16,19 @@ export default function EditInput() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [saving, setSaving] = useState(false);
+  const [inputId, setInputId] = useState<number | null>(null);
 
-  const [formData, setFormData] = useState({
-    id: "",
-    nome: "",
-    descricao: "",
-    estoque_minimo: 0,
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useFormWithZod(editInputSchema, {
+    defaultValues: {
+      nome: "",
+      descricao: "",
+      estoque_minimo: "",
+    },
   });
 
   useEffect(() => {
@@ -41,98 +44,48 @@ export default function EditInput() {
       return;
     }
 
-    setFormData({
-      id: item.id,
+    setInputId(item.id);
+    reset({
       nome: item.nome || "",
       descricao: item.descricao || "",
-      estoque_minimo: item.estoque_minimo || 0,
+      estoque_minimo: item.estoque_minimo?.toString() || "0",
     });
-  }, [location.state, navigate]);
+  }, [location.state, navigate, reset]);
 
-  const handleChange = (field: keyof typeof formData, value: string) => {
-    const sanitized = field === "estoque_minimo" 
-      ? value.replace(/[^0-9]/g, "")
-      : sanitizeInput(value);
-    
-    setFormData((prev) => ({
-      ...prev,
-      [field]: field === "estoque_minimo" ? Number(sanitized) : sanitized,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const nameValidation = validateTextInput(formData.nome, {
-      maxLength: 100,
-      required: true,
-      fieldName: "Nome do insumo",
-    });
-
-    if (!nameValidation.valid) {
+  const onSubmit = async (data: {
+    nome: string;
+    descricao: string;
+    estoque_minimo: string;
+  }) => {
+    if (!inputId) {
       toast({
-        title: "Erro de validação",
-        description: nameValidation.error,
+        title: "Erro",
+        description: "Insumo não identificado.",
         variant: "error",
       });
       return;
     }
-
-    const descValidation = validateTextInput(formData.descricao, {
-      maxLength: 255,
-      required: false,
-      fieldName: "Descrição",
-    });
-
-    if (!descValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: descValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    const minValidation = validateNumberInput(formData.estoque_minimo, {
-      min: 0,
-      max: 999999,
-      required: false,
-      fieldName: "Estoque mínimo",
-    });
-
-    if (!minValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: minValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    setSaving(true);
 
     try {
-      await updateInput(parseInt(formData.id), {
-        nome: nameValidation.sanitized!,
-        descricao: descValidation.sanitized || "",
-        estoque_minimo: minValidation.value || 0,
+      await updateInput(inputId, {
+        nome: data.nome.trim(),
+        descricao: data.descricao.trim() || "",
+        estoque_minimo: Number(data.estoque_minimo) || 0,
       });
 
       toast({
         title: "Insumo atualizado",
-        description: `${nameValidation.sanitized} foi atualizado com sucesso.`,
+        description: `${data.nome} foi atualizado com sucesso.`,
         variant: "success",
       });
 
       navigate("/inputs");
-    } catch (err) {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao atualizar",
-        description: "Não foi possível atualizar o insumo.",
+        description: getErrorMessage(err, "Não foi possível atualizar o insumo."),
         variant: "error",
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -146,41 +99,52 @@ export default function EditInput() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Nome do insumo</Label>
+              <Label htmlFor="nome">Nome do insumo</Label>
               <Input
-                value={formData.nome}
-                onChange={(e) => handleChange("nome", e.target.value)}
-                maxLength={100}
-                placeholder="Ex: Seringa 5ml"
-                disabled={saving}
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>Descrição</Label>
-              <Input
-                value={formData.descricao}
-                onChange={(e) => handleChange("descricao", e.target.value)}
+                id="nome"
+                {...register("nome")}
                 maxLength={255}
-                placeholder="Ex: Material de injeção"
-                disabled={saving}
+                placeholder="Ex: Seringa 5ml"
+                disabled={isSubmitting}
+                aria-invalid={errors.nome ? "true" : "false"}
               />
+              {errors.nome && (
+                <p className="text-sm text-red-600 mt-1">{errors.nome.message}</p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Estoque mínimo</Label>
+              <Label htmlFor="descricao">Descrição</Label>
               <Input
+                id="descricao"
+                {...register("descricao")}
+                maxLength={1000}
+                placeholder="Ex: Material de injeção"
+                disabled={isSubmitting}
+                aria-invalid={errors.descricao ? "true" : "false"}
+              />
+              {errors.descricao && (
+                <p className="text-sm text-red-600 mt-1">{errors.descricao.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="estoque_minimo">Estoque mínimo</Label>
+              <Input
+                id="estoque_minimo"
                 type="number"
+                {...register("estoque_minimo")}
                 min={0}
                 max={999999}
-                value={formData.estoque_minimo}
-                onChange={(e) => handleChange("estoque_minimo", e.target.value)}
                 placeholder="Ex: 10"
-                disabled={saving}
+                disabled={isSubmitting}
+                aria-invalid={errors.estoque_minimo ? "true" : "false"}
               />
+              {errors.estoque_minimo && (
+                <p className="text-sm text-red-600 mt-1">{errors.estoque_minimo.message}</p>
+              )}
             </div>
 
             <div className="flex justify-end pt-4 gap-2">
@@ -188,7 +152,7 @@ export default function EditInput() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/inputs")}
-                disabled={saving}
+                disabled={isSubmitting}
                 className="rounded-lg"
               >
                 Cancelar
@@ -196,10 +160,10 @@ export default function EditInput() {
 
               <Button
                 type="submit"
-                disabled={saving}
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
               >
-                {saving ? "Salvando..." : "Salvar Alterações"}
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
           </form>

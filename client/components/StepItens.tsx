@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { StockCard } from "@/components/StockCard";
+import { VirtualizedGrid } from "@/components/VirtualizedGrid";
 import { StockItemRaw } from "@/interfaces/interfaces";
 
 interface Props {
@@ -14,6 +16,44 @@ interface Props {
 }
 
 export default function StepItems({ items, selected, onSelectItem }: Props) {
+  const shouldVirtualize = items.length > 20;
+
+  const renderItem = useMemo(
+    () => (item: StockItemRaw, index: number) => {
+      const isDisabled = item.quantidade === 0;
+      const isSelected = selected?.estoque_id === item.estoque_id;
+
+      return (
+        <div className="w-full max-w-[380px] sm:max-w-[420px]">
+          <StockCard
+            key={`${item.estoque_id}-${item.tipo_item}`}
+            item={item}
+            selected={isSelected}
+            disabled={isDisabled}
+            tooltip={isDisabled ? "Este item está sem estoque" : undefined}
+            onSelect={() => onSelectItem(isSelected ? null : item)}
+          />
+        </div>
+      );
+    },
+    [selected, onSelectItem]
+  );
+
+  if (shouldVirtualize) {
+    return (
+      <div className="w-full space-y-4">
+        <VirtualizedGrid
+          items={items}
+          renderItem={renderItem}
+          columns={3}
+          itemHeight={200}
+          gap={24}
+          className="h-[600px]"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-4">
       <div
@@ -27,23 +67,7 @@ export default function StepItems({ items, selected, onSelectItem }: Props) {
           justify-items-center
         "
       >
-        {items.map((item) => {
-          const isDisabled = item.quantidade === 0;
-          const isSelected = selected?.estoque_id === item.estoque_id;
-
-          return (
-            <div className="w-full max-w-[380px] sm:max-w-[420px]">
-              <StockCard
-                key={`${item.estoque_id}-${item.tipo_item}`}
-                item={item}
-                selected={isSelected}
-                disabled={isDisabled}
-                tooltip={isDisabled ? "Este item está sem estoque" : undefined}
-                onSelect={() => onSelectItem(isSelected ? null : item)}
-              />
-            </div>
-          );
-        })}
+        {items.map((item, index) => renderItem(item, index))}
       </div>
     </div>
   );

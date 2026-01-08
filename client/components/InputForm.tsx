@@ -1,5 +1,5 @@
 import "react-datepicker/dist/react-datepicker.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
@@ -29,7 +29,7 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function InputForm({
+export const InputForm = memo(function InputForm({
   inputs,
   cabinets,
   drawers,
@@ -319,4 +319,4 @@ export function InputForm({
       </div>
     </div>
   );
-}
+});

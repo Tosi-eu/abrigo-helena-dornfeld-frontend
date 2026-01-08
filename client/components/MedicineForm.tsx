@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
@@ -34,7 +34,7 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function MedicineForm({
+export const MedicineForm = memo(function MedicineForm({
   medicines,
   caselas,
   cabinets,
@@ -410,4 +410,4 @@ export function MedicineForm({
       </div>
     </div>
   );
-}
+});

@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import { Controller } from "react-hook-form";
 import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { drawerSchema } from "@/schemas/drawer.schema";
 
 import { getDrawers, updateDrawer, getDrawerCategories } from "@/api/requests";
 import { Drawer } from "@/interfaces/interfaces";
@@ -28,12 +32,22 @@ export default function EditDrawer() {
   const [categories, setCategories] = useState<{ id: number; nome: string }[]>(
     [],
   );
-  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    numero: 0,
-    categoriaId: 0,
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useFormWithZod(drawerSchema, {
+    defaultValues: {
+      numero: "",
+      categoria_id: "",
+    },
   });
+
+  const watchedNumero = watch("numero");
 
   useEffect(() => {
     getDrawers()
@@ -66,39 +80,31 @@ export default function EditDrawer() {
       if (dr) {
         const matchedCategory = categories.find((c) => c.nome === dr.categoria);
 
-        setFormData({
-          numero: dr.numero,
-          categoriaId: matchedCategory?.id ?? 0,
+        reset({
+          numero: dr.numero.toString(),
+          categoria_id: matchedCategory?.id.toString() ?? "",
         });
       }
     }
-  }, [item, drawers, categories]);
+  }, [item, drawers, categories, reset]);
 
-  const handleSelectChange = (value: string) => {
-    const dr = drawers.find((d) => d.numero === Number(value));
-
-    if (!dr) {
-      setFormData({ numero: 0, categoriaId: 0 });
-      return;
+  useEffect(() => {
+    if (watchedNumero && drawers.length > 0 && categories.length > 0) {
+      const dr = drawers.find((d) => d.numero === Number(watchedNumero));
+      if (dr) {
+        const matchedCategory = categories.find((c) => c.nome === dr.categoria);
+        if (matchedCategory) {
+          reset({
+            numero: watchedNumero,
+            categoria_id: matchedCategory.id.toString(),
+          });
+        }
+      }
     }
+  }, [watchedNumero, drawers, categories, reset]);
 
-    const matchedCategory = categories.find((c) => c.nome === dr.categoria);
-
-    setFormData({
-      numero: dr.numero,
-      categoriaId: matchedCategory?.id ?? 0,
-    });
-  };
-
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSave = async () => {
-    if (!formData.numero || !formData.categoriaId) {
+  const onSubmit = async (data: { numero: string; categoria_id: string }) => {
+    if (!data.numero || !data.categoria_id) {
       toast({
         title: "Campos obrigatórios",
         description: "Selecione uma gaveta e uma categoria.",
@@ -107,26 +113,22 @@ export default function EditDrawer() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      await updateDrawer(formData.numero, formData.categoriaId);
+      await updateDrawer(Number(data.numero), Number(data.categoria_id));
 
       toast({
         title: "Gaveta atualizada",
-        description: `A gaveta ${formData.numero} foi atualizada com sucesso.`,
+        description: `A gaveta ${data.numero} foi atualizada com sucesso.`,
         variant: "success",
       });
 
       navigate("/drawers");
-    } catch {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao editar gaveta",
-        description: "Não foi possível atualizar a gaveta.",
+        description: getErrorMessage(err, "Não foi possível atualizar a gaveta."),
         variant: "error",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -140,63 +142,80 @@ export default function EditDrawer() {
         </CardHeader>
 
         <CardContent>
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Gaveta</Label>
-
-              <Select
-                value={formData.numero ? String(formData.numero) : ""}
-                onValueChange={handleSelectChange}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Selecione a gaveta" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {drawers.map((d) => (
-                    <SelectItem key={d.numero} value={String(d.numero)}>
-                      Gaveta {d.numero} ({d.categoria})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="numero">Gaveta</Label>
+              <Controller
+                name="numero"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="bg-white" id="numero">
+                        <SelectValue placeholder="Selecione a gaveta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {drawers.map((d) => (
+                          <SelectItem key={d.numero} value={String(d.numero)}>
+                            Gaveta {d.numero} ({d.categoria})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.numero && (
+                      <p className="text-sm text-red-600 mt-1">{errors.numero.message}</p>
+                    )}
+                  </>
+                )}
+              />
             </div>
 
-            {formData.numero !== 0 && (
+            {watchedNumero && (
               <>
                 <div className="space-y-1">
-                  <Label>Número da gaveta</Label>
+                  <Label htmlFor="numero-display">Número da gaveta</Label>
                   <Input
+                    id="numero-display"
                     type="number"
-                    value={formData.numero}
-                    onChange={(e) =>
-                      handleChange("numero", Number(e.target.value))
-                    }
-                    disabled={true}
+                    value={watchedNumero}
+                    disabled
+                    className="bg-slate-100 text-slate-500"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label>Categoria</Label>
-
-                  <Select
-                    value={String(formData.categoriaId)}
-                    onValueChange={(v) =>
-                      handleChange("categoriaId", Number(v))
-                    }
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Selecione a categoria" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="categoria_id">Categoria</Label>
+                  <Controller
+                    name="categoria_id"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger className="bg-white" id="categoria_id">
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={String(c.id)}>
+                                {c.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.categoria_id && (
+                          <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+                        )}
+                      </>
+                    )}
+                  />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4">
@@ -204,18 +223,18 @@ export default function EditDrawer() {
                     type="button"
                     variant="outline"
                     onClick={() => navigate("/drawers")}
-                    disabled={loading}
+                    disabled={isSubmitting}
                     className="rounded-lg"
                   >
                     Cancelar
                   </Button>
 
                   <Button
-                    onClick={handleSave}
-                    disabled={loading}
+                    type="submit"
+                    disabled={isSubmitting}
                     className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
                   >
-                    {loading ? "Salvando..." : "Salvar Alterações"}
+                    {isSubmitting ? "Salvando..." : "Salvar Alterações"}
                   </Button>
                 </div>
               </>

@@ -13,7 +13,6 @@ import PrivateRoute from "./pages/PrivateRoute";
 import { NotificationProvider } from "./context/notification.context";
 import { LoadingFallback } from "./components/LoadingFallback";
 
-// Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));

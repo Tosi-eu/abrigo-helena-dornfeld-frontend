@@ -54,7 +54,6 @@ export default function Profile() {
         });
       }
     } catch (e) {
-      // Silent fail - user will see empty form
     }
   }, [reset]);
 

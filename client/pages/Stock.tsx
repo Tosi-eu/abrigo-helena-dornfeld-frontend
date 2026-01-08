@@ -1,9 +1,12 @@
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
+import { SkeletonTable } from "@/components/SkeletonTable";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
-import ReportModal from "@/components/ReportModal";
+import { lazy, Suspense } from "react";
+
+const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
   getStock,
   removeIndividualMedicineFromStock,
@@ -39,6 +42,7 @@ export default function Stock() {
     row: StockItem | null;
   }>({ type: null, row: null });
   const [actionLoading, setActionLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
@@ -52,7 +56,7 @@ export default function Stock() {
       drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
       stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
-      tipo: item.tipo, // Store raw tipo value
+      tipo: item.tipo,
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
@@ -69,6 +73,7 @@ export default function Stock() {
   };
 
   async function loadStock(pageToLoad: number) {
+    setLoading(true);
     try {
       if (data) {
         setItems(formatStockItems(data));
@@ -90,6 +95,8 @@ export default function Stock() {
         description: errorMessage,
         variant: "error",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -256,7 +263,6 @@ export default function Stock() {
         });
       }
     } catch (err: any) {
-      // Error is already handled by toast notification
 
       const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
 
@@ -332,7 +338,9 @@ export default function Stock() {
         </div>
 
         <div className="pt-12">
-          <>
+          {loading ? (
+            <SkeletonTable rows={8} cols={columns.length} />
+          ) : (
             <EditableTable
               data={items}
               columns={columns}
@@ -353,7 +361,7 @@ export default function Stock() {
               }}
               entityType="stock"
             />
-          </>
+          )}
         </div>
       </div>
 
@@ -371,10 +379,12 @@ export default function Stock() {
         onCancel={() => setConfirmOpen(false)}
       />
 
-      <ReportModal
-        open={reportModalOpen}
-        onClose={() => setReportModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <ReportModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+        />
+      </Suspense>
     </Layout>
   );
 }

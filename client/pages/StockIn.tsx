@@ -1,8 +1,12 @@
 import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
+import { Controller } from "react-hook-form";
 import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { stockInSchema, type StockInFormData } from "@/schemas/stock-in.schema";
 import {
   Input,
   Medicine,
@@ -23,11 +27,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import { MovementType, OperationType } from "@/utils/enums";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectValue,
+  SelectItem,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function StockIn() {
-  const [operationType, setOperationType] = useState<
-    OperationType | "Selecione"
-  >("Selecione");
+  const {
+    control,
+    watch,
+    formState: { errors },
+  } = useFormWithZod(stockInSchema, {
+    defaultValues: {
+      operationType: undefined,
+    },
+  });
+
+  const operationType = watch("operationType");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [inputs, setInputs] = useState<Input[]>([]);
   const [caselas, setCaselas] = useState<Patient[]>([]);
@@ -54,8 +74,12 @@ export default function StockIn() {
         setCaselas(residents as Patient[]);
         setCabinets(cabinets as Cabinet[]);
         setDrawers(drawers as Drawer[]);
-      } catch (err) {
-        console.error("Erro ao carregar dados da tela de entrada:", err);
+      } catch (err: unknown) {
+        toast({
+          title: "Erro ao carregar dados",
+          description: getErrorMessage(err, "Não foi possível carregar os dados."),
+          variant: "error",
+        });
         setMedicines([]);
         setInputs([]);
         setCaselas([]);
@@ -103,10 +127,10 @@ export default function StockIn() {
       });
 
       navigate("/stock");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao registrar",
-        description: err.message,
+        description: getErrorMessage(err, "Não foi possível registrar a entrada."),
         variant: "error",
       });
     }
@@ -146,10 +170,10 @@ export default function StockIn() {
       });
 
       navigate("/stock");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao registrar entrada",
-        description: err.message,
+        description: getErrorMessage(err, "Não foi possível registrar a entrada."),
         variant: "error",
       });
     }
@@ -178,24 +202,37 @@ export default function StockIn() {
           Registrar Entrada
         </h2>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Tipo de entrada
-          </label>
-          <select
-            value={operationType === "Selecione" ? "" : operationType}
-            onChange={(e) => setOperationType(e.target.value as OperationType)}
-            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-          >
-            <option value="" disabled hidden>
-              Selecione
-            </option>
-
-            <option value={OperationType.MEDICINE}>
-              {OperationType.MEDICINE}
-            </option>
-            <option value={OperationType.INPUT}>{OperationType.INPUT}</option>
-          </select>
+        <div className="space-y-1">
+          <Label htmlFor="operationType">Tipo de entrada</Label>
+          <Controller
+            name="operationType"
+            control={control}
+            render={({ field }) => (
+              <>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="bg-white" id="operationType">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={OperationType.MEDICINE}>
+                      {OperationType.MEDICINE}
+                    </SelectItem>
+                    <SelectItem value={OperationType.INPUT}>
+                      {OperationType.INPUT}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.operationType && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.operationType.message}
+                  </p>
+                )}
+              </>
+            )}
+          />
         </div>
 
         {operationType === OperationType.MEDICINE && (

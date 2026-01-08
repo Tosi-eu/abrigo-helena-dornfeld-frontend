@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import DeletePopUp from "./DeletePopUp";
+import { SkeletonTable } from "@/components/SkeletonTable";
 import DeleteStockModal from "./DeleteStockModal";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -296,6 +297,10 @@ export default function EditableTable({
       setIsDeleting(false);
     }
   };
+
+  if (loading) {
+    return <SkeletonTable rows={minRows} cols={columns.length} />;
+  }
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">

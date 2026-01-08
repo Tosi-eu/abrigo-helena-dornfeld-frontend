@@ -1,17 +1,10 @@
 import Layout from "@/components/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import { SkeletonCard } from "@/components/SkeletonCard";
+import { SkeletonTable } from "@/components/SkeletonTable";
 
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Sector,
-  CartesianGrid,
-} from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,6 +14,9 @@ import {
 } from "@/helpers/paginacao.helper";
 
 import EditableTable from "@/components/EditableTable";
+import { DashboardStatsCard } from "@/components/DashboardStatsCard";
+
+const DashboardChartCard = lazy(() => import("@/components/DashboardChartCard").then(module => ({ default: module.DashboardChartCard })));
 import {
   getInputMovements,
   getMedicineMovements,
@@ -40,7 +36,7 @@ import {
   RawMovement,
   DrawerStockItem,
 } from "@/interfaces/interfaces";
-import NotificationReminderModal from "@/components/NotificationModal";
+const NotificationReminderModal = lazy(() => import("@/components/NotificationModal"));
 import StockProportionCard from "@/components/StockProportionCard";
 import { prepareStockDistributionData } from "@/helpers/estoque.helper";
 import { SectorType } from "@/utils/enums";
@@ -219,7 +215,6 @@ export default function Dashboard() {
           description: err?.message || "Não foi possível carregar os dados do dashboard.",
           variant: "error",
         });
-        // Error is already handled by toast notification
       } finally {
         setLoadingNonMovement(false);
         setLoadingRecentMovements(false);
@@ -265,43 +260,62 @@ export default function Dashboard() {
     fetchReminders();
   }, []);
 
-  const stats = [
-    {
-      label: "Itens Abaixo do Estoque Mínimo",
-      value: noStock,
-      onClick: () =>
-        navigate("/stock", { state: { filter: "noStock", data: noStockData } }),
-    },
-    {
-      label: "Itens Próximos do Estoque Mínimo",
-      value: belowMin,
-      onClick: () =>
-        navigate("/stock", {
-          state: { filter: "belowMin", data: belowMinData },
-        }),
-    },
-    {
-      label: "Itens Vencidos",
-      value: expired,
-      onClick: () =>
-        navigate("/stock", { state: { filter: "expired", data: expiredData } }),
-    },
-    {
-      label: "Itens com Vencimento Próximo",
-      value: expiringSoon.length,
+  const stats = useMemo(
+    () => [
+      {
+        label: "Itens Abaixo do Estoque Mínimo",
+        value: noStock,
+        onClick: () =>
+          navigate("/stock", {
+            state: { filter: "noStock", data: noStockData },
+          }),
+      },
+      {
+        label: "Itens Próximos do Estoque Mínimo",
+        value: belowMin,
+        onClick: () =>
+          navigate("/stock", {
+            state: { filter: "belowMin", data: belowMinData },
+          }),
+      },
+      {
+        label: "Itens Vencidos",
+        value: expired,
+        onClick: () =>
+          navigate("/stock", {
+            state: { filter: "expired", data: expiredData },
+          }),
+      },
+      {
+        label: "Itens com Vencimento Próximo",
+        value: expiringSoon.length,
+        onClick: () =>
+          navigate("/stock", {
+            state: { filter: "expiringSoon", data: expiringSoonData },
+          }),
+      },
+    ],
+    [noStock, belowMin, expired, expiringSoon, noStockData, belowMinData, expiredData, expiringSoonData, navigate]
+  );
 
-      onClick: () =>
-        navigate("/stock", {
-          state: { filter: "expiringSoon", data: expiringSoonData },
-        }),
-    },
-  ];
-
-  const COLORS = ["#0EA5E9", "#FACC15", "#EF4444", "#10B981", "#8B5CF6"];
+  const COLORS = useMemo(
+    () => ["#0EA5E9", "#FACC15", "#EF4444", "#10B981", "#8B5CF6"],
+    []
+  );
 
   const minRowsMovements = useMaxSectionRows(
     [nonMovementProducts, recentMovements],
     { min: DEFAULT_PAGE_SIZE },
+  );
+
+  const paginatedNonMovement = useMemo(
+    () => paginate(nonMovementProducts, nonMovementPage),
+    [nonMovementProducts, nonMovementPage]
+  );
+
+  const paginatedRecentMovements = useMemo(
+    () => paginate(recentMovements, recentMovementsPage),
+    [recentMovements, recentMovementsPage]
   );
 
   return (
@@ -310,20 +324,12 @@ export default function Dashboard() {
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {stats.map((stat, index) => (
-              <Card
+              <DashboardStatsCard
                 key={index}
+                label={stat.label}
+                value={stat.value}
                 onClick={stat.onClick}
-                className="cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all"
-              >
-                <CardContent className="flex flex-col items-center py-8">
-                  <p className="text-sm text-muted-foreground mb-2 text-center">
-                    {stat.label}
-                  </p>
-                  <p className="text-5xl font-bold text-sky-700">
-                    {stat.value}
-                  </p>
-                </CardContent>
-              </Card>
+              />
             ))}
           </div>
         </section>
@@ -347,7 +353,7 @@ export default function Dashboard() {
                     label: "Última Movimentação",
                   },
                 ]}
-                data={paginate(nonMovementProducts, nonMovementPage)}
+                data={paginatedNonMovement}
                 showAddons={false}
                 minRows={minRowsMovements}
                 loading={loadingNonMovement}
@@ -392,7 +398,7 @@ export default function Dashboard() {
                   { key: "patient", label: "Paciente" },
                   { key: "date", label: "Data" },
                 ]}
-                data={paginate(recentMovements, recentMovementsPage)}
+                data={paginatedRecentMovements}
                 minRows={minRowsMovements}
                 showAddons={false}
                 loading={loadingRecentMovements}
@@ -466,97 +472,25 @@ export default function Dashboard() {
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">
-                Quantidade de Itens por Armário
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-72 flex justify-center">
-                <ResponsiveContainer width="90%" height="100%">
-                  <BarChart
-                    data={cabinetStockData}
-                    layout="vertical"
-                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                  >
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="cabinet" width={80} />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <defs>
-                      <linearGradient
-                        id="barFillCabinet"
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="0"
-                      >
-                        <stop offset="0%" stopColor="#0284c7" />
-                        <stop offset="100%" stopColor="#0369a1" />
-                      </linearGradient>
-                    </defs>
-                    <Bar
-                      dataKey="total"
-                      fill="url(#barFillCabinet)"
-                      radius={[0, 6, 6, 0]}
-                      barSize={28}
-                      label={{
-                        position: "right",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <Suspense fallback={<SkeletonCard />}>
+            <DashboardChartCard
+              title="Quantidade de Itens por Armário"
+              data={cabinetStockData}
+              dataKey="cabinet"
+              gradientId="barFillCabinet"
+              gradientColors={{ start: "#0284c7", end: "#0369a1" }}
+            />
+          </Suspense>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">
-                Quantidade de Itens por Gaveta
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-72 flex justify-center">
-                <ResponsiveContainer width="90%" height="100%">
-                  <BarChart
-                    data={drawerStockData}
-                    layout="vertical"
-                    margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
-                  >
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="drawer" width={80} />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <defs>
-                      <linearGradient
-                        id="barFillDrawer"
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="0"
-                      >
-                        <stop offset="0%" stopColor="#34d399" />
-                        <stop offset="100%" stopColor="#059669" />
-                      </linearGradient>
-                    </defs>
-                    <Bar
-                      dataKey="total"
-                      fill="url(#barFillDrawer)"
-                      radius={[0, 6, 6, 0]}
-                      barSize={28}
-                      label={{
-                        position: "right",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <Suspense fallback={<SkeletonCard />}>
+            <DashboardChartCard
+              title="Quantidade de Itens por Gaveta"
+              data={drawerStockData}
+              dataKey="drawer"
+              gradientId="barFillDrawer"
+              gradientColors={{ start: "#34d399", end: "#059669" }}
+            />
+          </Suspense>
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -574,11 +508,13 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <NotificationReminderModal
-        open={notifOpen}
-        events={notifList}
-        onClose={() => setNotifOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <NotificationReminderModal
+          open={notifOpen}
+          events={notifList}
+          onClose={() => setNotifOpen(false)}
+        />
+      </Suspense>
     </Layout>
   );
 }

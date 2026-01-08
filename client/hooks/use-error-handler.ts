@@ -23,7 +23,6 @@ export function useErrorHandler() {
       } = options;
 
       if (logError) {
-        // In production, send to logging service
         if (process.env.NODE_ENV === "development") {
           console.error("Error:", error);
         }

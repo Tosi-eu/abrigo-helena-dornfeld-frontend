@@ -1,6 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
+import { Controller } from "react-hook-form";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { stockOutTypeSchema, stockOutQuantitySchema, type StockOutTypeFormData, type StockOutQuantityFormData } from "@/schemas/stock-out.schema";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -55,11 +59,34 @@ export default function StockOut() {
   });
 
   const [step, setStep] = useState<StockWizardSteps>(StockWizardSteps.TIPO);
-  const [operationType, setOperationType] = useState<
-    OperationType | "Selecione"
-  >("Selecione");
   const [selected, setSelected] = useState<StockItemRaw | null>(null);
-  const [quantity, setQuantity] = useState("");
+
+  const {
+    control: typeControl,
+    watch: watchType,
+    handleSubmit: handleTypeSubmit,
+    setValue: setTypeValue,
+    formState: { errors: typeErrors },
+  } = useFormWithZod(stockOutTypeSchema, {
+    defaultValues: {
+      operationType: undefined,
+    },
+  });
+
+  const operationType = watchType("operationType");
+
+  const {
+    register: quantityRegister,
+    handleSubmit: handleQuantitySubmit,
+    watch: watchQuantity,
+    formState: { errors: quantityErrors, isSubmitting: isSubmittingQuantity },
+  } = useFormWithZod(stockOutQuantitySchema, {
+    defaultValues: {
+      quantity: 0,
+    },
+  });
+
+  const quantity = watchQuantity("quantity");
 
   async function fetchStock() {
     setLoading(true);
@@ -67,18 +94,17 @@ export default function StockOut() {
 
       if (passedData && passedData.length > 0) {
         const filtered =
-          operationType !== "Selecione"
+          operationType
             ? passedData.filter(
                 (item: StockItemRaw) => item.tipo_item === operationType,
               )
             : passedData;
         setItems(filtered as StockItemRaw[]);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
       toast({
         title: "Erro ao carregar estoque",
-        description: "Não foi possível carregar os dados.",
+        description: getErrorMessage(err, "Não foi possível carregar os dados."),
         variant: "error",
       });
     } finally {
@@ -87,9 +113,11 @@ export default function StockOut() {
   }
 
   useEffect(() => {
-    fetchStock();
-    setUiPage(1);
-    setSelected(null);
+    if (operationType) {
+      fetchStock();
+      setUiPage(1);
+      setSelected(null);
+    }
   }, [operationType]);
 
   const nameOptions = useMemo(
@@ -139,9 +167,7 @@ export default function StockOut() {
   }, [filteredItems]);
 
   const handleSelectType = (type: OperationType) => {
-    setOperationType(type);
-    setSelected(null);
-    setUiPage(1);
+    setTypeValue("operationType", type);
     setStep(StockWizardSteps.ITENS);
   };
 
@@ -150,16 +176,14 @@ export default function StockOut() {
     if (item) setStep(StockWizardSteps.QUANTIDADE);
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (data: StockOutQuantityFormData) => {
     if (!selected) return;
-    const qty = Number(quantity);
-    if (!qty || qty <= 0) return;
 
     try {
       await createStockOut({
         estoqueId: selected.estoque_id,
         tipo: selected.tipo_item as OperationType,
-        quantidade: qty,
+        quantidade: data.quantity,
       });
 
       await createMovement({
@@ -168,7 +192,7 @@ export default function StockOut() {
         armario_id: selected.armario_id ?? null,
         gaveta_id: selected.gaveta_id ?? null,
         casela_id: selected.casela_id ?? null,
-        quantidade: qty,
+        quantidade: data.quantity,
         validade: selected.validade,
         ...(selected.tipo_item === "medicamento"
           ? { medicamento_id: selected.item_id }
@@ -183,10 +207,10 @@ export default function StockOut() {
       });
 
       navigate("/stock");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao registrar saída",
-        description: err.message || "Erro inesperado.",
+        description: getErrorMessage(err, "Erro inesperado ao registrar saída."),
         variant: "error",
       });
     }
@@ -199,10 +223,13 @@ export default function StockOut() {
   };
 
   const handleNext = () => {
-    if (step === StockWizardSteps.TIPO && operationType !== "Selecione")
-      setStep(StockWizardSteps.ITENS);
-    else if (step === StockWizardSteps.ITENS && selected)
+    if (step === StockWizardSteps.TIPO) {
+      handleTypeSubmit((data: StockOutTypeFormData) => {
+        setStep(StockWizardSteps.ITENS);
+      })();
+    } else if (step === StockWizardSteps.ITENS && selected) {
       setStep(StockWizardSteps.QUANTIDADE);
+    }
   };
 
   return (
@@ -367,7 +394,26 @@ export default function StockOut() {
                 transition={{ duration: 0.22 }}
                 className="w-full max-w-md"
               >
-                <StepType value={operationType} onSelect={handleSelectType} />
+                <Controller
+                  name="operationType"
+                  control={typeControl}
+                  render={({ field }) => (
+                    <>
+                      <StepType 
+                        value={field.value} 
+                        onSelect={(type) => {
+                          field.onChange(type);
+                          handleSelectType(type);
+                        }} 
+                      />
+                      {typeErrors.operationType && (
+                        <p className="text-sm text-red-600 mt-2 text-center">
+                          {typeErrors.operationType.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                />
               </motion.div>
             )}
 
@@ -406,9 +452,11 @@ export default function StockOut() {
                 <QuantityStep
                   item={selected}
                   quantity={quantity}
-                  setQuantity={setQuantity}
+                  quantityRegister={quantityRegister}
+                  quantityErrors={quantityErrors}
+                  isSubmitting={isSubmittingQuantity}
                   onBack={() => setStep(StockWizardSteps.ITENS)}
-                  onConfirm={handleConfirm}
+                  onConfirm={handleQuantitySubmit(handleConfirm)}
                 />
               </motion.div>
             )}

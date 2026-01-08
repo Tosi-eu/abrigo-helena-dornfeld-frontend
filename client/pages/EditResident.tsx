@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { Controller } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  validateTextInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
-
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { residentSchema } from "@/schemas/resident.schema";
 import { updateResident } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -19,18 +18,24 @@ export default function EditResident() {
   const item = location.state?.item;
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    num_casela: "",
-    nome: "",
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useFormWithZod(residentSchema, {
+    defaultValues: {
+      name: "",
+      casela: "",
+    },
   });
-
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (item) {
-      setFormData({
-        num_casela: item.casela?.toString() || "",
-        nome: item.name || "",
+      reset({
+        name: item.name || "",
+        casela: item.casela?.toString() || "",
       });
     } else {
       toast({
@@ -40,16 +45,10 @@ export default function EditResident() {
       });
       navigate("/residents");
     }
-  }, [item, navigate]);
+  }, [item, navigate, reset]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const sanitized = sanitizeInput(value);
-    setFormData((prev) => ({ ...prev, [name]: sanitized }));
-  };
-
-  const handleSave = async () => {
-    if (!formData.num_casela) {
+  const onSubmit = async (data: { name: string; casela: string }) => {
+    if (!data.casela) {
       toast({
         title: "Erro",
         description: "Casela não identificada.",
@@ -58,26 +57,9 @@ export default function EditResident() {
       return;
     }
 
-    const nameValidation = validateTextInput(formData.nome, {
-      maxLength: 100,
-      required: true,
-      fieldName: "Nome do residente",
-    });
-
-    if (!nameValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: nameValidation.error,
-        variant: "error",
-      });
-      return;
-    }
-
-    setSaving(true);
-
     try {
-      const updated = await updateResident(formData.num_casela, {
-        nome: nameValidation.sanitized!,
+      const updated = await updateResident(data.casela, {
+        nome: data.name.trim(),
       });
 
       toast({
@@ -87,15 +69,12 @@ export default function EditResident() {
       });
 
       navigate("/residents");
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
       toast({
         title: "Erro ao editar residente",
-        description: err.message || "Não foi possível atualizar o residente.",
+        description: getErrorMessage(err, "Não foi possível atualizar o residente."),
         variant: "error",
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -109,27 +88,39 @@ export default function EditResident() {
         </CardHeader>
 
         <CardContent>
-          <div className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Nome</Label>
+              <Label htmlFor="name">Nome do residente</Label>
               <Input
-                name="nome"
-                value={formData.nome}
-                onChange={handleChange}
-                maxLength={100}
-                disabled={saving}
-                required
+                id="name"
+                {...register("name")}
+                maxLength={60}
+                disabled={isSubmitting}
+                aria-invalid={errors.name ? "true" : "false"}
               />
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Casela</Label>
-              <Input
-                name="num_casela"
-                value={formData.num_casela}
-                disabled
-                className="bg-slate-100 text-slate-500"
+              <Label htmlFor="casela">Casela</Label>
+              <Controller
+                name="casela"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="casela"
+                    {...field}
+                    disabled
+                    className="bg-slate-100 text-slate-500"
+                    aria-invalid={errors.casela ? "true" : "false"}
+                  />
+                )}
               />
+              {errors.casela && (
+                <p className="text-sm text-red-600 mt-1">{errors.casela.message}</p>
+              )}
             </div>
 
             <div className="flex justify-end pt-4 gap-2">
@@ -137,20 +128,20 @@ export default function EditResident() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/residents")}
-                disabled={saving}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
 
               <Button
-                onClick={handleSave}
-                disabled={saving}
+                type="submit"
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white"
               >
-                {saving ? "Salvando..." : "Salvar Alterações"}
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
-          </div>
+          </form>
         </CardContent>
       </Card>
     </Layout>

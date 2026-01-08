@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Controller } from "react-hook-form";
 import Layout from "@/components/Layout";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
-import {
-  validateNumberInput,
-  sanitizeInput,
-} from "@/helpers/validation.helper";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { editStockSchema, type EditStockFormData } from "@/schemas/edit-stock.schema";
 import { updateStockItem, getCabinets, getDrawers, getResidents } from "@/api/requests";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,9 +25,10 @@ import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 import { parseDateFromString } from "@/utils/utils";
+import { SkeletonForm } from "@/components/SkeletonForm";
 
-// Cache for cabinets, drawers, and residents
 const cache = {
   cabinets: null as Cabinet[] | null,
   drawers: null as Drawer[] | null,
@@ -74,20 +75,39 @@ export default function EditStock() {
   const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [residents, setResidents] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const [formData, setFormData] = useState({
-    quantidade: 0,
-    armario_id: null as number | null,
-    gaveta_id: null as number | null,
-    validade: null as Date | null,
-    origem: "" as OriginType | "",
-    setor: "" as SectorType | "",
-    lote: "",
-    casela_id: null as number | null,
-    tipo: "" as string,
+  const isMedicine = stockItem?.itemType === "medicamento";
+  const availableStockTypes = isMedicine
+    ? Object.values(MedicineStockType)
+    : Object.values(InputStockType);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useFormWithZod(editStockSchema, {
+    defaultValues: {
+      quantidade: 0,
+      armario_id: null,
+      gaveta_id: null,
+      validade: null,
+      origem: null,
+      setor: SectorType.FARMACIA,
+      lote: null,
+      casela_id: null,
+      tipo: isMedicine ? MedicineStockType.GERAL : InputStockType.GERAL,
+    },
   });
+
+  const watchedArmarioId = watch("armario_id");
+  const watchedGavetaId = watch("gaveta_id");
+  const watchedCaselaId = watch("casela_id");
+  const watchedTipo = watch("tipo");
 
   useEffect(() => {
     const loadData = async () => {
@@ -116,22 +136,22 @@ export default function EditStock() {
             rawTipo = tipoMap[item.stockType] || "";
           }
 
-          setFormData({
-            quantidade: item.quantity || 0,
-            armario_id: typeof item.cabinet === "number" ? item.cabinet : null,
-            gaveta_id: typeof item.drawer === "number" ? item.drawer : null,
-            validade: validadeDate,
-            origem: (item.origin as OriginType) || OriginType.FAMILIA,
-            setor: (item.sector as SectorType) || SectorType.FARMACIA,
-            lote: item.lot || "",
-            casela_id: typeof item.casela === "number" ? item.casela : null,
-            tipo: rawTipo || (isMedicine ? MedicineStockType.GERAL : InputStockType.GERAL),
-          });
-
           const cached = await getCachedData();
           setCabinets(cached.cabinets);
           setDrawers(cached.drawers);
           setResidents(cached.residents);
+
+          reset({
+            quantidade: item.quantity || 0,
+            armario_id: typeof item.cabinet === "number" ? item.cabinet : null,
+            gaveta_id: typeof item.drawer === "number" ? item.drawer : null,
+            validade: validadeDate,
+            origem: (item.origin as OriginType) || null,
+            setor: (item.sector as SectorType) || SectorType.FARMACIA,
+            lote: item.lot || null,
+            casela_id: typeof item.casela === "number" ? item.casela : null,
+            tipo: (rawTipo as MedicineStockType | InputStockType) || (isMedicine ? MedicineStockType.GERAL : InputStockType.GERAL),
+          });
         } else {
           toast({
             title: "Erro",
@@ -141,10 +161,9 @@ export default function EditStock() {
           navigate("/stock");
         }
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : "Erro ao carregar dados";
         toast({
           title: "Erro",
-          description: errorMessage,
+          description: getErrorMessage(err, "Erro ao carregar dados"),
           variant: "error",
         });
         navigate("/stock");
@@ -154,105 +173,47 @@ export default function EditStock() {
     };
 
     loadData();
-  }, [location.state, navigate]);
+  }, [location.state, navigate, reset, isMedicine]);
 
-  const handleChange = (field: string, value: string | number | Date | null) => {
-    setFormData((prev) => {
-      const updated = { ...prev };
-      
-      if (field === "armario_id") {
-        updated.armario_id = value as number | null;
-        if (value !== null) {
-          updated.gaveta_id = null;
-        } else {
-          updated.casela_id = null;
-        }
-      } else if (field === "gaveta_id") {
-        updated.gaveta_id = value as number | null;
-        if (value !== null) {
-          updated.armario_id = null;
-          updated.setor = SectorType.ENFERMAGEM;
-          updated.tipo = isMedicine ? MedicineStockType.CARRINHO : InputStockType.CARRINHO;
-          updated.casela_id = null;
-        }
-      } else if (field === "casela_id") {
-        updated.casela_id = value as number | null;
-        if (value !== null && isMedicine) {
-          updated.tipo = MedicineStockType.INDIVIDUAL;
-        }
-      } else if (field === "quantidade") {
-        updated.quantidade = value as number;
-      } else if (field === "validade") {
-        updated.validade = value as Date | null;
-      } else if (field === "origem") {
-        updated.origem = (value as OriginType | "") || "";
-      } else if (field === "setor") {
-        updated.setor = value as SectorType | "";
-      } else if (field === "lote") {
-        const sanitized = typeof value === "string" ? sanitizeInput(value) : "";
-        updated.lote = sanitized;
-      } else if (field === "tipo") {
-        updated.tipo = typeof value === "string" ? value : "";
-      }
-      
-      return updated;
-    });
-  };
+  // Auto-set sector and type when drawer is selected
+  useEffect(() => {
+    if (watchedGavetaId !== null) {
+      setValue("setor", SectorType.ENFERMAGEM);
+      setValue("tipo", isMedicine ? MedicineStockType.CARRINHO : InputStockType.CARRINHO);
+      setValue("armario_id", null);
+      setValue("casela_id", null);
+    }
+  }, [watchedGavetaId, setValue, isMedicine]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Auto-set type when casela is selected (for medicines)
+  useEffect(() => {
+    if (watchedCaselaId !== null && isMedicine) {
+      setValue("tipo", MedicineStockType.INDIVIDUAL);
+    }
+  }, [watchedCaselaId, setValue, isMedicine]);
+
+  // Clear casela when armario is cleared
+  useEffect(() => {
+    if (watchedArmarioId === null) {
+      setValue("casela_id", null);
+    }
+  }, [watchedArmarioId, setValue]);
+
+  const onSubmit = async (data: EditStockFormData) => {
     setConfirmOpen(true);
   };
 
   const handleConfirm = async () => {
     if (!stockItem) return;
 
-    const quantityValidation = validateNumberInput(formData.quantidade, {
-      min: 0,
-      max: 999999,
-      required: true,
-      fieldName: "Quantidade",
-    });
-
-    if (!quantityValidation.valid) {
-      toast({
-        title: "Erro de validação",
-        description: quantityValidation.error,
-        variant: "error",
-      });
-      setConfirmOpen(false);
-      return;
-    }
-
-    if (!formData.setor) {
-      toast({
-        title: "Erro de validação",
-        description: "Setor é obrigatório",
-        variant: "error",
-      });
-      setConfirmOpen(false);
-      return;
-    }
-
-    if (!formData.tipo) {
-      toast({
-        title: "Erro de validação",
-        description: "Tipo é obrigatório",
-        variant: "error",
-      });
-      setConfirmOpen(false);
-      return;
-    }
-
-    setSaving(true);
-    setConfirmOpen(false);
-
     try {
+      const formData = watch();
+      
       await updateStockItem(
         stockItem.id,
         stockItem.itemType === "medicamento" ? "medicamento" : "insumo",
         {
-          quantidade: quantityValidation.value!,
+          quantidade: formData.quantidade,
           armario_id: formData.armario_id,
           gaveta_id: formData.gaveta_id,
           validade: formData.validade ? formData.validade.toISOString().split("T")[0] : null,
@@ -272,23 +233,20 @@ export default function EditStock() {
 
       navigate("/stock");
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Erro ao atualizar item de estoque";
       toast({
         title: "Erro ao atualizar",
-        description: errorMessage,
+        description: getErrorMessage(err, "Erro ao atualizar item de estoque"),
         variant: "error",
       });
     } finally {
-      setSaving(false);
+      setConfirmOpen(false);
     }
   };
 
   if (loading) {
     return (
       <Layout title="Editar Estoque">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-slate-600">Carregando...</p>
-        </div>
+        <SkeletonForm />
       </Layout>
     );
   }
@@ -297,11 +255,7 @@ export default function EditStock() {
     return null;
   }
 
-  const isMedicine = stockItem.itemType === "medicamento";
-  
-  const availableStockTypes = isMedicine
-    ? Object.values(MedicineStockType)
-    : Object.values(InputStockType);
+  const selectedResident = residents.find((r) => r.casela === watchedCaselaId);
 
   return (
     <Layout title="Editar Item de Estoque">
@@ -316,204 +270,281 @@ export default function EditStock() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Quantidade</Label>
+              <Label htmlFor="quantidade">Quantidade</Label>
               <Input
+                id="quantidade"
                 type="number"
-                value={formData.quantidade}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "") {
-                    handleChange("quantidade", 0);
-                    return;
-                  }
-                  if (value === "-" || value.startsWith("-")) {
-                    return;
-                  }
-                  const numValue = Number(value);
-                  if (!isNaN(numValue) && numValue > 0) {
-                    handleChange("quantidade", numValue);
-                  } else if (numValue === 0) {
-                    return;
-                  }
-                }}
+                {...register("quantidade", { valueAsNumber: true })}
                 min={1}
                 max={999999}
-                disabled={saving}
-                required
+                disabled={isSubmitting}
+                aria-invalid={errors.quantidade ? "true" : "false"}
               />
+              {errors.quantidade && (
+                <p className="text-sm text-red-600 mt-1">{errors.quantidade.message}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label>Armário</Label>
-                <Select
-                  value={formData.armario_id?.toString() ?? "none"}
-                  onValueChange={(v) =>
-                    handleChange("armario_id", v === "none" ? null : Number(v))
-                  }
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {cabinets.map((cabinet) => (
-                      <SelectItem key={cabinet.numero} value={cabinet.numero.toString()}>
-                        Armário {cabinet.numero}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="armario_id">Armário</Label>
+                <Controller
+                  name="armario_id"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value?.toString() ?? "none"}
+                        onValueChange={(v) => {
+                          const value = v === "none" ? null : Number(v);
+                          field.onChange(value);
+                          if (value === null) {
+                            setValue("casela_id", null);
+                          }
+                        }}
+                        disabled={isSubmitting || watchedGavetaId !== null}
+                      >
+                        <SelectTrigger className="bg-white" id="armario_id">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum</SelectItem>
+                          {cabinets.map((cabinet) => (
+                            <SelectItem key={cabinet.numero} value={cabinet.numero.toString()}>
+                              Armário {cabinet.numero}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.armario_id && (
+                        <p className="text-sm text-red-600 mt-1">{errors.armario_id.message}</p>
+                      )}
+                    </>
+                  )}
+                />
               </div>
 
               <div className="space-y-1">
-                <Label>Gaveta</Label>
-                <Select
-                  value={formData.gaveta_id?.toString() ?? "none"}
-                  onValueChange={(v) =>
-                    handleChange("gaveta_id", v === "none" ? null : Number(v))
-                  }
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhuma</SelectItem>
-                    {drawers.map((drawer) => (
-                      <SelectItem key={drawer.numero} value={drawer.numero.toString()}>
-                        Gaveta {drawer.numero}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="gaveta_id">Gaveta</Label>
+                <Controller
+                  name="gaveta_id"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value?.toString() ?? "none"}
+                        onValueChange={(v) => {
+                          const value = v === "none" ? null : Number(v);
+                          field.onChange(value);
+                        }}
+                        disabled={isSubmitting || watchedArmarioId !== null}
+                      >
+                        <SelectTrigger className="bg-white" id="gaveta_id">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhuma</SelectItem>
+                          {drawers.map((drawer) => (
+                            <SelectItem key={drawer.numero} value={drawer.numero.toString()}>
+                              Gaveta {drawer.numero}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.gaveta_id && (
+                        <p className="text-sm text-red-600 mt-1">{errors.gaveta_id.message}</p>
+                      )}
+                    </>
+                  )}
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label>Casela</Label>
-                <select
-                  value={formData.casela_id?.toString() ?? ""}
-                  onChange={(e) =>
-                    handleChange("casela_id", e.target.value ? Number(e.target.value) : null)
-                  }
-                  disabled={formData.gaveta_id !== null || formData.armario_id === null}
-                  className={`w-full border border-slate-300 rounded-lg px-3 py-2 text-sm ${
-                    formData.gaveta_id !== null || formData.armario_id === null
-                      ? "bg-slate-100 cursor-not-allowed"
-                      : "bg-white"
-                  }`}
-                >
-                  <option value="">Nenhuma</option>
-                  {residents.map((resident) => (
-                    <option key={resident.casela} value={resident.casela}>
-                      {resident.casela}
-                    </option>
-                  ))}
-                </select>
+                <Label htmlFor="casela_id">Casela</Label>
+                <Controller
+                  name="casela_id"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value?.toString() ?? "none"}
+                        onValueChange={(v) => {
+                          const value = v === "none" ? null : Number(v);
+                          field.onChange(value);
+                        }}
+                        disabled={isSubmitting || watchedGavetaId !== null || watchedArmarioId === null}
+                      >
+                        <SelectTrigger className="bg-white" id="casela_id">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhuma</SelectItem>
+                          {residents.map((resident) => (
+                            <SelectItem key={resident.casela} value={resident.casela.toString()}>
+                              {resident.casela}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.casela_id && (
+                        <p className="text-sm text-red-600 mt-1">{errors.casela_id.message}</p>
+                      )}
+                    </>
+                  )}
+                />
               </div>
               <div className="space-y-1">
-                <Label>Residente</Label>
-                <input
+                <Label htmlFor="resident_name">Residente</Label>
+                <Input
+                  id="resident_name"
                   type="text"
-                  value={
-                    formData.casela_id
-                      ? residents.find((r) => r.casela === formData.casela_id)?.name || ""
-                      : ""
-                  }
+                  value={selectedResident?.name || ""}
                   readOnly
-                  className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm"
+                  className="bg-slate-50 text-slate-500"
+                  disabled
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Validade:</Label>
-              <DatePicker
-                selected={formData.validade}
-                onChange={(date: Date | null) => handleChange("validade", date)}
-                dateFormat="dd/MM/yyyy"
-                locale={ptBR}
-                placeholderText="Selecione a data"
-                className="w-full border rounded-lg p-2"
-                disabled={saving}
+              <Label htmlFor="validade">Validade:</Label>
+              <Controller
+                name="validade"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    selected={field.value}
+                    onChange={(date: Date | null) => field.onChange(date)}
+                    dateFormat="dd/MM/yyyy"
+                    locale={ptBR}
+                    placeholderText="Selecione a data"
+                    className="w-full border rounded-lg p-2"
+                    disabled={isSubmitting}
+                  />
+                )}
               />
+              {errors.validade && (
+                <p className="text-sm text-red-600 mt-1">{errors.validade.message}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label>Origem</Label>
-                <Select
-                  value={formData.origem || "none"}
-                  onValueChange={(v) => handleChange("origem", v === "none" ? "" : (v as OriginType))}
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhuma</SelectItem>
-                    {Object.values(OriginType).map((origin) => (
-                      <SelectItem key={origin} value={origin}>
-                        {origin}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="origem">Origem</Label>
+                <Controller
+                  name="origem"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value || "none"}
+                        onValueChange={(v) => {
+                          field.onChange(v === "none" ? null : (v as OriginType));
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="bg-white" id="origem">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhuma</SelectItem>
+                          {Object.values(OriginType).map((origin) => (
+                            <SelectItem key={origin} value={origin}>
+                              {origin}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.origem && (
+                        <p className="text-sm text-red-600 mt-1">{errors.origem.message}</p>
+                      )}
+                    </>
+                  )}
+                />
               </div>
 
               <div className="space-y-1">
-                <Label>Tipo</Label>
-                <Select
-                  value={formData.tipo}
-                  onValueChange={(v) => handleChange("tipo", v)}
-                  required
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableStockTypes.map((tipo) => (
-                      <SelectItem key={tipo} value={tipo}>
-                        {StockTypeLabels[tipo as keyof typeof StockTypeLabels] || tipo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="tipo">Tipo</Label>
+                <Controller
+                  name="tipo"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                        required
+                      >
+                        <SelectTrigger className="bg-white" id="tipo">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableStockTypes.map((tipo) => (
+                            <SelectItem key={tipo} value={tipo}>
+                              {StockTypeLabels[tipo as keyof typeof StockTypeLabels] || tipo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.tipo && (
+                        <p className="text-sm text-red-600 mt-1">{errors.tipo.message}</p>
+                      )}
+                    </>
+                  )}
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label>Setor</Label>
-                <Select
-                  value={formData.setor}
-                  onValueChange={(v) => handleChange("setor", v as SectorType)}
-                  required
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(SectorType).map((sector) => (
-                      <SelectItem key={sector} value={sector}>
-                        {sector === SectorType.FARMACIA ? "Farmácia" : "Enfermagem"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="setor">Setor</Label>
+                <Controller
+                  name="setor"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                        required
+                      >
+                        <SelectTrigger className="bg-white" id="setor">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(SectorType).map((sector) => (
+                            <SelectItem key={sector} value={sector}>
+                              {sector === SectorType.FARMACIA ? "Farmácia" : "Enfermagem"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.setor && (
+                        <p className="text-sm text-red-600 mt-1">{errors.setor.message}</p>
+                      )}
+                    </>
+                  )}
+                />
               </div>
 
               <div className="space-y-1">
-                <Label>Lote</Label>
+                <Label htmlFor="lote">Lote</Label>
                 <Input
-                  value={formData.lote}
-                  onChange={(e) => handleChange("lote", e.target.value)}
+                  id="lote"
+                  {...register("lote")}
                   maxLength={50}
-                  disabled={saving}
+                  disabled={isSubmitting}
                   placeholder="Número do lote"
                 />
+                {errors.lote && (
+                  <p className="text-sm text-red-600 mt-1">{errors.lote.message}</p>
+                )}
               </div>
             </div>
 
@@ -522,7 +553,7 @@ export default function EditStock() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/stock")}
-                disabled={saving}
+                disabled={isSubmitting}
                 className="rounded-lg"
               >
                 Cancelar
@@ -530,10 +561,10 @@ export default function EditStock() {
 
               <Button
                 type="submit"
-                disabled={saving}
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
               >
-                {saving ? "Salvando..." : "Salvar Alterações"}
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
           </form>
@@ -546,11 +577,10 @@ export default function EditStock() {
         description="Tem certeza que deseja editar este item de estoque? Esta ação não pode ser desfeita."
         confirmLabel="Confirmar Edição"
         cancelLabel="Cancelar"
-        loading={saving}
+        loading={isSubmitting}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
       />
     </Layout>
   );
 }
-
