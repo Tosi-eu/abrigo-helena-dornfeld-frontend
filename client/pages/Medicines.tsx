@@ -38,6 +38,7 @@ export default function Medicines() {
         title: "Erro ao carregar medicamentos",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);

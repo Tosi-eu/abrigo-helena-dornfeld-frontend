@@ -157,6 +157,8 @@ export default function EditStock() {
             title: "Erro",
             description: "Item de estoque não encontrado.",
             variant: "error",
+        duration: 3000,
+            duration: 3000,
           });
           navigate("/stock");
         }
@@ -165,6 +167,8 @@ export default function EditStock() {
           title: "Erro",
           description: getErrorMessage(err, "Erro ao carregar dados"),
           variant: "error",
+        duration: 3000,
+          duration: 3000,
         });
         navigate("/stock");
       } finally {
@@ -229,6 +233,8 @@ export default function EditStock() {
         title: "Item atualizado",
         description: "O item de estoque foi atualizado com sucesso.",
         variant: "success",
+        duration: 3000,
+        duration: 3000,
       });
 
       navigate("/stock");
@@ -237,6 +243,8 @@ export default function EditStock() {
         title: "Erro ao atualizar",
         description: getErrorMessage(err, "Erro ao atualizar item de estoque"),
         variant: "error",
+        duration: 3000,
+        duration: 3000,
       });
     } finally {
       setConfirmOpen(false);
@@ -422,7 +430,11 @@ export default function EditStock() {
                     dateFormat="dd/MM/yyyy"
                     locale={ptBR}
                     placeholderText="Selecione a data"
+                    allowSameDay={true}
+                    strictParsing={true}
+                    showPopperArrow={false}
                     className="w-full border rounded-lg p-2"
+                    calendarClassName="react-datepicker-calendar"
                     disabled={isSubmitting}
                   />
                 )}

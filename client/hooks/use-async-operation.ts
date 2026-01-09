@@ -43,6 +43,7 @@ export function useAsyncOperation<T = void>() {
             title: "Sucesso",
             description: successMessage,
             variant: "success",
+        duration: 3000,
           });
         }
 

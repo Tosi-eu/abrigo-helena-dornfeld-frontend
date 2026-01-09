@@ -72,25 +72,21 @@ export const MedicineForm = memo(function MedicineForm({
   const selectedMedicine = medicines.find((m) => m.id === selectedMedicineId);
   const isEmergencyCart = stockType === MedicineStockType.CARRINHO;
 
-  // Auto-set sector when emergency cart is selected
   useEffect(() => {
     if (isEmergencyCart) {
       setValue("sector", SectorType.ENFERMAGEM);
     }
   }, [isEmergencyCart, setValue]);
 
-  // Reset storage when stock type changes
   useEffect(() => {
     setValue("cabinetId", null);
     setValue("drawerId", null);
   }, [stockType, setValue]);
 
-  // Update resident name when casela changes
   useEffect(() => {
     if (casela) {
       const selected = caselas.find((c) => c.casela === casela);
       if (selected) {
-        // Resident name is read-only, so we don't need to set it in form
       }
     }
   }, [casela, caselas]);
@@ -120,6 +116,7 @@ export const MedicineForm = memo(function MedicineForm({
         title: "Erro ao processar formulário",
         description: getErrorMessage(err, "Não foi possível processar o formulário."),
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -231,7 +228,11 @@ export const MedicineForm = memo(function MedicineForm({
                 onChange={(date: Date | null) => field.onChange(date)}
                 locale={ptBR}
                 dateFormat="dd/MM/yyyy"
+                allowSameDay={true}
+                strictParsing={true}
+                showPopperArrow={false}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                calendarClassName="react-datepicker-calendar"
               />
             )}
           />

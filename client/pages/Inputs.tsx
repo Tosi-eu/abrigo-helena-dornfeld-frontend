@@ -36,6 +36,7 @@ export default function Inputs() {
         title: "Erro ao carregar insumos",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);

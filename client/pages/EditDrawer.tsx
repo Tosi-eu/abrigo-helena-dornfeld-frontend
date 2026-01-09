@@ -57,6 +57,8 @@ export default function EditDrawer() {
           title: "Erro ao carregar gavetas",
           description: "Não foi possível buscar as gavetas do servidor.",
           variant: "error",
+        duration: 3000,
+        duration: 3000,
         }),
       );
   }, []);
@@ -69,6 +71,8 @@ export default function EditDrawer() {
           title: "Erro",
           description: "Não foi possível carregar as categorias de gavetas.",
           variant: "error",
+        duration: 3000,
+        duration: 3000,
         }),
       );
   }, []);
@@ -109,6 +113,8 @@ export default function EditDrawer() {
         title: "Campos obrigatórios",
         description: "Selecione uma gaveta e uma categoria.",
         variant: "warning",
+        duration: 3000,
+        duration: 3000,
       });
       return;
     }
@@ -120,6 +126,8 @@ export default function EditDrawer() {
         title: "Gaveta atualizada",
         description: `A gaveta ${data.numero} foi atualizada com sucesso.`,
         variant: "success",
+        duration: 3000,
+        duration: 3000,
       });
 
       navigate("/drawers");
@@ -128,6 +136,8 @@ export default function EditDrawer() {
         title: "Erro ao editar gaveta",
         description: getErrorMessage(err, "Não foi possível atualizar a gaveta."),
         variant: "error",
+        duration: 3000,
+        duration: 3000,
       });
     }
   };

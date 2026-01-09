@@ -69,6 +69,7 @@ export default function EditMedicine() {
         title: "Erro",
         description: "Medicamento não identificado.",
         variant: "error",
+        duration: 3000,
       });
       return;
     }
@@ -86,6 +87,7 @@ export default function EditMedicine() {
         title: "Medicamento atualizado",
         description: `${data.nome} foi atualizado com sucesso.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/medicines");
@@ -94,6 +96,7 @@ export default function EditMedicine() {
         title: "Erro ao atualizar",
         description: getErrorMessage(err, "Erro inesperado ao salvar alterações."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

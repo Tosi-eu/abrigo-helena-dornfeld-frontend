@@ -215,6 +215,7 @@ export default function Dashboard() {
           title: "Erro ao carregar dados",
           description: err?.message || "Não foi possível carregar os dados do dashboard.",
           variant: "error",
+        duration: 3000,
         });
         // Error is already handled by toast notification
       } finally {
@@ -255,6 +256,7 @@ export default function Dashboard() {
           title: "Erro ao carregar notificações",
           description: errorMessage,
           variant: "error",
+        duration: 3000,
         });
       }
     }

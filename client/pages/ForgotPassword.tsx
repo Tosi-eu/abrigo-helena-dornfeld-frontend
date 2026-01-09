@@ -34,6 +34,7 @@ export default function ForgotPassword() {
         title: "Sucesso!",
         description: "Senha redefinida. Faça login com a nova senha.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/user/login");
@@ -55,6 +56,7 @@ export default function ForgotPassword() {
         title: errorTitle,
         description: errorDescription,
         variant: "error",
+        duration: 3000,
       });
     }
   };

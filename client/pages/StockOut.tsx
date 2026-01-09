@@ -88,6 +88,7 @@ export default function StockOut() {
         title: "Erro ao carregar estoque",
         description: "Não foi possível carregar os dados.",
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);
@@ -195,6 +196,7 @@ export default function StockOut() {
         title: "Saída registrada!",
         description: "Item removido do estoque.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/stock");
@@ -203,6 +205,7 @@ export default function StockOut() {
         title: "Erro ao registrar saída",
         description: err.message || "Erro inesperado.",
         variant: "error",
+        duration: 3000,
       });
     }
   };

@@ -64,6 +64,7 @@ export default function RegisterDrawer() {
         title: "Erro",
         description: getErrorMessage(err, "Não foi possível carregar as categorias de gaveta."),
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -81,6 +82,7 @@ export default function RegisterDrawer() {
         title: "Gaveta criada",
         description: `A gaveta ${numero} foi cadastrada com sucesso.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/drawers");
@@ -89,6 +91,7 @@ export default function RegisterDrawer() {
         title: "Erro ao cadastrar",
         description: getErrorMessage(err, "Não foi possível cadastrar a gaveta."),
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setModalOpen(false);

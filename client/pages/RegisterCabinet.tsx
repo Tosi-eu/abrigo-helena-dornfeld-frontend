@@ -64,6 +64,7 @@ export default function RegisterCabinet() {
         title: "Erro",
         description: getErrorMessage(err, "Não foi possível carregar as categorias."),
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -81,6 +82,7 @@ export default function RegisterCabinet() {
         title: "Armário criado",
         description: `O armário ${numero} foi cadastrado com sucesso.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/cabinets");
@@ -89,6 +91,7 @@ export default function RegisterCabinet() {
         title: "Erro ao cadastrar",
         description: getErrorMessage(err, "Não foi possível cadastrar o armário."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

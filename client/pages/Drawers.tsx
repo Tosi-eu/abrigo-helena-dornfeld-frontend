@@ -33,6 +33,7 @@ export default function Drawers() {
         title: "Erro ao carregar gavetas",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);

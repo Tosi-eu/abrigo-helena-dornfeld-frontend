@@ -55,6 +55,7 @@ export default function SignUpMedicine() {
           title: "Erro",
           description: getErrorMessage(err, "Não foi possível carregar os medicamentos."),
           variant: "error",
+        duration: 3000,
         });
       }
     }
@@ -94,6 +95,7 @@ export default function SignUpMedicine() {
         title: "Medicamento cadastrado!",
         description: `${data.name} (${data.dosageValue}${data.measurementUnit}) foi registrado com sucesso.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/medicines");
@@ -102,6 +104,7 @@ export default function SignUpMedicine() {
         title: "Erro ao cadastrar",
         description: getErrorMessage(error, "Não foi possível registrar o medicamento."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

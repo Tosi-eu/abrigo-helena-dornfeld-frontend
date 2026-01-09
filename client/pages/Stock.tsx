@@ -90,6 +90,7 @@ export default function Stock() {
         title: "Erro ao carregar estoque",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);
@@ -112,6 +113,7 @@ export default function Stock() {
         title: "Erro ao carregar dados",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
     }
   }
@@ -270,11 +272,12 @@ export default function Stock() {
 
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
-        toast({ title: messages.success, variant: "success" });
+        toast({ title: messages.success, variant: "success", duration: 3000 });
       } else {
         toast({
           title: actionMessages[type].success,
           variant: "success",
+        duration: 3000,
         });
       }
     } catch (err: any) {
@@ -294,6 +297,7 @@ export default function Stock() {
           title: actionMessages[type].error,
           description: errorMessage,
           variant: "error",
+        duration: 3000,
         });
       }
 

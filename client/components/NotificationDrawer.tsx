@@ -45,6 +45,7 @@ export function NotificationDrawer() {
         title: "Erro",
         description: "Não foi possível carregar as notificações.",
         variant: "error",
+        duration: 3000,
       });
 
       if (!append) {
@@ -71,13 +72,14 @@ export function NotificationDrawer() {
   ) => {
     try {
       await updateNotification(id, { status });
-      toast({ title: message, variant: "success" });
+      toast({ title: message, variant: "success", duration: 3000 });
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch {
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a notificação.",
         variant: "error",
+        duration: 3000,
       });
     }
   };

@@ -79,6 +79,7 @@ export default function StockIn() {
           title: "Erro ao carregar dados",
           description: getErrorMessage(err, "Não foi possível carregar os dados."),
           variant: "error",
+        duration: 3000,
         });
         setMedicines([]);
         setInputs([]);
@@ -124,6 +125,7 @@ export default function StockIn() {
         title: "Entrada registrada com sucesso!",
         description: "Medicamento adicionado ao estoque.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/stock");
@@ -132,6 +134,7 @@ export default function StockIn() {
         title: "Erro ao registrar",
         description: getErrorMessage(err, "Não foi possível registrar a entrada."),
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -167,6 +170,7 @@ export default function StockIn() {
         title: "Entrada registrada!",
         description: "Insumo adicionado ao estoque.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/stock");
@@ -175,6 +179,7 @@ export default function StockIn() {
         title: "Erro ao registrar entrada",
         description: getErrorMessage(err, "Não foi possível registrar a entrada."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

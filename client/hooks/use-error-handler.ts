@@ -54,6 +54,7 @@ export function useErrorHandler() {
         title,
         description: message,
         variant: "error",
+        duration: 3000,
       });
 
       return { title, message };

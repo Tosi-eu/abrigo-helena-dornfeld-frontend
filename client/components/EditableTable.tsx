@@ -195,6 +195,8 @@ export default function EditableTable({
         title: "Medicamento suspenso",
         description: "Reative o medicamento para poder editá-lo.",
         variant: "error",
+        duration: 3000,
+        duration: 3000,
       });
       return;
     }
@@ -276,7 +278,7 @@ export default function EditableTable({
         await deleteStockItem(id, itemType);
       }
 
-      toast({ title: "Item removido", variant: "success" });
+      toast({ title: "Item removido", variant: "success", duration: 3000 });
       setRows((prev) => prev.filter((_, i) => i !== deleteIndex));
       
       if (onDeleteSuccess) {
@@ -291,7 +293,9 @@ export default function EditableTable({
       toast({ 
         title: "Erro ao remover item", 
         description: err?.message || "Não foi possível remover o item.",
-        variant: "error" 
+        variant: "error",
+        duration: 3000,
+        duration: 3000,
       });
     } finally {
       setIsDeleting(false);

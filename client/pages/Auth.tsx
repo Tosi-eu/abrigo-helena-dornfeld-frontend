@@ -55,6 +55,7 @@ export default function Auth() {
           title: "E-mail inválido",
           description: emailValidation.error || "Por favor, insira um e-mail válido.",
           variant: "error",
+        duration: 3000,
         });
         setLoading(false);
         return;
@@ -67,6 +68,7 @@ export default function Auth() {
             title: "Senha inválida",
             description: passwordValidation.error || "A senha não atende aos requisitos.",
             variant: "error",
+        duration: 3000,
           });
           setLoading(false);
           return;
@@ -78,11 +80,11 @@ export default function Auth() {
 
       if (isLogin) {
         await authLogin(sanitizedLogin, sanitizedPassword);
-        toast({ title: "Login realizado!", variant: "success" });
+        toast({ title: "Login realizado!", variant: "success", duration: 3000 });
       } else {
         await register(sanitizedLogin, sanitizedPassword);
         await authLogin(sanitizedLogin, sanitizedPassword);
-        toast({ title: "Cadastro realizado!", variant: "success" });
+        toast({ title: "Cadastro realizado!", variant: "success", duration: 3000 });
       }
 
       navigate("/dashboard");
@@ -133,6 +135,7 @@ export default function Auth() {
         title: errorTitle,
         description: errorDescription,
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);

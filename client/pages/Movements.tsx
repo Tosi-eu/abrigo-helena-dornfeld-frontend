@@ -97,6 +97,7 @@ export default function InputMovements() {
         title: "Erro ao carregar entradas",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
       setEntries([]);
       setEntriesHasNext(false);
@@ -143,6 +144,7 @@ export default function InputMovements() {
         title: "Erro ao carregar saídas",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
       setExits([]);
       setExitsHasNext(false);

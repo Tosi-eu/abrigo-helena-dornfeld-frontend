@@ -36,6 +36,7 @@ export default function RegisterResident() {
         title: "Residente cadastrado",
         description: "O residente foi registrado com sucesso.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/residents");
@@ -44,6 +45,7 @@ export default function RegisterResident() {
         title: "Erro ao cadastrar",
         description: getErrorMessage(err, "Não foi possível cadastrar o residente."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

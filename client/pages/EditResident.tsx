@@ -42,6 +42,7 @@ export default function EditResident() {
         title: "Nenhum residente selecionado",
         description: "Volte à lista e escolha um residente para editar.",
         variant: "warning",
+        duration: 3000,
       });
       navigate("/residents");
     }
@@ -53,6 +54,7 @@ export default function EditResident() {
         title: "Erro",
         description: "Casela não identificada.",
         variant: "error",
+        duration: 3000,
       });
       return;
     }
@@ -66,6 +68,7 @@ export default function EditResident() {
         title: "Residente atualizado",
         description: `O residente ${updated.name} foi atualizado com sucesso!`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/residents");
@@ -74,6 +77,7 @@ export default function EditResident() {
         title: "Erro ao editar residente",
         description: getErrorMessage(err, "Não foi possível atualizar o residente."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

@@ -33,6 +33,7 @@ export default function Cabinets() {
         title: "Erro ao carregar armários",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);

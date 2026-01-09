@@ -39,6 +39,7 @@ export default function EditInput() {
         title: "Erro",
         description: "Nenhum insumo foi selecionado para edição.",
         variant: "error",
+        duration: 3000,
       });
       navigate("/inputs");
       return;
@@ -62,6 +63,7 @@ export default function EditInput() {
         title: "Erro",
         description: "Insumo não identificado.",
         variant: "error",
+        duration: 3000,
       });
       return;
     }
@@ -77,6 +79,7 @@ export default function EditInput() {
         title: "Insumo atualizado",
         description: `${data.nome} foi atualizado com sucesso.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/inputs");
@@ -85,6 +88,7 @@ export default function EditInput() {
         title: "Erro ao atualizar",
         description: getErrorMessage(err, "Não foi possível atualizar o insumo."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

@@ -33,6 +33,7 @@ export default function Resident() {
         title: "Erro ao carregar residentes",
         description: errorMessage,
         variant: "error",
+        duration: 3000,
       });
       setResidents([]);
       setHasNextPage(false);

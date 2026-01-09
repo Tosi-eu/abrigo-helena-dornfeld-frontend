@@ -1,3 +1,4 @@
+import "react-datepicker/dist/react-datepicker.css";
 import {
   createNotificationEvent,
   getMedicines,
@@ -85,6 +86,8 @@ export default function CreateNotificationForm({
           title: "Erro ao carregar opções",
           description: "Não foi possível carregar residentes ou medicamentos.",
           variant: "error",
+        duration: 3000,
+          duration: 3000,
         });
       } finally {
         setLoadingOptions(false);
@@ -101,6 +104,8 @@ export default function CreateNotificationForm({
         title: "Campos obrigatórios",
         description: "Preencha medicamento, residente e data prevista.",
         variant: "error",
+        duration: 3000,
+        duration: 3000,
       });
       return;
     }
@@ -109,10 +114,10 @@ export default function CreateNotificationForm({
     try {
       if (form.id) {
         await patchNotificationEvent(form.id, form);
-        toast({ title: "Notificação atualizada", variant: "success" });
+        toast({ title: "Notificação atualizada", variant: "success", duration: 3000 });
       } else {
         await createNotificationEvent(form);
-        toast({ title: "Notificação criada", variant: "success" });
+        toast({ title: "Notificação criada", variant: "success", duration: 3000 });
       }
 
       reload();
@@ -122,6 +127,8 @@ export default function CreateNotificationForm({
         title: "Erro ao salvar notificação",
         description: "Ocorreu um erro ao tentar salvar a notificação.",
         variant: "error",
+        duration: 3000,
+        duration: 3000,
       });
     } finally {
       setSaving(false);
@@ -222,11 +229,15 @@ export default function CreateNotificationForm({
         <DatePicker
           id="data_prevista"
           selected={form.data_prevista}
-          onChange={(date: Date) => setForm({ ...form, data_prevista: date })}
-          dateFormat="dd-MM-yyyy"
+          onChange={(date: Date | null) => setForm({ ...form, data_prevista: date })}
+          dateFormat="dd/MM/yyyy"
           locale={ptBR}
           placeholderText="Selecione a data"
-          className="border rounded p-2 w-full"
+          allowSameDay={true}
+          strictParsing={true}
+          showPopperArrow={false}
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          calendarClassName="react-datepicker-calendar"
         />
         {form.data_prevista && (
           <div className="text-sm text-slate-500 mt-1">

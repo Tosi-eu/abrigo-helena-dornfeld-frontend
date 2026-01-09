@@ -40,6 +40,7 @@ export default function RegisterInput() {
         title: "Insumo cadastrado",
         description: `${data.name} foi adicionado ao sistema.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/inputs");
@@ -48,6 +49,7 @@ export default function RegisterInput() {
         title: "Erro ao cadastrar insumo",
         description: getErrorMessage(err, "Não foi possível salvar o insumo no banco."),
         variant: "error",
+        duration: 3000,
       });
     }
   };

@@ -100,6 +100,7 @@ export const InputForm = memo(function InputForm({
         title: "Erro ao processar formulário",
         description: getErrorMessage(err, "Não foi possível processar o formulário."),
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -207,7 +208,11 @@ export const InputForm = memo(function InputForm({
                 onChange={(date: Date | null) => field.onChange(date)}
                 locale={ptBR}
                 dateFormat="dd/MM/yyyy"
+                allowSameDay={true}
+                strictParsing={true}
+                showPopperArrow={false}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                calendarClassName="react-datepicker-calendar"
               />
             )}
           />

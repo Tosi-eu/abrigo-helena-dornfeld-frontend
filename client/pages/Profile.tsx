@@ -68,7 +68,7 @@ export default function Profile() {
 
       authStorage.setUser(response);
 
-      toast({ title: "Perfil atualizado", variant: "success" });
+      toast({ title: "Perfil atualizado", variant: "success", duration: 3000 });
       
       reset({
         currentLogin: response.login || "",
@@ -78,7 +78,7 @@ export default function Profile() {
       });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Erro inesperado";
-      toast({ title: "Erro", description: errorMessage, variant: "error" });
+      toast({ title: "Erro", description: errorMessage, variant: "error", duration: 3000 });
     }
   };
 
