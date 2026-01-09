@@ -6,8 +6,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   createMovement,
   createStockOut,
-  getStock as apiGetStock,
+  getStock,
 } from "@/api/requests";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { stockOutQuantitySchema } from "@/schemas/stock-out.schema";
 
 import { AnimatePresence, motion } from "framer-motion";
 import Pagination from "@/components/Pagination";
@@ -59,7 +61,13 @@ export default function StockOut() {
     OperationType | "Selecione"
   >("Selecione");
   const [selected, setSelected] = useState<StockItemRaw | null>(null);
-  const [quantity, setQuantity] = useState("");
+  
+  // Form para quantidade usando React Hook Form
+  const quantityForm = useFormWithZod(stockOutQuantitySchema, {
+    defaultValues: {
+      quantity: 0,
+    },
+  });
 
   async function fetchStock() {
     setLoading(true);
@@ -147,13 +155,20 @@ export default function StockOut() {
 
   const handleSelectItem = (item: StockItemRaw | null) => {
     setSelected(item);
-    if (item) setStep(StockWizardSteps.QUANTIDADE);
+    if (item) {
+      quantityForm.reset({ quantity: 0 });
+      setStep(StockWizardSteps.QUANTIDADE);
+    }
   };
 
   const handleConfirm = async () => {
     if (!selected) return;
-    const qty = Number(quantity);
-    if (!qty || qty <= 0) return;
+    
+    const isValid = await quantityForm.trigger();
+    if (!isValid) return;
+    
+    const qty = quantityForm.getValues("quantity");
+    if (!qty || qty <= 0 || qty > selected.quantidade) return;
 
     try {
       await createStockOut({
@@ -405,9 +420,14 @@ export default function StockOut() {
               >
                 <QuantityStep
                   item={selected}
-                  quantity={quantity}
-                  setQuantity={setQuantity}
-                  onBack={() => setStep(StockWizardSteps.ITENS)}
+                  quantity={quantityForm.watch("quantity") || 0}
+                  quantityRegister={quantityForm.register("quantity", { valueAsNumber: true })}
+                  quantityErrors={quantityForm.formState.errors}
+                  isSubmitting={quantityForm.formState.isSubmitting}
+                  onBack={() => {
+                    quantityForm.reset();
+                    setStep(StockWizardSteps.ITENS);
+                  }}
                   onConfirm={handleConfirm}
                 />
               </motion.div>
