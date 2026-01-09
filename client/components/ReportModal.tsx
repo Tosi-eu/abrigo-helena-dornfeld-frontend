@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -16,7 +16,6 @@ import {
   User,
   Syringe,
 } from "lucide-react";
-import { createStockPDF } from "./StockReporter";
 import { pdf } from "@react-pdf/renderer";
 import { getReport } from "@/api/requests";
 
@@ -55,6 +54,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       const tipo = selectedReports[0];
 
       const data = await getReport(tipo);
+      const { default: createStockPDF } = await import("./StockReporter");
       const doc = createStockPDF(tipo, data);
 
       const blob = await pdf(doc).toBlob();

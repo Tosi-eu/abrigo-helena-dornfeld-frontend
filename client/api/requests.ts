@@ -90,21 +90,18 @@ export const updateCabinet = (id: number, data: any) =>
 export const updateMedicine = (id: number, data: any) =>
   api.put(`/medicamentos/${id}`, data);
 
-export const resetPassword = (email: string, newPassword: string) =>
-  api.put(`/login/reset-password`, { email, newPassword });
+export const resetPassword = (login: string, newPassword: string) =>
+  api.post(`/login/reset-password`, { login, newPassword });
 
 export const updateResident = (casela: string | number, data: any) =>
   api.put(`/residentes/${casela}`, data);
 
-export const updateUser = (
-  userId: number,
-  payload: {
-    login: string;
-    password: string;
-    currentLogin: string;
-    currentPassword: string;
-  },
-) => api.put(`/login/${userId}`, payload);
+export const updateUser = (payload: {
+  login: string;
+  password: string;
+  currentLogin: string;
+  currentPassword: string;
+}) => api.put(`/login`, payload);
 
 export const createCabinet = (numero: number, categoria_id: number) =>
   api.post("/armarios", { numero, categoria_id });
@@ -199,7 +196,6 @@ export const getNotifications = async (
       hasNext: res.hasNext ? res.hasNext : false,
     };
   } catch (err) {
-    console.error("Erro ao buscar notificações:", err);
     return { items: [], total: 0, hasNext: false };
   }
 };
@@ -296,6 +292,29 @@ export const transferStockSector = (payload: {
   api.patch(`/estoque/medicamento/${payload.estoque_id}/transferir-setor`, {
     setor: payload.setor,
   });
+
+export const updateStockItem = (
+  estoqueId: number,
+  itemTipo: StockItemType,
+  data: {
+    quantidade?: number;
+    armario_id?: number | null;
+    gaveta_id?: number | null;
+    validade?: string | null;
+    origem?: string | null;
+    setor?: string;
+    lote?: string | null;
+    casela_id?: number | null;
+    tipo?: string;
+  },
+) => {
+  const { tipo: stockTipo, ...restData } = data;
+  return api.put(`/estoque/${estoqueId}`, { 
+    tipo: itemTipo,
+    stockTipo: stockTipo,
+    ...restData 
+  });
+};
 
 export const getBackendLoadingStatus = () => api.get("/status");
 

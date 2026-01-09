@@ -1,9 +1,14 @@
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
+import { SkeletonTable } from "@/components/SkeletonTable";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
-import ReportModal from "@/components/ReportModal";
+import { lazy, Suspense } from "react";
+import { SkeletonCard } from "@/components/SkeletonCard";
+
+// Lazy load ReportModal (usa @react-pdf/renderer que é pesado)
+const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
   getStock,
   removeIndividualMedicineFromStock,
@@ -20,14 +25,16 @@ import {
   actionTitles,
 } from "@/helpers/toaster.helper";
 import { toast } from "@/hooks/use-toast.hook";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 export default function Stock() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data } = location.state || {};
+  const { data, filter } = location.state || {};
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
+  const [allRawData, setAllRawData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
@@ -37,18 +44,21 @@ export default function Stock() {
     row: StockItem | null;
   }>({ type: null, row: null });
   const [actionLoading, setActionLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
       id: item.estoque_id,
       name: item.nome || "-",
-      description: item.principio_ativo || item.descricao || "-",
+      activeSubstance: item.principio_ativo || "-",
+      description: item.descricao || "-",
       expiry: item.validade || "-",
       quantity: Number(item.quantidade) || 0,
       cabinet: item.armario_id ?? "-",
       drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
       stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
+      tipo: item.tipo, // Store raw tipo value
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
@@ -65,50 +75,95 @@ export default function Stock() {
   };
 
   async function loadStock(pageToLoad: number) {
+    setLoading(true);
     try {
-      if (data) {
-        setItems(formatStockItems(data));
-        setHasNext(false);
-        return;
-      }
-
       const res = await getStock(pageToLoad, limit);
 
       setItems(formatStockItems(res.data));
       setHasNext(res.hasNext);
-    } catch (err) {
-      console.error("Erro ao buscar estoque:", err);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os itens do estoque.";
+      toast({
+        title: "Erro ao carregar estoque",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadAllStock() {
+    try {
+      const allItems = await fetchAllPaginated(
+        (page, limit) => getStock(page, limit),
+        100,
+      );
+      setAllRawData(allItems);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar todos os itens do estoque.";
+      toast({
+        title: "Erro ao carregar dados",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
     }
   }
 
   useEffect(() => {
     async function init() {
-      if (data) {
-        setItems(formatStockItems(data));
+      setLoading(true);
+      
+      // If data comes from Dashboard (filtered view)
+      if (data && Array.isArray(data)) {
+        if (data.length > 0) {
+          setItems(formatStockItems(data));
+        } else {
+          setItems([]);
+        }
         setHasNext(false);
+        setLoading(false);
+        // Still load all data for other operations (like stock out)
+        try {
+          await loadAllStock();
+        } catch (err) {
+          // Silently fail - not critical for filtered view
+          console.error("Error loading all stock:", err);
+        }
         return;
       }
 
+      // Normal load from API
       await loadStock(1);
+      await loadAllStock();
     }
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!data) {
+    // Only load new page if we're not showing filtered data from Dashboard
+    // and page changed (not initial load)
+    if ((!data || !Array.isArray(data)) && page > 1) {
       loadStock(page);
     }
   }, [page]);
 
+  
   const columns = [
-    { key: "stockType", label: "Tipo de Estoque", editable: false },
+    { key: "stockType", label: "Tipo", editable: false },
     { key: "name", label: "Nome", editable: true },
-    {
-      key: "description",
-      label: "Descrição / Princípio Ativo",
-      editable: true,
-    },
+    { key: "activeSubstance", label: "P. Ativo", editable: true },
+    { key: "description", label: "Descrição", editable: true },
     { key: "expiry", label: "Validade", editable: true },
     { key: "quantity", label: "Quantidade", editable: true },
     { key: "patient", label: "Residente", editable: false },
@@ -217,23 +272,32 @@ export default function Stock() {
 
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
-        toast({ title: messages.success, variant: "success" });
+        toast({ title: messages.success, variant: "success", duration: 3000 });
       } else {
         toast({
           title: actionMessages[type].success,
           variant: "success",
+        duration: 3000,
         });
       }
-    } catch (err) {
-      console.error("Erro ao executar ação", err);
+    } catch (err: any) {
+      // Error is already handled by toast notification
+
+      const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
 
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
-        toast({ title: messages.error, variant: "error" });
+        toast({ 
+          title: messages.error, 
+          description: errorMessage,
+          variant: "error" 
+        });
       } else {
         toast({
           title: actionMessages[type].error,
+          description: errorMessage,
           variant: "error",
+        duration: 3000,
         });
       }
 
@@ -263,7 +327,11 @@ export default function Stock() {
           </button>
 
           <button
-            onClick={() => navigate("/stock/out")}
+            onClick={() =>
+              navigate("/stock/out", {
+                state: { data: allRawData.length > 0 ? allRawData : undefined },
+              })
+            }
             className="
               h-12 px-6 rounded-lg font-semibold
               bg-red-600 text-white
@@ -290,7 +358,9 @@ export default function Stock() {
         </div>
 
         <div className="pt-12">
-          <>
+          {loading ? (
+            <SkeletonTable rows={8} cols={columns.length} />
+          ) : (
             <EditableTable
               data={items}
               columns={columns}
@@ -303,9 +373,15 @@ export default function Stock() {
               onRemoveIndividual={requestRemoveIndividual}
               onSuspend={requestSuspend}
               onResume={requestResume}
+              onDeleteSuccess={() => {
+                if (!data) {
+                  loadStock(page);
+                  loadAllStock();
+                }
+              }}
               entityType="stock"
             />
-          </>
+          )}
         </div>
       </div>
 
@@ -323,10 +399,12 @@ export default function Stock() {
         onCancel={() => setConfirmOpen(false)}
       />
 
-      <ReportModal
-        open={reportModalOpen}
-        onClose={() => setReportModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <ReportModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+        />
+      </Suspense>
     </Layout>
   );
 }

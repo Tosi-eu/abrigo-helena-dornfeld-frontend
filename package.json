@@ -27,6 +27,7 @@
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
     "@react-pdf/renderer": "^4.3.1",
+    "@tanstack/react-virtual": "^3.13.18",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "pdfkit": "^0.17.2",
