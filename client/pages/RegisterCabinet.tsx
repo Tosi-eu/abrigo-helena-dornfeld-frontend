@@ -8,17 +8,24 @@ import { getErrorMessage } from "@/helpers/validation.helper";
 
 import {
   createCabinet,
-  createCabinetCategory,
   getCabinetCategories,
 } from "@/api/requests";
 import { CabinetCategory } from "@/interfaces/interfaces";
 import { cabinetSchema, type CabinetFormData } from "@/schemas/cabinet.schema";
-import ConfirmationModal from "@/components/ConfirmationModal";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectValue,
+  SelectItem,
+} from "@/components/ui/select";
+import { Controller } from "react-hook-form";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function RegisterCabinet() {
   const navigate = useNavigate();
@@ -28,6 +35,7 @@ export default function RegisterCabinet() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CabinetFormData>({
     resolver: zodResolver(cabinetSchema),
@@ -61,30 +69,13 @@ export default function RegisterCabinet() {
   };
 
   const onSubmit = async (data: CabinetFormData) => {
-    const categoryName = data.categoria_id;
-    const existing = categories.find((c) => c.nome === categoryName);
-
-    if (!existing) {
-      setModalOpen(true);
-      return;
-    }
-
-    await createCabinetFlow(Number(data.numero), existing.id);
+    const categoryId = Number(data.categoria_id);
+    await createCabinetFlow(Number(data.numero), categoryId);
   };
 
-  const createCabinetFlow = async (numero: number, categoryId?: number) => {
+  const createCabinetFlow = async (numero: number, categoryId: number) => {
     try {
-      let finalCategoryId: number;
-      const categoryName = watchedCategory;
-
-      if (categoryId) {
-        finalCategoryId = categoryId;
-      } else {
-        const createRes = await createCabinetCategory(categoryName);
-        finalCategoryId = createRes?.id;
-      }
-
-      await createCabinet(numero, finalCategoryId);
+      await createCabinet(numero, categoryId);
 
       toast({
         title: "Armário criado",
@@ -99,8 +90,6 @@ export default function RegisterCabinet() {
         description: getErrorMessage(err, "Não foi possível cadastrar o armário."),
         variant: "error",
       });
-    } finally {
-      setModalOpen(false);
     }
   };
 
@@ -132,22 +121,33 @@ export default function RegisterCabinet() {
 
             <div className="space-y-1">
               <Label htmlFor="categoria_id">Categoria</Label>
-              <Input
-                id="categoria_id"
-                list="categories"
-                {...register("categoria_id")}
-                placeholder="Selecione ou digite uma categoria"
-                disabled={isSubmitting}
-                aria-invalid={errors.categoria_id ? "true" : "false"}
+              <Controller
+                name="categoria_id"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="bg-white" id="categoria_id">
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={String(c.id)}>
+                            {c.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.categoria_id && (
+                      <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+                    )}
+                  </>
+                )}
               />
-              <datalist id="categories">
-                {categories.map((c) => (
-                  <option key={c.id} value={c.nome} />
-                ))}
-              </datalist>
-              {errors.categoria_id && (
-                <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
-              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
@@ -174,10 +174,13 @@ export default function RegisterCabinet() {
 
       <ConfirmationModal
         open={modalOpen}
-        categoryName={watchedCategory}
+        categoryName={
+          categories.find((c) => c.id === Number(watchedCategory))?.nome || watchedCategory
+        }
         onConfirm={() => {
           const numero = watch("numero");
-          createCabinetFlow(Number(numero));
+          const categoriaId = Number(watchedCategory);
+          createCabinetFlow(Number(numero), categoriaId);
         }}
         onCancel={() => setModalOpen(false)}
       />

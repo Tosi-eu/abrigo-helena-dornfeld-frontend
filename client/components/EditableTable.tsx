@@ -356,13 +356,15 @@ export default function EditableTable({
                           ? row.status === "suspended"
                             ? "bg-slate-200 opacity-70"
                             : "hover:bg-sky-50"
-                          : "bg-white"
+                          : "bg-white hover:bg-sky-50"
                       }`}
                     >
                       {columns.map((col) => (
                         <td
                           key={col.key}
-                          className="px-4 py-3 text-xs text-center"
+                          className={`px-4 py-3 text-xs text-center ${
+                            !row ? "group-hover:bg-sky-50" : ""
+                          }`}
                         >
                           {renderCell(row, col.key)}
                         </td>
@@ -373,7 +375,9 @@ export default function EditableTable({
                           className={`px-4 py-3 flex justify-center gap-4 sticky right-0 z-10 min-w-[120px] ${
                             row?.status === "suspended"
                               ? "bg-slate-200 opacity-70"
-                              : "bg-white group-hover:bg-sky-50"
+                              : row
+                                ? "bg-white group-hover:bg-sky-50"
+                                : "bg-white group-hover:bg-sky-50"
                           }`}
                         >
                           {row && (
