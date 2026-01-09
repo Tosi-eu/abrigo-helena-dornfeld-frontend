@@ -19,18 +19,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedUser = sessionStorage.getItem("user");
     const token = sessionStorage.getItem("token");
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-      initSessionTimeout(
-        () => {
-          handleLogout();
-        },
-        () => {
-          console.warn("Sua sessão expirará em breve por inatividade");
-        },
-      );
+    if (storedUser || token) {
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("token");
     }
 
+    setUser(null);
     setLoading(false);
 
     return () => {
