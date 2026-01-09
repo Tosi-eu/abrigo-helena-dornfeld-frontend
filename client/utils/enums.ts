@@ -24,6 +24,7 @@ export enum MedicineStockType {
 
 export enum InputStockType {
   GERAL = "geral",
+  INDIVIDUAL = "individual",
   CARRINHO = "carrinho_emergencia",
 }
 

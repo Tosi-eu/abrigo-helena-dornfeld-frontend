@@ -163,6 +163,7 @@ export interface StockItem {
 
 export interface InputFormProps {
   inputs: Input[];
+  caselas: Patient[];
   cabinets: Cabinet[];
   drawers: Drawer[];
 
@@ -175,7 +176,7 @@ export interface InputFormProps {
 
     isEmergencyCart: boolean;
 
-    caselaId?: number;
+    casela?: number;
     validity?: Date | null;
     stockType: string;
     sector: string;

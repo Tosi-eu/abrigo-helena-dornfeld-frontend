@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 
 export const InputForm = memo(function InputForm({
   inputs,
+  caselas,
   cabinets,
   drawers,
   onSubmit,
@@ -50,6 +51,7 @@ export const InputForm = memo(function InputForm({
       quantity: undefined,
       stockType: undefined,
       validity: null,
+      casela: null,
       cabinetId: null,
       drawerId: null,
       sector: SectorType.FARMACIA,
@@ -59,9 +61,11 @@ export const InputForm = memo(function InputForm({
 
   const stockType = watch("stockType");
   const selectedInputId = watch("inputId");
+  const casela = watch("casela");
 
   const selectedInput = inputs.find((i) => i.id === selectedInputId);
   const isEmergencyCart = stockType === InputStockType.CARRINHO;
+  const selectedCasela = caselas.find((c) => c.casela === casela);
 
   // Auto-set sector when emergency cart is selected
   useEffect(() => {
@@ -74,6 +78,13 @@ export const InputForm = memo(function InputForm({
   useEffect(() => {
     setValue("cabinetId", null);
     setValue("drawerId", null);
+  }, [stockType, setValue]);
+
+  // Reset casela when stock type is not individual
+  useEffect(() => {
+    if (stockType !== InputStockType.INDIVIDUAL) {
+      setValue("casela", null);
+    }
   }, [stockType, setValue]);
 
   const handleInputSelect = (id: number) => {
@@ -90,6 +101,7 @@ export const InputForm = memo(function InputForm({
         isEmergencyCart,
         drawerId: data.drawerId ?? undefined,
         cabinetId: data.cabinetId ?? undefined,
+        casela: data.casela ?? undefined,
         validity: data.validity ?? undefined,
         stockType: data.stockType,
         sector: data.sector,
@@ -242,6 +254,40 @@ export const InputForm = memo(function InputForm({
         {errors.stockType && (
           <p className="text-sm text-red-500 mt-1">{errors.stockType.message}</p>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-slate-700">Casela</label>
+          <select
+            {...register("casela", { valueAsNumber: true })}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+              errors.casela ? "border-red-500" : "border-slate-300"
+            )}
+          >
+            <option value="">Selecione</option>
+            {caselas.map((c) => (
+              <option key={c.casela} value={c.casela}>
+                {c.casela}
+              </option>
+            ))}
+          </select>
+          {errors.casela && (
+            <p className="text-sm text-red-500 mt-1">{errors.casela.message}</p>
+          )}
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-slate-700">
+            Residente
+          </label>
+          <input
+            type="text"
+            value={selectedCasela?.name || ""}
+            readOnly
+            className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
       </div>
 
       <div className="grid gap-2">

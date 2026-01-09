@@ -147,6 +147,7 @@ export default function StockIn() {
         quantidade: data.quantity,
         armario_id: data.cabinetId ?? null,
         gaveta_id: data.drawerId ?? null,
+        casela_id: data.casela ?? null,
         validade: data.validity,
         setor: data.sector,
         lote: data.lot ?? null,
@@ -160,6 +161,7 @@ export default function StockIn() {
         insumo_id: data.inputId,
         armario_id: data.cabinetId ?? null,
         gaveta_id: data.drawerId ?? null,
+        casela_id: data.casela ?? null,
         quantidade: data.quantity,
         validade: data.validity,
         setor: data.sector,
@@ -253,6 +255,7 @@ export default function StockIn() {
         {operationType === OperationType.INPUT && (
           <InputForm
             inputs={canonicalInputs}
+            caselas={caselas}
             cabinets={cabinets}
             drawers={drawers}
             onSubmit={handleInputSubmit}

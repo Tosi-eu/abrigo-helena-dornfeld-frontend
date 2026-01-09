@@ -16,6 +16,7 @@ export const inputFormSchema = z
       required_error: "Tipo de estoque é obrigatório",
     }),
     validity: z.date().nullable().optional(),
+    casela: z.number().nullable().optional(),
     cabinetId: z.number().nullable().optional(),
     drawerId: z.number().nullable().optional(),
     sector: z.nativeEnum(SectorType, {
@@ -64,6 +65,19 @@ export const inputFormSchema = z
     {
       message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
       path: ["drawerId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Casela só pode ser preenchida para tipo individual
+      if (data.casela !== null && data.stockType !== InputStockType.INDIVIDUAL) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A casela só pode ser preenchida para tipo individual",
+      path: ["casela"],
     }
   );
 
