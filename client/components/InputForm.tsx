@@ -230,6 +230,7 @@ export const InputForm = memo(function InputForm({
                 onChange={(date: Date | null) => field.onChange(date)}
                 locale={ptBR}
                 dateFormat="dd/MM/yyyy"
+                placeholderText="dd/mm/aaaa"
                 allowSameDay={true}
                 strictParsing={true}
                 showPopperArrow={false}

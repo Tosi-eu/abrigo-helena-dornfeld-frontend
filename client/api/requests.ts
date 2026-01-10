@@ -335,7 +335,7 @@ export const updateStockItem = (
   },
 ) => {
   const { tipo: stockTipo, ...restData } = data;
-  return api.put(`/estoque/${estoqueId}`, {
+  return api.put(`/estoque/${estoqueId}`, { 
     tipo: itemTipo,
     stockTipo: stockTipo,
     ...restData,

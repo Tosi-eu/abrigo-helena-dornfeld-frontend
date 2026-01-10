@@ -247,6 +247,7 @@ export const MedicineForm = memo(function MedicineForm({
                 onChange={(date: Date | null) => field.onChange(date)}
                 locale={ptBR}
                 dateFormat="dd/MM/yyyy"
+                placeholderText="dd/mm/aaaa"
                 allowSameDay={true}
                 strictParsing={true}
                 showPopperArrow={false}

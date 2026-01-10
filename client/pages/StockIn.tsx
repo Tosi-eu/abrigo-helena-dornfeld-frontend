@@ -82,7 +82,7 @@ export default function StockIn() {
             "Não foi possível carregar os dados.",
           ),
           variant: "error",
-          duration: 3000,
+        duration: 3000,
         });
         setMedicines([]);
         setInputs([]);

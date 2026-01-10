@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { AuthContextType, LoggedUser } from "@/interfaces/interfaces";
 import { login as apiLogin, logoutRequest } from "@/api/requests";
 import {
@@ -15,24 +15,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<LoggedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
-    const token = sessionStorage.getItem("token");
-
-    if (storedUser || token) {
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("token");
-    }
-
-    setUser(null);
-    setLoading(false);
-
-    return () => {
-      cleanupSessionTimeout();
-    };
-  }, []);
-
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logoutRequest();
     } catch (err) {
@@ -43,7 +26,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.removeItem("token");
       cleanupSessionTimeout();
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("user");
+    const token = sessionStorage.getItem("token");
+
+    if (storedUser && token) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        
+        initSessionTimeout(
+          () => {
+            handleLogout();
+          },
+          () => {
+            console.warn("Sua sessão expirará em breve por inatividade");
+          },
+        );
+      } catch (error) {
+        console.error("Erro ao restaurar sessão:", error);
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+
+    setLoading(false);
+
+    return () => {
+      cleanupSessionTimeout();
+    };
+  }, [handleLogout]);
 
   const login = async (login: string, password: string) => {
     const data = await apiLogin(login, password);
