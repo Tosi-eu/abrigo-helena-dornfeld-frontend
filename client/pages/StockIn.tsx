@@ -107,6 +107,7 @@ export default function StockIn() {
         origem: data.origin ?? null,
         setor: data.sector,
         lote: data.lot ?? null,
+        observacao: data.observacao ?? null,
       };
 
       await createStockIn(payload);

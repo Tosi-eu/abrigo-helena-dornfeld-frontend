@@ -73,7 +73,13 @@ export const getResidents = (page = 1, limit = 20) =>
 export const deleteResident = (casela: string | number) =>
   api.delete(`/residentes/${casela}`);
 
-export const getReport = (type: string) => api.get(`/relatorios?type=${type}`);
+export const getReport = (type: string, casela?: number) => {
+  const params = new URLSearchParams({ type });
+  if (casela !== undefined) {
+    params.append('casela', casela.toString());
+  }
+  return api.get(`/relatorios?${params.toString()}`);
+};
 
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
@@ -157,6 +163,7 @@ export const createStockIn = (payload: {
   origem?: string | null;
   setor: string;
   lote?: string | null;
+  observacao?: string | null;
 }) => api.post("/estoque/entrada", payload);
 
 export const createMovement = (payload: {

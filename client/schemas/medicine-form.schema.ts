@@ -28,6 +28,11 @@ export const medicineFormSchema = z
       .max(100, "Lote não pode ter mais de 100 caracteres")
       .optional()
       .nullable(),
+    observacao: z
+      .string()
+      .max(500, "Observação não pode ter mais de 500 caracteres")
+      .optional()
+      .nullable(),
   })
   .refine(
     (data) => {

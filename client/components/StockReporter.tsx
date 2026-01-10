@@ -12,6 +12,39 @@ interface ResidentesResponse {
   consumo_mensal: RowData[];
 }
 
+interface ResidentConsumptionReport {
+  residente: string;
+  casela: number;
+  medicamentos: {
+    nome: string;
+    dosagem: string;
+    unidade_medida: string;
+    principio_ativo: string;
+    preco: number | null;
+    quantidade_estoque: number;
+    observacao?: string | null;
+  }[];
+  insumos: {
+    nome: string;
+    descricao: string | null;
+    preco: number | null;
+    quantidade_estoque: number;
+  }[];
+  custos_medicamentos: {
+    item: string;
+    nome: string;
+    custo_mensal: number;
+    custo_anual: number;
+  }[];
+  custos_insumos: {
+    item: string;
+    nome: string;
+    custo_mensal: number;
+    custo_anual: number;
+  }[];
+  total_estimado: number;
+}
+
 interface RowData {
   insumo?: string;
   principio_ativo?: string;
@@ -147,8 +180,11 @@ function renderTable(headers: string[], rows: RowData[]) {
 
 export function createStockPDF(
   tipo: string,
-  data: RowData[] | ResidentesResponse,
+  data: RowData[] | ResidentesResponse | ResidentConsumptionReport,
 ) {
+  const isResidentConsumption = tipo === "residente_consumo";
+  const consumptionData = isResidentConsumption ? (data as ResidentConsumptionReport) : null;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -163,8 +199,158 @@ export function createStockPDF(
             }
             style={styles.logo}
           />
-          <Text style={styles.title}>ESTOQUE ATUAL</Text>
+          <Text style={styles.title}>
+            {isResidentConsumption ? "RELATÓRIO DE CONSUMO" : "ESTOQUE ATUAL"}
+          </Text>
         </View>
+
+        {isResidentConsumption && consumptionData && (
+          <>
+            <View style={{ marginBottom: 15 }}>
+              <Text style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}>
+                Residente: {consumptionData.residente}
+              </Text>
+              <Text style={{ fontSize: 12, color: "#666" }}>
+                Casela: {consumptionData.casela}
+              </Text>
+            </View>
+
+            <Text style={styles.sectionTitle}>1. Medicamentos e Uso</Text>
+            {consumptionData.medicamentos.length > 0 ? (
+              <>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.cell}>Nome do Medicamento</Text>
+                  <Text style={styles.cell}>Dosagem</Text>
+                  <Text style={styles.cell}>Preço Unitário (R$)</Text>
+                  <Text style={styles.cell}>Observação</Text>
+                </View>
+                {consumptionData.medicamentos.map((med, idx) => (
+                  <View
+                    key={idx}
+                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                  >
+                    <Text style={styles.cell}>{med.nome || "-"}</Text>
+                    <Text style={styles.cell}>
+                      {med.dosagem && med.unidade_medida 
+                        ? `${med.dosagem} ${med.unidade_medida}` 
+                        : med.dosagem || med.unidade_medida || "-"}
+                    </Text>
+                    <Text style={styles.cell}>
+                      {med.preco !== null && med.preco !== undefined 
+                        ? `R$ ${Number(med.preco).toFixed(2)}` 
+                        : "-"}
+                    </Text>
+                    <Text style={styles.cell}>{med.observacao || "-"}</Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhum medicamento encontrado para este residente.
+              </Text>
+            )}
+
+            <Text style={styles.sectionTitle}>2. Insumos</Text>
+            {consumptionData.insumos.length > 0 ? (
+              <>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.cell}>Nome do Insumo</Text>
+                  <Text style={styles.cell}>Descrição</Text>
+                  <Text style={styles.cell}>Preço Unitário (R$)</Text>
+                </View>
+                {consumptionData.insumos.map((input, idx) => (
+                  <View
+                    key={idx}
+                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                  >
+                    <Text style={styles.cell}>{input.nome || "-"}</Text>
+                    <Text style={styles.cell}>{input.descricao || "-"}</Text>
+                    <Text style={styles.cell}>{input.preco ? `R$ ${input.preco.toFixed(2)}` : "-"}</Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhum insumo encontrado para este residente.
+              </Text>
+            )}
+
+            <Text style={styles.sectionTitle}>Custos Estimados - Medicamentos</Text>
+            {consumptionData.custos_medicamentos.length > 0 ? (
+              <>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.cell}>Item</Text>
+                  <Text style={styles.cell}>Nome do Medicamento</Text>
+                  <Text style={styles.cell}>Custo Mensal (R$)</Text>
+                  <Text style={styles.cell}>Custo Anual (R$)</Text>
+                </View>
+                {consumptionData.custos_medicamentos.map((custo, idx) => (
+                  <View
+                    key={idx}
+                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                  >
+                    <Text style={styles.cell}>{custo.item || "-"}</Text>
+                    <Text style={styles.cell}>{custo.nome || "-"}</Text>
+                    <Text style={styles.cell}>R$ {custo.custo_mensal.toFixed(2)}</Text>
+                    <Text style={styles.cell}>R$ {custo.custo_anual.toFixed(2)}</Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhum custo de medicamento encontrado.
+              </Text>
+            )}
+
+            <Text style={styles.sectionTitle}>Custos Estimados - Insumos</Text>
+            {consumptionData.custos_insumos.length > 0 ? (
+              <>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.cell}>Item</Text>
+                  <Text style={styles.cell}>Nome do Insumo</Text>
+                  <Text style={styles.cell}>Custo Mensal (R$)</Text>
+                  <Text style={styles.cell}>Custo Anual (R$)</Text>
+                </View>
+                {consumptionData.custos_insumos.map((custo, idx) => (
+                  <View
+                    key={idx}
+                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                  >
+                    <Text style={styles.cell}>{custo.item || "-"}</Text>
+                    <Text style={styles.cell}>{custo.nome || "-"}</Text>
+                    <Text style={styles.cell}>R$ {custo.custo_mensal.toFixed(2)}</Text>
+                    <Text style={styles.cell}>R$ {custo.custo_anual.toFixed(2)}</Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhum custo de insumo encontrado.
+              </Text>
+            )}
+
+            <View
+              style={{
+                marginTop: 20,
+                padding: 10,
+                backgroundColor: "#f0f0f0",
+                borderRadius: 4,
+                borderWidth: 1,
+                borderColor: "#000",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                Total Estimado Anual: R$ {consumptionData.total_estimado.toFixed(2)}
+              </Text>
+            </View>
+          </>
+        )}
 
         {tipo === "residentes" && (
           <>

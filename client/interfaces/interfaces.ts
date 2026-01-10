@@ -205,6 +205,7 @@ export interface MedicineFormProps {
     stockType: string;
     sector: string;
     lot?: string | null;
+    observacao?: string;
   }) => void;
 }
 

@@ -65,6 +65,7 @@ export const MedicineForm = memo(function MedicineForm({
       origin: null,
       sector: SectorType.FARMACIA,
       lot: null,
+      observacao: null,
     },
   });
 
@@ -119,6 +120,7 @@ export const MedicineForm = memo(function MedicineForm({
         origin: data.origin ?? "",
         sector: data.sector,
         lot: data.lot ?? undefined,
+        observacao: data.observacao ?? undefined,
         isEmergencyCart,
       });
     } catch (err: unknown) {
@@ -437,6 +439,39 @@ export const MedicineForm = memo(function MedicineForm({
         />
         {errors.lot && (
           <p className="text-sm text-red-500 mt-1">{errors.lot.message}</p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-700">
+          Observação
+          <span className="text-xs font-normal text-slate-500 ml-1">
+            (Opcional)
+          </span>
+        </label>
+        <textarea
+          {...register("observacao")}
+          maxLength={500}
+          rows={3}
+          placeholder={
+            isIndividual
+              ? 'Ex: "Uso contínuo", "Usar apenas em caso de agitação", "1 dose por mês"'
+              : "Informações adicionais sobre este lote de medicamento..."
+          }
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm resize-none",
+            errors.observacao ? "border-red-500" : "border-slate-300",
+          )}
+        />
+        {errors.observacao && (
+          <p className="text-sm text-red-500 mt-1">
+            {errors.observacao.message}
+          </p>
+        )}
+        {isIndividual && (
+          <p className="text-xs text-slate-500 mt-1">
+            Para medicamentos individuais, use este campo para informar detalhes sobre o uso pelo residente.
+          </p>
         )}
       </div>
 
