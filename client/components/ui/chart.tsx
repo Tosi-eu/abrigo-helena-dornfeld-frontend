@@ -66,11 +66,11 @@ ChartContainer.displayName = "Chart";
 
 function escapeCSSValue(value: string): string {
   return value
-    .replace(/[<>]/g, "") 
-    .replace(/javascript:/gi, "") 
+    .replace(/[<>]/g, "")
+    .replace(/javascript:/gi, "")
     .replace(/expression\(/gi, "")
-    .replace(/url\(/gi, "") 
-    .replace(/@import/gi, ""); 
+    .replace(/url\(/gi, "")
+    .replace(/@import/gi, "");
 }
 
 function sanitizeChartId(id: string): string {

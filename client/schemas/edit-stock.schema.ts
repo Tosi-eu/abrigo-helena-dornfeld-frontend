@@ -40,7 +40,7 @@ export const editStockSchema = z
     {
       message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
       path: ["gaveta_id"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -52,7 +52,7 @@ export const editStockSchema = z
     {
       message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
       path: ["armario_id"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -62,10 +62,10 @@ export const editStockSchema = z
       return true;
     },
     {
-      message: "Casela só pode ser selecionada quando um armário está selecionado",
+      message:
+        "Casela só pode ser selecionada quando um armário está selecionado",
       path: ["casela_id"],
-    }
+    },
   );
 
 export type EditStockFormData = z.infer<typeof editStockSchema>;
-

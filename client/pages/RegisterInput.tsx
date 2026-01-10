@@ -47,7 +47,10 @@ export default function RegisterInput() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar insumo",
-        description: getErrorMessage(err, "Não foi possível salvar o insumo no banco."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível salvar o insumo no banco.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -76,7 +79,9 @@ export default function RegisterInput() {
                 aria-invalid={errors.name ? "true" : "false"}
               />
               {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -91,7 +96,9 @@ export default function RegisterInput() {
                 aria-invalid={errors.description ? "true" : "false"}
               />
               {errors.description && (
-                <p className="text-sm text-red-600 mt-1">{errors.description.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.description.message}
+                </p>
               )}
             </div>
 
@@ -108,7 +115,9 @@ export default function RegisterInput() {
                 aria-invalid={errors.minimum ? "true" : "false"}
               />
               {errors.minimum && (
-                <p className="text-sm text-red-600 mt-1">{errors.minimum.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.minimum.message}
+                </p>
               )}
             </div>
 

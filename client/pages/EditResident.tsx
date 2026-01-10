@@ -75,7 +75,10 @@ export default function EditResident() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao editar residente",
-        description: getErrorMessage(err, "Não foi possível atualizar o residente."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível atualizar o residente.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -103,7 +106,9 @@ export default function EditResident() {
                 aria-invalid={errors.name ? "true" : "false"}
               />
               {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -123,7 +128,9 @@ export default function EditResident() {
                 )}
               />
               {errors.casela && (
-                <p className="text-sm text-red-600 mt-1">{errors.casela.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.casela.message}
+                </p>
               )}
             </div>
 

@@ -5,7 +5,6 @@ import { toast } from "@/hooks/use-toast.hook";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { SkeletonTable } from "@/components/SkeletonTable";
 
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DEFAULT_PAGE_SIZE,
@@ -16,7 +15,11 @@ import {
 import EditableTable from "@/components/EditableTable";
 import { DashboardStatsCard } from "@/components/DashboardStatsCard";
 
-const DashboardChartCard = lazy(() => import("@/components/DashboardChartCard").then(module => ({ default: module.DashboardChartCard })));
+const DashboardChartCard = lazy(() =>
+  import("@/components/DashboardChartCard").then((module) => ({
+    default: module.DashboardChartCard,
+  })),
+);
 import {
   getInputMovements,
   getMedicineMovements,
@@ -36,7 +39,9 @@ import {
   RawMovement,
   DrawerStockItem,
 } from "@/interfaces/interfaces";
-const NotificationReminderModal = lazy(() => import("@/components/NotificationModal"));
+const NotificationReminderModal = lazy(
+  () => import("@/components/NotificationModal"),
+);
 import StockProportionCard from "@/components/StockProportionCard";
 import { prepareStockDistributionData } from "@/helpers/estoque.helper";
 import { SectorType } from "@/utils/enums";
@@ -212,9 +217,10 @@ export default function Dashboard() {
       } catch (err: any) {
         toast({
           title: "Erro ao carregar dados",
-          description: err?.message || "Não foi possível carregar os dados do dashboard.",
+          description:
+            err?.message || "Não foi possível carregar os dados do dashboard.",
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
       } finally {
         setLoadingNonMovement(false);
@@ -231,7 +237,7 @@ export default function Dashboard() {
         const res = await getTodayNotifications();
 
         const unseenNotifications = res.data.filter(
-          (n: Record<string, unknown>) => !n.visto
+          (n: Record<string, unknown>) => !n.visto,
         );
 
         if (unseenNotifications.length > 0) {
@@ -242,7 +248,7 @@ export default function Dashboard() {
             unseenNotifications.map((n: Record<string, unknown>) => {
               const id = typeof n.id === "number" ? n.id : Number(n.id);
               return updateNotification(id, { visto: true });
-            })
+            }),
           );
         }
       } catch (err: unknown) {
@@ -254,7 +260,7 @@ export default function Dashboard() {
           title: "Erro ao carregar notificações",
           description: errorMessage,
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
       }
     }
@@ -297,12 +303,22 @@ export default function Dashboard() {
           }),
       },
     ],
-    [noStock, belowMin, expired, expiringSoon, noStockData, belowMinData, expiredData, expiringSoonData, navigate]
+    [
+      noStock,
+      belowMin,
+      expired,
+      expiringSoon,
+      noStockData,
+      belowMinData,
+      expiredData,
+      expiringSoonData,
+      navigate,
+    ],
   );
 
   const COLORS = useMemo(
     () => ["#0EA5E9", "#FACC15", "#EF4444", "#10B981", "#8B5CF6"],
-    []
+    [],
   );
 
   const minRowsMovements = useMaxSectionRows(
@@ -312,12 +328,12 @@ export default function Dashboard() {
 
   const paginatedNonMovement = useMemo(
     () => paginate(nonMovementProducts, nonMovementPage),
-    [nonMovementProducts, nonMovementPage]
+    [nonMovementProducts, nonMovementPage],
   );
 
   const paginatedRecentMovements = useMemo(
     () => paginate(recentMovements, recentMovementsPage),
-    [recentMovements, recentMovementsPage]
+    [recentMovements, recentMovementsPage],
   );
 
   return (

@@ -7,7 +7,7 @@ const RATE_LIMITS: Record<string, RateLimitEntry> = {};
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000;
-const LOCKOUT_MS = 30 * 60 * 1000; 
+const LOCKOUT_MS = 30 * 60 * 1000;
 
 export function checkRateLimit(key: string): {
   allowed: boolean;
@@ -85,4 +85,3 @@ export function getRemainingAttempts(key: string): number {
 
   return MAX_ATTEMPTS - entry.count;
 }
-

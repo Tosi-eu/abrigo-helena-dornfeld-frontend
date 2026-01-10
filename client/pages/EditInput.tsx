@@ -86,7 +86,10 @@ export default function EditInput() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao atualizar",
-        description: getErrorMessage(err, "Não foi possível atualizar o insumo."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível atualizar o insumo.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -115,7 +118,9 @@ export default function EditInput() {
                 aria-invalid={errors.nome ? "true" : "false"}
               />
               {errors.nome && (
-                <p className="text-sm text-red-600 mt-1">{errors.nome.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.nome.message}
+                </p>
               )}
             </div>
 
@@ -130,7 +135,9 @@ export default function EditInput() {
                 aria-invalid={errors.descricao ? "true" : "false"}
               />
               {errors.descricao && (
-                <p className="text-sm text-red-600 mt-1">{errors.descricao.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.descricao.message}
+                </p>
               )}
             </div>
 
@@ -147,7 +154,9 @@ export default function EditInput() {
                 aria-invalid={errors.estoque_minimo ? "true" : "false"}
               />
               {errors.estoque_minimo && (
-                <p className="text-sm text-red-600 mt-1">{errors.estoque_minimo.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.estoque_minimo.message}
+                </p>
               )}
             </div>
 

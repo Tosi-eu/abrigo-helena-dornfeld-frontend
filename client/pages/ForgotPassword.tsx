@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
 import { resetPassword } from "@/api/requests";
-import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/schemas/password.schema";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordFormData,
+} from "@/schemas/password.schema";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -44,12 +47,17 @@ export default function ForgotPassword() {
       let errorTitle = "Erro";
       let errorDescription = "Ocorreu um erro ao redefinir a senha.";
 
-      if (rawMessage.includes("login não encontrado") || 
-          rawMessage.includes("não encontrado")) {
+      if (
+        rawMessage.includes("login não encontrado") ||
+        rawMessage.includes("não encontrado")
+      ) {
         errorTitle = "Login não encontrado";
-        errorDescription = "O login informado não existe no sistema. Verifique o login e tente novamente.";
+        errorDescription =
+          "O login informado não existe no sistema. Verifique o login e tente novamente.";
       } else {
-        errorDescription = errorMessage || "Erro ao redefinir senha. Verifique os dados e tente novamente.";
+        errorDescription =
+          errorMessage ||
+          "Erro ao redefinir senha. Verifique os dados e tente novamente.";
       }
 
       toast({
@@ -82,7 +90,10 @@ export default function ForgotPassword() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div>
-                  <label htmlFor="login" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="login"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Login
                   </label>
                   <input
@@ -100,12 +111,17 @@ export default function ForgotPassword() {
                     aria-invalid={errors.login ? "true" : "false"}
                   />
                   {errors.login && (
-                    <p className="text-xs text-red-600 mt-1">{errors.login.message}</p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {errors.login.message}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Nova senha
                   </label>
                   <input
@@ -123,15 +139,24 @@ export default function ForgotPassword() {
                     aria-invalid={errors.newPassword ? "true" : "false"}
                   />
                   {errors.newPassword && (
-                    <p className="text-xs text-red-600 mt-1">{errors.newPassword.message}</p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {errors.newPassword.message}
+                    </p>
                   )}
-                  {watchedPassword && !errors.newPassword && watchedPassword.length >= 8 && (
-                    <p className="text-xs text-green-600 mt-1">✓ Senha válida</p>
-                  )}
+                  {watchedPassword &&
+                    !errors.newPassword &&
+                    watchedPassword.length >= 8 && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Senha válida
+                      </p>
+                    )}
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Confirmar nova senha
                   </label>
                   <input
@@ -149,7 +174,9 @@ export default function ForgotPassword() {
                     aria-invalid={errors.confirmPassword ? "true" : "false"}
                   />
                   {errors.confirmPassword && (
-                    <p className="text-xs text-red-600 mt-1">{errors.confirmPassword.message}</p>
+                    <p className="text-xs text-red-600 mt-1">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
 

@@ -1,11 +1,10 @@
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000; 
-const WARNING_TIME_MS = 5 * 60 * 1000; 
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+const WARNING_TIME_MS = 5 * 60 * 1000;
 
 let inactivityTimer: NodeJS.Timeout | null = null;
 let warningTimer: NodeJS.Timeout | null = null;
 let onTimeoutCallback: (() => void) | null = null;
 let onWarningCallback: (() => void) | null = null;
-
 
 export function resetInactivityTimer() {
   clearInactivityTimer();
@@ -75,4 +74,3 @@ export function cleanupSessionTimeout() {
     document.removeEventListener(event, resetInactivityTimer, true);
   });
 }
-

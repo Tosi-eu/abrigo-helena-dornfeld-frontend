@@ -39,7 +39,7 @@ export const medicineFormSchema = z
     {
       message: "Carrinho de emergência requer uma gaveta",
       path: ["drawerId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -51,7 +51,7 @@ export const medicineFormSchema = z
     {
       message: "Selecione um armário",
       path: ["cabinetId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -63,7 +63,7 @@ export const medicineFormSchema = z
     {
       message: "Estoque geral não pode ter casela",
       path: ["casela"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -75,8 +75,7 @@ export const medicineFormSchema = z
     {
       message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
       path: ["drawerId"],
-    }
+    },
   );
 
 export type MedicineFormData = z.infer<typeof medicineFormSchema>;
-

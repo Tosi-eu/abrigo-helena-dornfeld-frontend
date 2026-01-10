@@ -19,12 +19,9 @@ export const medicineSchema = z.object({
   measurementUnit: z
     .string()
     .min(1, "Unidade de medida é obrigatória")
-    .refine(
-      (val) => ["mg", "ml", "g", "mcg", "mg/ml"].includes(val),
-      {
-        message: "Unidade de medida inválida",
-      }
-    ),
+    .refine((val) => ["mg", "ml", "g", "mcg", "mg/ml"].includes(val), {
+      message: "Unidade de medida inválida",
+    }),
   minimumStock: z
     .string()
     .optional()
@@ -36,10 +33,9 @@ export const medicineSchema = z.object({
       },
       {
         message: "Estoque mínimo deve ser um número entre 0 e 999999",
-      }
+      },
     )
     .transform((val) => (val === "" ? undefined : val)),
 });
 
 export type MedicineFormData = z.infer<typeof medicineSchema>;
-

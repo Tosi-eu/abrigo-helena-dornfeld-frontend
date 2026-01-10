@@ -6,10 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 
-import {
-  createDrawer,
-  getDrawerCategories,
-} from "@/api/requests";
+import { createDrawer, getDrawerCategories } from "@/api/requests";
 import { DrawerCategory } from "@/interfaces/interfaces";
 import { drawerSchema, type DrawerFormData } from "@/schemas/drawer.schema";
 
@@ -62,7 +59,10 @@ export default function RegisterDrawer() {
     } catch (err: unknown) {
       toast({
         title: "Erro",
-        description: getErrorMessage(err, "Não foi possível carregar as categorias de gaveta."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível carregar as categorias de gaveta.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -89,7 +89,10 @@ export default function RegisterDrawer() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar",
-        description: getErrorMessage(err, "Não foi possível cadastrar a gaveta."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível cadastrar a gaveta.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -120,7 +123,9 @@ export default function RegisterDrawer() {
                 aria-invalid={errors.numero ? "true" : "false"}
               />
               {errors.numero && (
-                <p className="text-sm text-red-600 mt-1">{errors.numero.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.numero.message}
+                </p>
               )}
             </div>
 
@@ -148,7 +153,9 @@ export default function RegisterDrawer() {
                       </SelectContent>
                     </Select>
                     {errors.categoria_id && (
-                      <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.categoria_id.message}
+                      </p>
                     )}
                   </>
                 )}
@@ -180,7 +187,8 @@ export default function RegisterDrawer() {
       <ConfirmationModal
         open={modalOpen}
         categoryName={
-          categories.find((c) => c.id === Number(watchedCategory))?.nome || watchedCategory
+          categories.find((c) => c.id === Number(watchedCategory))?.nome ||
+          watchedCategory
         }
         onConfirm={() => {
           const numero = watch("numero");

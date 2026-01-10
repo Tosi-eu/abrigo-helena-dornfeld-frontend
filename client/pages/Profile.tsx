@@ -53,8 +53,7 @@ export default function Profile() {
           password: "",
         });
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }, [reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -69,7 +68,7 @@ export default function Profile() {
       authStorage.setUser(response);
 
       toast({ title: "Perfil atualizado", variant: "success", duration: 3000 });
-      
+
       reset({
         currentLogin: response.login || "",
         currentPassword: "",
@@ -77,8 +76,14 @@ export default function Profile() {
         password: "",
       });
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Erro inesperado";
-      toast({ title: "Erro", description: errorMessage, variant: "error", duration: 3000 });
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
     }
   };
 
@@ -111,7 +116,9 @@ export default function Profile() {
                     aria-invalid={errors.currentLogin ? "true" : "false"}
                   />
                   {errors.currentLogin && (
-                    <p className="text-sm text-red-600 mt-1">{errors.currentLogin.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.currentLogin.message}
+                    </p>
                   )}
                 </div>
 
@@ -126,7 +133,9 @@ export default function Profile() {
                     aria-invalid={errors.currentPassword ? "true" : "false"}
                   />
                   {errors.currentPassword && (
-                    <p className="text-sm text-red-600 mt-1">{errors.currentPassword.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.currentPassword.message}
+                    </p>
                   )}
                 </div>
 
@@ -141,7 +150,9 @@ export default function Profile() {
                     aria-invalid={errors.login ? "true" : "false"}
                   />
                   {errors.login && (
-                    <p className="text-sm text-red-600 mt-1">{errors.login.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.login.message}
+                    </p>
                   )}
                 </div>
 
@@ -161,7 +172,9 @@ export default function Profile() {
                     aria-invalid={errors.password ? "true" : "false"}
                   />
                   {errors.password && (
-                    <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
               </div>

@@ -21,7 +21,7 @@ export function useAsyncOperation<T = void>() {
   const execute = useCallback(
     async (
       operation: () => Promise<T>,
-      options: UseAsyncOperationOptions<T> = {}
+      options: UseAsyncOperationOptions<T> = {},
     ): Promise<T | undefined> => {
       const {
         onSuccess,
@@ -43,7 +43,7 @@ export function useAsyncOperation<T = void>() {
             title: "Sucesso",
             description: successMessage,
             variant: "success",
-        duration: 3000,
+            duration: 3000,
           });
         }
 
@@ -62,9 +62,8 @@ export function useAsyncOperation<T = void>() {
         setLoading(false);
       }
     },
-    [handleError, toast]
+    [handleError, toast],
   );
 
   return { execute, loading, error };
 }
-

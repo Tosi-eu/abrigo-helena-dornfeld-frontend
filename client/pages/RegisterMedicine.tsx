@@ -6,7 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { createMedicine, getMedicines } from "@/api/requests";
-import { medicineSchema, type MedicineFormData } from "@/schemas/medicine.schema";
+import {
+  medicineSchema,
+  type MedicineFormData,
+} from "@/schemas/medicine.schema";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,7 +44,15 @@ export default function SignUpMedicine() {
     },
   });
 
-  const [medicines, setMedicines] = useState<Array<{ id: number; name: string; dosagem?: string; principio_ativo?: string; estoque_minimo?: number }>>([]);
+  const [medicines, setMedicines] = useState<
+    Array<{
+      id: number;
+      name: string;
+      dosagem?: string;
+      principio_ativo?: string;
+      estoque_minimo?: number;
+    }>
+  >([]);
   const watchedName = watch("name");
 
   useEffect(() => {
@@ -52,9 +63,12 @@ export default function SignUpMedicine() {
       } catch (err: unknown) {
         toast({
           title: "Erro",
-          description: getErrorMessage(err, "Não foi possível carregar os medicamentos."),
+          description: getErrorMessage(
+            err,
+            "Não foi possível carregar os medicamentos.",
+          ),
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
       }
     }
@@ -72,7 +86,10 @@ export default function SignUpMedicine() {
 
         setValue("substance", selected.principio_ativo || "");
         setValue("dosageValue", dosageValue);
-        if (measurementUnit && ["mg", "ml", "g", "mcg", "mg/ml"].includes(measurementUnit)) {
+        if (
+          measurementUnit &&
+          ["mg", "ml", "g", "mcg", "mg/ml"].includes(measurementUnit)
+        ) {
           setValue("measurementUnit", measurementUnit);
         }
         setValue("minimumStock", selected.estoque_minimo?.toString() || "");
@@ -101,7 +118,10 @@ export default function SignUpMedicine() {
     } catch (error: unknown) {
       toast({
         title: "Erro ao cadastrar",
-        description: getErrorMessage(error, "Não foi possível registrar o medicamento."),
+        description: getErrorMessage(
+          error,
+          "Não foi possível registrar o medicamento.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -136,7 +156,9 @@ export default function SignUpMedicine() {
                 ))}
               </datalist>
               {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -151,7 +173,9 @@ export default function SignUpMedicine() {
                 aria-invalid={errors.substance ? "true" : "false"}
               />
               {errors.substance && (
-                <p className="text-sm text-red-600 mt-1">{errors.substance.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.substance.message}
+                </p>
               )}
             </div>
 
@@ -167,7 +191,9 @@ export default function SignUpMedicine() {
                   aria-invalid={errors.dosageValue ? "true" : "false"}
                 />
                 {errors.dosageValue && (
-                  <p className="text-sm text-red-600 mt-1">{errors.dosageValue.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.dosageValue.message}
+                  </p>
                 )}
               </div>
 
@@ -183,7 +209,10 @@ export default function SignUpMedicine() {
                         onValueChange={field.onChange}
                         disabled={isSubmitting}
                       >
-                        <SelectTrigger className="bg-white" id="measurementUnit">
+                        <SelectTrigger
+                          className="bg-white"
+                          id="measurementUnit"
+                        >
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
@@ -195,7 +224,9 @@ export default function SignUpMedicine() {
                         </SelectContent>
                       </Select>
                       {errors.measurementUnit && (
-                        <p className="text-sm text-red-600 mt-1">{errors.measurementUnit.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.measurementUnit.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -214,7 +245,9 @@ export default function SignUpMedicine() {
                 aria-invalid={errors.minimumStock ? "true" : "false"}
               />
               {errors.minimumStock && (
-                <p className="text-sm text-red-600 mt-1">{errors.minimumStock.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.minimumStock.message}
+                </p>
               )}
             </div>
 

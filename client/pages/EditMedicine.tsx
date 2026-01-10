@@ -94,7 +94,10 @@ export default function EditMedicine() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao atualizar",
-        description: getErrorMessage(err, "Erro inesperado ao salvar alterações."),
+        description: getErrorMessage(
+          err,
+          "Erro inesperado ao salvar alterações.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -122,7 +125,9 @@ export default function EditMedicine() {
                 aria-invalid={errors.nome ? "true" : "false"}
               />
               {errors.nome && (
-                <p className="text-sm text-red-600 mt-1">{errors.nome.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.nome.message}
+                </p>
               )}
             </div>
 
@@ -136,7 +141,9 @@ export default function EditMedicine() {
                 aria-invalid={errors.principio_ativo ? "true" : "false"}
               />
               {errors.principio_ativo && (
-                <p className="text-sm text-red-600 mt-1">{errors.principio_ativo.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.principio_ativo.message}
+                </p>
               )}
             </div>
 
@@ -151,7 +158,9 @@ export default function EditMedicine() {
                   aria-invalid={errors.dosagem ? "true" : "false"}
                 />
                 {errors.dosagem && (
-                  <p className="text-sm text-red-600 mt-1">{errors.dosagem.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.dosagem.message}
+                  </p>
                 )}
               </div>
 
@@ -178,7 +187,9 @@ export default function EditMedicine() {
                         </SelectContent>
                       </Select>
                       {errors.unidade_medida && (
-                        <p className="text-sm text-red-600 mt-1">{errors.unidade_medida.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.unidade_medida.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -196,7 +207,9 @@ export default function EditMedicine() {
                 aria-invalid={errors.estoque_minimo ? "true" : "false"}
               />
               {errors.estoque_minimo && (
-                <p className="text-sm text-red-600 mt-1">{errors.estoque_minimo.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.estoque_minimo.message}
+                </p>
               )}
             </div>
 

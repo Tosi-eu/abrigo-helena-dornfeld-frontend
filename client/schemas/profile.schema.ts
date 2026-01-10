@@ -15,7 +15,7 @@ export const profileSchema = z
       .max(128, "Senha deve ter no máximo 128 caracteres")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/,
-        "Senha deve conter: letra maiúscula, letra minúscula, número e caractere especial"
+        "Senha deve conter: letra maiúscula, letra minúscula, número e caractere especial",
       ),
   })
   .refine((data) => data.currentLogin !== data.login, {
@@ -24,4 +24,3 @@ export const profileSchema = z
   });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;
-

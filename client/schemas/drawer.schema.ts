@@ -11,7 +11,7 @@ export const drawerSchema = z.object({
       },
       {
         message: "Número deve ser um número válido maior que zero",
-      }
+      },
     ),
   categoria_id: z
     .string()
@@ -23,9 +23,8 @@ export const drawerSchema = z.object({
       },
       {
         message: "Categoria inválida",
-      }
+      },
     ),
 });
 
 export type DrawerFormData = z.infer<typeof drawerSchema>;
-

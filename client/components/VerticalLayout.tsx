@@ -53,7 +53,10 @@ export function VerticalLayout({ onLogout }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1" aria-label="Menu de navegação">
+      <nav
+        className="flex-1 overflow-y-auto px-2 py-4 space-y-1"
+        aria-label="Menu de navegação"
+      >
         {navigationTabs.map((item) => {
           const isActive =
             location.pathname === item.href ||

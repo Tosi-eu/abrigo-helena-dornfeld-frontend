@@ -38,7 +38,7 @@ export const inputFormSchema = z
     {
       message: "Carrinho de emergência requer uma gaveta",
       path: ["drawerId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -50,7 +50,7 @@ export const inputFormSchema = z
     {
       message: "Selecione um armário",
       path: ["cabinetId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -62,7 +62,7 @@ export const inputFormSchema = z
     {
       message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
       path: ["drawerId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -74,8 +74,7 @@ export const inputFormSchema = z
     {
       message: "A casela só pode ser preenchida para tipo individual",
       path: ["casela"],
-    }
+    },
   );
 
 export type InputFormData = z.infer<typeof inputFormSchema>;
-

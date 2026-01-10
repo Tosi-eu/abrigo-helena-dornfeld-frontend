@@ -54,8 +54,8 @@ export default function DeleteStockModal({
 
         <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
           <p className="text-sm text-amber-800">
-            <strong>Atenção:</strong> Esta ação não pode ser desfeita. O item será
-            permanentemente removido do estoque.
+            <strong>Atenção:</strong> Esta ação não pode ser desfeita. O item
+            será permanentemente removido do estoque.
           </p>
         </div>
 
@@ -81,4 +81,3 @@ export default function DeleteStockModal({
     </Dialog>
   );
 }
-

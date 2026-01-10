@@ -53,9 +53,10 @@ export default function Auth() {
       if (!emailValidation.valid) {
         toast({
           title: "E-mail inválido",
-          description: emailValidation.error || "Por favor, insira um e-mail válido.",
+          description:
+            emailValidation.error || "Por favor, insira um e-mail válido.",
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
         setLoading(false);
         return;
@@ -66,9 +67,10 @@ export default function Auth() {
         if (!passwordValidation.valid) {
           toast({
             title: "Senha inválida",
-            description: passwordValidation.error || "A senha não atende aos requisitos.",
+            description:
+              passwordValidation.error || "A senha não atende aos requisitos.",
             variant: "error",
-        duration: 3000,
+            duration: 3000,
           });
           setLoading(false);
           return;
@@ -80,54 +82,80 @@ export default function Auth() {
 
       if (isLogin) {
         await authLogin(sanitizedLogin, sanitizedPassword);
-        toast({ title: "Login realizado!", variant: "success", duration: 3000 });
+        toast({
+          title: "Login realizado!",
+          variant: "success",
+          duration: 3000,
+        });
       } else {
         await register(sanitizedLogin, sanitizedPassword);
         await authLogin(sanitizedLogin, sanitizedPassword);
-        toast({ title: "Cadastro realizado!", variant: "success", duration: 3000 });
+        toast({
+          title: "Cadastro realizado!",
+          variant: "success",
+          duration: 3000,
+        });
       }
 
       navigate("/dashboard");
     } catch (err: any) {
       const rawMessage = err?.message?.toLowerCase() || "";
-      
+
       let errorTitle = "Erro";
       let errorDescription = "Ocorreu um erro inesperado. Tente novamente.";
 
       if (isLogin) {
         if (rawMessage.includes("credenciais")) {
           errorTitle = "Login ou senha incorretos";
-          errorDescription = "Verifique seu e-mail e senha. Se esqueceu sua senha, use a opção 'Esqueci minha senha'.";
-        } else if (rawMessage.includes("login e senha obrigatórios") || 
-                   rawMessage.includes("obrigatóri")) {
+          errorDescription =
+            "Verifique seu e-mail e senha. Se esqueceu sua senha, use a opção 'Esqueci minha senha'.";
+        } else if (
+          rawMessage.includes("login e senha obrigatórios") ||
+          rawMessage.includes("obrigatóri")
+        ) {
           errorTitle = "Campos obrigatórios";
           errorDescription = "Por favor, preencha o e-mail e a senha.";
-        } else if (rawMessage.includes("sessão expirada") || 
-                   rawMessage.includes("token expirado") || 
-                   rawMessage.includes("sessão inválida")) {
+        } else if (
+          rawMessage.includes("sessão expirada") ||
+          rawMessage.includes("token expirado") ||
+          rawMessage.includes("sessão inválida")
+        ) {
           errorTitle = "Sessão expirada";
-          errorDescription = "Sua sessão expirou. Por favor, faça login novamente.";
+          errorDescription =
+            "Sua sessão expirou. Por favor, faça login novamente.";
         } else {
           errorTitle = "Erro ao fazer login";
-          errorDescription = err?.message || "Não foi possível fazer login. Verifique suas credenciais e tente novamente.";
+          errorDescription =
+            err?.message ||
+            "Não foi possível fazer login. Verifique suas credenciais e tente novamente.";
         }
       } else {
-        if (rawMessage.includes("login já cadastrado") || 
-            rawMessage.includes("duplicate") || 
-            rawMessage.includes("já existe")) {
+        if (
+          rawMessage.includes("login já cadastrado") ||
+          rawMessage.includes("duplicate") ||
+          rawMessage.includes("já existe")
+        ) {
           errorTitle = "E-mail já cadastrado";
-          errorDescription = "Este e-mail já está em uso. Tente fazer login ou use outro e-mail.";
-        } else if (rawMessage.includes("login e senha obrigatórios") || 
-                   rawMessage.includes("obrigatóri")) {
+          errorDescription =
+            "Este e-mail já está em uso. Tente fazer login ou use outro e-mail.";
+        } else if (
+          rawMessage.includes("login e senha obrigatórios") ||
+          rawMessage.includes("obrigatóri")
+        ) {
           errorTitle = "Campos obrigatórios";
           errorDescription = "Por favor, preencha o e-mail e a senha.";
-        } else if (rawMessage.includes("senha inválida") || 
-                   rawMessage.includes("senha não atende")) {
+        } else if (
+          rawMessage.includes("senha inválida") ||
+          rawMessage.includes("senha não atende")
+        ) {
           errorTitle = "Senha inválida";
-          errorDescription = "A senha não atende aos requisitos de segurança. Verifique as regras de senha.";
+          errorDescription =
+            "A senha não atende aos requisitos de segurança. Verifique as regras de senha.";
         } else {
           errorTitle = "Erro ao cadastrar";
-          errorDescription = err?.message || "Não foi possível criar a conta. Verifique os dados e tente novamente.";
+          errorDescription =
+            err?.message ||
+            "Não foi possível criar a conta. Verifique os dados e tente novamente.";
         }
       }
 
@@ -187,7 +215,9 @@ export default function Auth() {
                     onChange={(e) => handlePasswordChange(e.target.value)}
                     maxLength={128}
                     className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                      !isLogin && passwordValidation && !passwordValidation.valid
+                      !isLogin &&
+                      passwordValidation &&
+                      !passwordValidation.valid
                         ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                         : "border-slate-300 focus:ring-sky-200 focus:border-sky-400"
                     }`}

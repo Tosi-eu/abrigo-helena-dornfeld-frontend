@@ -4,13 +4,16 @@ export function sanitizeInput(input: string): string {
   }
 
   return input
-    .replace(/[<>]/g, "") 
-    .replace(/javascript:/gi, "") 
-    .replace(/on\w+=/gi, "") 
+    .replace(/[<>]/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/on\w+=/gi, "")
     .trim();
 }
 
-export function validateEmail(email: string): { valid: boolean; error?: string } {
+export function validateEmail(email: string): {
+  valid: boolean;
+  error?: string;
+} {
   if (!email || typeof email !== "string") {
     return { valid: false, error: "E-mail é obrigatório" };
   }
@@ -23,7 +26,10 @@ export function validateEmail(email: string): { valid: boolean; error?: string }
   }
 
   if (sanitized.length > 255) {
-    return { valid: false, error: "E-mail muito longo (máximo 255 caracteres)" };
+    return {
+      valid: false,
+      error: "E-mail muito longo (máximo 255 caracteres)",
+    };
   }
 
   return { valid: true };
@@ -89,7 +95,12 @@ export function validateTextInput(
     fieldName?: string;
   },
 ): { valid: boolean; error?: string; sanitized?: string } {
-  const { minLength = 0, maxLength, required = false, fieldName = "Campo" } = options;
+  const {
+    minLength = 0,
+    maxLength,
+    required = false,
+    fieldName = "Campo",
+  } = options;
 
   if (required && (!input || input.trim().length === 0)) {
     return { valid: false, error: `${fieldName} é obrigatório` };
@@ -158,7 +169,10 @@ export function validateNumberInput(
   return { valid: true, value: numValue };
 }
 
-export function getErrorMessage(error: unknown, defaultMessage = "Ocorreu um erro inesperado"): string {
+export function getErrorMessage(
+  error: unknown,
+  defaultMessage = "Ocorreu um erro inesperado",
+): string {
   if (error instanceof Error) {
     return error.message || defaultMessage;
   }

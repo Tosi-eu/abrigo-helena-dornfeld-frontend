@@ -32,11 +32,6 @@ export function CommandInputDebounced({
   };
 
   return (
-    <CommandInput
-      value={localValue}
-      onValueChange={handleChange}
-      {...props}
-    />
+    <CommandInput value={localValue} onValueChange={handleChange} {...props} />
   );
 }
-

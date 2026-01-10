@@ -57,7 +57,7 @@ export default function EditDrawer() {
           title: "Erro ao carregar gavetas",
           description: "Não foi possível buscar as gavetas do servidor.",
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         }),
       );
   }, []);
@@ -70,7 +70,7 @@ export default function EditDrawer() {
           title: "Erro",
           description: "Não foi possível carregar as categorias de gavetas.",
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         }),
       );
   }, []);
@@ -130,7 +130,10 @@ export default function EditDrawer() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao editar gaveta",
-        description: getErrorMessage(err, "Não foi possível atualizar a gaveta."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível atualizar a gaveta.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -172,7 +175,9 @@ export default function EditDrawer() {
                       </SelectContent>
                     </Select>
                     {errors.numero && (
-                      <p className="text-sm text-red-600 mt-1">{errors.numero.message}</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.numero.message}
+                      </p>
                     )}
                   </>
                 )}
@@ -216,7 +221,9 @@ export default function EditDrawer() {
                           </SelectContent>
                         </Select>
                         {errors.categoria_id && (
-                          <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.categoria_id.message}
+                          </p>
                         )}
                       </>
                     )}

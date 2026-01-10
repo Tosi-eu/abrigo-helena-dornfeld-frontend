@@ -161,8 +161,8 @@ export default function EditableTable({
   }, [rows, minRows]);
 
   const isIndividualMedicine = (row: Record<string, unknown>): boolean =>
-    row?.casela !== "-" && 
-    typeof row?.stockType === "string" && 
+    row?.casela !== "-" &&
+    typeof row?.stockType === "string" &&
     row.stockType.includes("individual");
 
   const isActive = (row: Record<string, unknown>): boolean =>
@@ -204,18 +204,18 @@ export default function EditableTable({
     if (entityType) type = entityType;
 
     if (!type) return;
-    
+
     if (entityType === "stock") {
       navigate("/stock/edit", { state: { item: row } });
       return;
     }
-    
+
     navigate(`/${type}/edit`, { state: { item: row } });
   };
 
   const renderCell = (
     row: Record<string, unknown> | null,
-    colKey: string
+    colKey: string,
   ): React.ReactNode => {
     if (!row) return "\u00A0";
 
@@ -244,11 +244,13 @@ export default function EditableTable({
     setIsDeleting(true);
     try {
       if (entityType === "cabinets") {
-        const numero = typeof row.numero === "number" ? row.numero : Number(row.numero);
+        const numero =
+          typeof row.numero === "number" ? row.numero : Number(row.numero);
         if (isNaN(numero)) throw new Error("Número inválido");
         await deleteCabinet(numero);
       } else if (entityType === "drawers") {
-        const numero = typeof row.numero === "number" ? row.numero : Number(row.numero);
+        const numero =
+          typeof row.numero === "number" ? row.numero : Number(row.numero);
         if (isNaN(numero)) throw new Error("Número inválido");
         await deleteDrawer(numero);
       } else if (entityType === "inputs") {
@@ -260,18 +262,22 @@ export default function EditableTable({
         if (isNaN(id)) throw new Error("ID inválido");
         await deleteMedicine(id);
       } else if (entityType === "residents") {
-        const casela = typeof row.casela === "number" 
-          ? row.casela 
-          : typeof row.casela === "string" 
-            ? Number(row.casela) 
-            : Number(row.casela);
+        const casela =
+          typeof row.casela === "number"
+            ? row.casela
+            : typeof row.casela === "string"
+              ? Number(row.casela)
+              : Number(row.casela);
         if (isNaN(casela)) throw new Error("Casela inválida");
         await deleteResident(casela);
       } else if (entityType === "stock") {
         const id = typeof row.id === "number" ? row.id : Number(row.id);
         if (isNaN(id)) throw new Error("ID inválido");
         const itemType = row.itemType as "medicamento" | "insumo";
-        if (!itemType || (itemType !== "medicamento" && itemType !== "insumo")) {
+        if (
+          !itemType ||
+          (itemType !== "medicamento" && itemType !== "insumo")
+        ) {
           throw new Error("Tipo de item inválido");
         }
         await deleteStockItem(id, itemType);
@@ -279,18 +285,18 @@ export default function EditableTable({
 
       toast({ title: "Item removido", variant: "success", duration: 3000 });
       setRows((prev) => prev.filter((_, i) => i !== deleteIndex));
-      
+
       if (onDeleteSuccess) {
         onDeleteSuccess();
       }
-      
+
       if (entityType === "stock") {
         setShowStockDeleteModal(false);
       }
       setDeleteIndex(null);
     } catch (err: any) {
-      toast({ 
-        title: "Erro ao remover item", 
+      toast({
+        title: "Erro ao remover item",
         description: err?.message || "Não foi possível remover o item.",
         variant: "error",
         duration: 3000,
@@ -501,12 +507,16 @@ export default function EditableTable({
             }
           }}
           onConfirm={handleDeleteConfirmed}
-          itemName={deleteIndex !== null && rows[deleteIndex]?.name 
-            ? String(rows[deleteIndex].name) 
-            : undefined}
-          itemType={deleteIndex !== null && rows[deleteIndex]?.itemType
-            ? String(rows[deleteIndex].itemType) as "medicamento" | "insumo"
-            : undefined}
+          itemName={
+            deleteIndex !== null && rows[deleteIndex]?.name
+              ? String(rows[deleteIndex].name)
+              : undefined
+          }
+          itemType={
+            deleteIndex !== null && rows[deleteIndex]?.itemType
+              ? (String(rows[deleteIndex].itemType) as "medicamento" | "insumo")
+              : undefined
+          }
           loading={isDeleting}
         />
       ) : (
@@ -522,8 +532,10 @@ export default function EditableTable({
 }
 
 const renderExpiryTag = (row: Record<string, unknown>) => {
-  const status = typeof row.expirationStatus === "string" ? row.expirationStatus : undefined;
-  const message = typeof row.expirationMsg === "string" ? row.expirationMsg : undefined;
+  const status =
+    typeof row.expirationStatus === "string" ? row.expirationStatus : undefined;
+  const message =
+    typeof row.expirationMsg === "string" ? row.expirationMsg : undefined;
 
   if (!status) return "-";
 
@@ -551,8 +563,10 @@ const renderExpiryTag = (row: Record<string, unknown>) => {
 };
 
 const renderQuantityTag = (row: Record<string, unknown>) => {
-  const status = typeof row.quantityStatus === "string" ? row.quantityStatus : undefined;
-  const message = typeof row.quantityMsg === "string" ? row.quantityMsg : undefined;
+  const status =
+    typeof row.quantityStatus === "string" ? row.quantityStatus : undefined;
+  const message =
+    typeof row.quantityMsg === "string" ? row.quantityMsg : undefined;
 
   const colorMap: Record<string, string> = {
     empty: "bg-red-100 text-red-700 border border-red-300",
@@ -570,7 +584,9 @@ const renderQuantityTag = (row: Record<string, unknown>) => {
           <span
             className={`inline-flex items-center px-2 py-1 rounded-full text-[11px] font-medium cursor-default ${colorMap[status || ""] || ""}`}
           >
-            {row.quantity !== null && row.quantity !== undefined ? String(row.quantity) : "-"}
+            {row.quantity !== null && row.quantity !== undefined
+              ? String(row.quantity)
+              : "-"}
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">

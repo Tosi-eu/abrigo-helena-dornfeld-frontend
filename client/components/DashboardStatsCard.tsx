@@ -26,4 +26,3 @@ export const DashboardStatsCard = memo(function DashboardStatsCard({
     </Card>
   );
 });
-

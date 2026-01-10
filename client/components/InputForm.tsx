@@ -9,7 +9,10 @@ import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
-import { inputFormSchema, type InputFormData } from "@/schemas/input-form.schema";
+import {
+  inputFormSchema,
+  type InputFormData,
+} from "@/schemas/input-form.schema";
 import { ItemStockType, StockTypeLabels, SectorType } from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
@@ -65,6 +68,7 @@ export const InputForm = memo(function InputForm({
 
   const selectedInput = inputs.find((i) => i.id === selectedInputId);
   const isEmergencyCart = stockType === ItemStockType.CARRINHO;
+  const isIndividual = stockType === ItemStockType.INDIVIDUAL;
   const selectedCasela = caselas.find((c) => c.casela === casela);
 
   useEffect(() => {
@@ -79,10 +83,10 @@ export const InputForm = memo(function InputForm({
   }, [stockType, setValue]);
 
   useEffect(() => {
-    if (stockType !== ItemStockType.INDIVIDUAL) {
+    if (!isIndividual) {
       setValue("casela", null);
     }
-  }, [stockType, setValue]);
+  }, [stockType, setValue, isIndividual]);
 
   const handleInputSelect = (id: number) => {
     const selected = inputs.find((i) => i.id === id);
@@ -107,7 +111,10 @@ export const InputForm = memo(function InputForm({
     } catch (err: unknown) {
       toast({
         title: "Erro ao processar formulário",
-        description: getErrorMessage(err, "Não foi possível processar o formulário."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível processar o formulário.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -143,7 +150,7 @@ export const InputForm = memo(function InputForm({
                     variant="outline"
                     className={cn(
                       "w-full justify-between",
-                      errors.inputId && "border-red-500"
+                      errors.inputId && "border-red-500",
                     )}
                   >
                     {selectedInput ? selectedInput.name : "Selecione o insumo"}
@@ -167,7 +174,9 @@ export const InputForm = memo(function InputForm({
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedInputId === i.id ? "opacity-100" : "opacity-0",
+                              selectedInputId === i.id
+                                ? "opacity-100"
+                                : "opacity-0",
                             )}
                           />
                           {i.name}
@@ -178,7 +187,9 @@ export const InputForm = memo(function InputForm({
                 </PopoverContent>
               </Popover>
               {errors.inputId && (
-                <p className="text-sm text-red-500 mt-1">{errors.inputId.message}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.inputId.message}
+                </p>
               )}
             </>
           )}
@@ -197,11 +208,13 @@ export const InputForm = memo(function InputForm({
             max={999999}
             className={cn(
               "w-full border rounded-lg px-3 py-2 text-sm",
-              errors.quantity ? "border-red-500" : "border-slate-300"
+              errors.quantity ? "border-red-500" : "border-slate-300",
             )}
           />
           {errors.quantity && (
-            <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>
+            <p className="text-sm text-red-500 mt-1">
+              {errors.quantity.message}
+            </p>
           )}
         </div>
         <div className="grid gap-2">
@@ -236,7 +249,7 @@ export const InputForm = memo(function InputForm({
           {...register("stockType")}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-            errors.stockType ? "border-red-500" : "border-slate-300"
+            errors.stockType ? "border-red-500" : "border-slate-300",
           )}
         >
           <option value="" disabled hidden>
@@ -249,7 +262,9 @@ export const InputForm = memo(function InputForm({
           ))}
         </select>
         {errors.stockType && (
-          <p className="text-sm text-red-500 mt-1">{errors.stockType.message}</p>
+          <p className="text-sm text-red-500 mt-1">
+            {errors.stockType.message}
+          </p>
         )}
       </div>
 
@@ -258,9 +273,13 @@ export const InputForm = memo(function InputForm({
           <label className="text-sm font-semibold text-slate-700">Casela</label>
           <select
             {...register("casela", { valueAsNumber: true })}
+            disabled={!isIndividual}
             className={cn(
-              "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-              errors.casela ? "border-red-500" : "border-slate-300"
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              errors.casela ? "border-red-500" : "border-slate-300",
+              !isIndividual
+                ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                : "bg-white",
             )}
           >
             <option value="">Selecione</option>
@@ -282,14 +301,21 @@ export const InputForm = memo(function InputForm({
             type="text"
             value={selectedCasela?.name || ""}
             readOnly
-            className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm"
+            disabled={!isIndividual}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              !isIndividual
+                ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200"
+                : "bg-slate-50 border-slate-200",
+            )}
           />
         </div>
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          {isEmergencyCart ? "Gaveta" : "Armário"} <span className="text-red-500">*</span>
+          {isEmergencyCart ? "Gaveta" : "Armário"}{" "}
+          <span className="text-red-500">*</span>
         </label>
         {isEmergencyCart ? (
           <>
@@ -297,7 +323,7 @@ export const InputForm = memo(function InputForm({
               {...register("drawerId", { valueAsNumber: true })}
               className={cn(
                 "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-                errors.drawerId ? "border-red-500" : "border-slate-300"
+                errors.drawerId ? "border-red-500" : "border-slate-300",
               )}
             >
               <option value="">Selecione</option>
@@ -308,7 +334,9 @@ export const InputForm = memo(function InputForm({
               ))}
             </select>
             {errors.drawerId && (
-              <p className="text-sm text-red-500 mt-1">{errors.drawerId.message}</p>
+              <p className="text-sm text-red-500 mt-1">
+                {errors.drawerId.message}
+              </p>
             )}
           </>
         ) : (
@@ -317,7 +345,7 @@ export const InputForm = memo(function InputForm({
               {...register("cabinetId", { valueAsNumber: true })}
               className={cn(
                 "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-                errors.cabinetId ? "border-red-500" : "border-slate-300"
+                errors.cabinetId ? "border-red-500" : "border-slate-300",
               )}
             >
               <option value="">Selecione</option>
@@ -328,7 +356,9 @@ export const InputForm = memo(function InputForm({
               ))}
             </select>
             {errors.cabinetId && (
-              <p className="text-sm text-red-500 mt-1">{errors.cabinetId.message}</p>
+              <p className="text-sm text-red-500 mt-1">
+                {errors.cabinetId.message}
+              </p>
             )}
           </>
         )}
@@ -344,7 +374,7 @@ export const InputForm = memo(function InputForm({
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
             errors.sector ? "border-red-500" : "border-slate-300",
-            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed"
+            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
           )}
         >
           <option value="" disabled hidden>
@@ -370,7 +400,7 @@ export const InputForm = memo(function InputForm({
           placeholder="Ex: L2024-01"
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm",
-            errors.lot ? "border-red-500" : "border-slate-300"
+            errors.lot ? "border-red-500" : "border-slate-300",
           )}
         />
         {errors.lot && (

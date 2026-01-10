@@ -9,7 +9,10 @@ import { MedicineFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
-import { medicineFormSchema, type MedicineFormData } from "@/schemas/medicine-form.schema";
+import {
+  medicineFormSchema,
+  type MedicineFormData,
+} from "@/schemas/medicine-form.schema";
 import {
   ItemStockType,
   OriginType,
@@ -71,6 +74,7 @@ export const MedicineForm = memo(function MedicineForm({
 
   const selectedMedicine = medicines.find((m) => m.id === selectedMedicineId);
   const isEmergencyCart = stockType === ItemStockType.CARRINHO;
+  const isIndividual = stockType === ItemStockType.INDIVIDUAL;
 
   useEffect(() => {
     if (isEmergencyCart) {
@@ -82,6 +86,12 @@ export const MedicineForm = memo(function MedicineForm({
     setValue("cabinetId", null);
     setValue("drawerId", null);
   }, [stockType, setValue]);
+
+  useEffect(() => {
+    if (!isIndividual) {
+      setValue("casela", null);
+    }
+  }, [stockType, setValue, isIndividual]);
 
   useEffect(() => {
     if (casela) {
@@ -114,7 +124,10 @@ export const MedicineForm = memo(function MedicineForm({
     } catch (err: unknown) {
       toast({
         title: "Erro ao processar formulário",
-        description: getErrorMessage(err, "Não foi possível processar o formulário."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível processar o formulário.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -152,7 +165,7 @@ export const MedicineForm = memo(function MedicineForm({
                     role="combobox"
                     className={cn(
                       "w-full justify-between bg-white",
-                      errors.id && "border-red-500"
+                      errors.id && "border-red-500",
                     )}
                   >
                     {selectedMedicine
@@ -178,7 +191,9 @@ export const MedicineForm = memo(function MedicineForm({
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedMedicineId === m.id ? "opacity-100" : "opacity-0",
+                              selectedMedicineId === m.id
+                                ? "opacity-100"
+                                : "opacity-0",
                             )}
                           />
                           {m.name} {m.dosage} {m.measurementUnit}
@@ -208,11 +223,13 @@ export const MedicineForm = memo(function MedicineForm({
             max={999999}
             className={cn(
               "w-full border rounded-lg px-3 py-2 text-sm",
-              errors.quantity ? "border-red-500" : "border-slate-300"
+              errors.quantity ? "border-red-500" : "border-slate-300",
             )}
           />
           {errors.quantity && (
-            <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>
+            <p className="text-sm text-red-500 mt-1">
+              {errors.quantity.message}
+            </p>
           )}
         </div>
         <div className="grid gap-2">
@@ -247,7 +264,7 @@ export const MedicineForm = memo(function MedicineForm({
           {...register("stockType")}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-            errors.stockType ? "border-red-500" : "border-slate-300"
+            errors.stockType ? "border-red-500" : "border-slate-300",
           )}
         >
           <option value="" disabled hidden>
@@ -260,7 +277,9 @@ export const MedicineForm = memo(function MedicineForm({
           ))}
         </select>
         {errors.stockType && (
-          <p className="text-sm text-red-500 mt-1">{errors.stockType.message}</p>
+          <p className="text-sm text-red-500 mt-1">
+            {errors.stockType.message}
+          </p>
         )}
       </div>
 
@@ -269,9 +288,13 @@ export const MedicineForm = memo(function MedicineForm({
           <label className="text-sm font-semibold text-slate-700">Casela</label>
           <select
             {...register("casela", { valueAsNumber: true })}
+            disabled={!isIndividual}
             className={cn(
-              "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-              errors.casela ? "border-red-500" : "border-slate-300"
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              errors.casela ? "border-red-500" : "border-slate-300",
+              !isIndividual
+                ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                : "bg-white",
             )}
           >
             <option value="">Selecione</option>
@@ -293,7 +316,13 @@ export const MedicineForm = memo(function MedicineForm({
             type="text"
             value={selectedCasela?.name || ""}
             readOnly
-            className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm"
+            disabled={!isIndividual}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              !isIndividual
+                ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200"
+                : "bg-slate-50 border-slate-200",
+            )}
           />
         </div>
       </div>
@@ -301,7 +330,8 @@ export const MedicineForm = memo(function MedicineForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            {isEmergencyCart ? "Gaveta" : "Armário"} <span className="text-red-500">*</span>
+            {isEmergencyCart ? "Gaveta" : "Armário"}{" "}
+            <span className="text-red-500">*</span>
           </label>
           {isEmergencyCart ? (
             <>
@@ -309,7 +339,7 @@ export const MedicineForm = memo(function MedicineForm({
                 {...register("drawerId", { valueAsNumber: true })}
                 className={cn(
                   "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-                  errors.drawerId ? "border-red-500" : "border-slate-300"
+                  errors.drawerId ? "border-red-500" : "border-slate-300",
                 )}
               >
                 <option value="">Selecione</option>
@@ -320,7 +350,9 @@ export const MedicineForm = memo(function MedicineForm({
                 ))}
               </select>
               {errors.drawerId && (
-                <p className="text-sm text-red-500 mt-1">{errors.drawerId.message}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.drawerId.message}
+                </p>
               )}
             </>
           ) : (
@@ -329,7 +361,7 @@ export const MedicineForm = memo(function MedicineForm({
                 {...register("cabinetId", { valueAsNumber: true })}
                 className={cn(
                   "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-                  errors.cabinetId ? "border-red-500" : "border-slate-300"
+                  errors.cabinetId ? "border-red-500" : "border-slate-300",
                 )}
               >
                 <option value="">Selecione</option>
@@ -340,7 +372,9 @@ export const MedicineForm = memo(function MedicineForm({
                 ))}
               </select>
               {errors.cabinetId && (
-                <p className="text-sm text-red-500 mt-1">{errors.cabinetId.message}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.cabinetId.message}
+                </p>
               )}
             </>
           )}
@@ -372,7 +406,7 @@ export const MedicineForm = memo(function MedicineForm({
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
             errors.sector ? "border-red-500" : "border-slate-300",
-            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed"
+            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
           )}
         >
           <option value="" disabled hidden>
@@ -398,7 +432,7 @@ export const MedicineForm = memo(function MedicineForm({
           placeholder="Ex: L2024-01"
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm",
-            errors.lot ? "border-red-500" : "border-slate-300"
+            errors.lot ? "border-red-500" : "border-slate-300",
           )}
         />
         {errors.lot && (

@@ -6,10 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 
-import {
-  createCabinet,
-  getCabinetCategories,
-} from "@/api/requests";
+import { createCabinet, getCabinetCategories } from "@/api/requests";
 import { CabinetCategory } from "@/interfaces/interfaces";
 import { cabinetSchema, type CabinetFormData } from "@/schemas/cabinet.schema";
 
@@ -62,7 +59,10 @@ export default function RegisterCabinet() {
     } catch (err: unknown) {
       toast({
         title: "Erro",
-        description: getErrorMessage(err, "Não foi possível carregar as categorias."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível carregar as categorias.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -89,7 +89,10 @@ export default function RegisterCabinet() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar",
-        description: getErrorMessage(err, "Não foi possível cadastrar o armário."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível cadastrar o armário.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -118,7 +121,9 @@ export default function RegisterCabinet() {
                 aria-invalid={errors.numero ? "true" : "false"}
               />
               {errors.numero && (
-                <p className="text-sm text-red-600 mt-1">{errors.numero.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.numero.message}
+                </p>
               )}
             </div>
 
@@ -146,7 +151,9 @@ export default function RegisterCabinet() {
                       </SelectContent>
                     </Select>
                     {errors.categoria_id && (
-                      <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.categoria_id.message}
+                      </p>
                     )}
                   </>
                 )}
@@ -178,7 +185,8 @@ export default function RegisterCabinet() {
       <ConfirmationModal
         open={modalOpen}
         categoryName={
-          categories.find((c) => c.id === Number(watchedCategory))?.nome || watchedCategory
+          categories.find((c) => c.id === Number(watchedCategory))?.nome ||
+          watchedCategory
         }
         onConfirm={() => {
           const numero = watch("numero");

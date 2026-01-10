@@ -112,10 +112,18 @@ export default function CreateNotificationForm({
     try {
       if (form.id) {
         await patchNotificationEvent(form.id, form);
-        toast({ title: "Notificação atualizada", variant: "success", duration: 3000 });
+        toast({
+          title: "Notificação atualizada",
+          variant: "success",
+          duration: 3000,
+        });
       } else {
         await createNotificationEvent(form);
-        toast({ title: "Notificação criada", variant: "success", duration: 3000 });
+        toast({
+          title: "Notificação criada",
+          variant: "success",
+          duration: 3000,
+        });
       }
 
       reload();
@@ -226,7 +234,9 @@ export default function CreateNotificationForm({
         <DatePicker
           id="data_prevista"
           selected={form.data_prevista}
-          onChange={(date: Date | null) => setForm({ ...form, data_prevista: date })}
+          onChange={(date: Date | null) =>
+            setForm({ ...form, data_prevista: date })
+          }
           dateFormat="dd/MM/yyyy"
           locale={ptBR}
           placeholderText="Selecione a data"

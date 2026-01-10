@@ -4,7 +4,10 @@ import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import { createResident } from "@/api/requests";
-import { residentSchema, type ResidentFormData } from "@/schemas/resident.schema";
+import {
+  residentSchema,
+  type ResidentFormData,
+} from "@/schemas/resident.schema";
 import { getErrorMessage } from "@/helpers/validation.helper";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -43,7 +46,10 @@ export default function RegisterResident() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao cadastrar",
-        description: getErrorMessage(err, "Não foi possível cadastrar o residente."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível cadastrar o residente.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -72,7 +78,9 @@ export default function RegisterResident() {
                 aria-invalid={errors.name ? "true" : "false"}
               />
               {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -89,7 +97,9 @@ export default function RegisterResident() {
                 aria-invalid={errors.casela ? "true" : "false"}
               />
               {errors.casela && (
-                <p className="text-sm text-red-600 mt-1">{errors.casela.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.casela.message}
+                </p>
               )}
             </div>
 

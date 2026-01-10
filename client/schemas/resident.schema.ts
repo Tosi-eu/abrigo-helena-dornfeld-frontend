@@ -16,9 +16,8 @@ export const residentSchema = z.object({
       },
       {
         message: "Casela deve ser um número entre 1 e 200",
-      }
+      },
     ),
 });
 
 export type ResidentFormData = z.infer<typeof residentSchema>;
-

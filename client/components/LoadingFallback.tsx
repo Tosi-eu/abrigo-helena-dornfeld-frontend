@@ -1,7 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/Layout";
 
-export function LoadingFallback({ title = "Carregando..." }: { title?: string }) {
+export function LoadingFallback({
+  title = "Carregando...",
+}: {
+  title?: string;
+}) {
   return (
     <Layout title={title}>
       <div className="pt-12">
@@ -17,4 +21,3 @@ export function LoadingFallback({ title = "Carregando..." }: { title?: string })
     </Layout>
   );
 }
-

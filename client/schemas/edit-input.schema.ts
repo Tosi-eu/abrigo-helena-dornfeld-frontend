@@ -23,10 +23,9 @@ export const editInputSchema = z.object({
       },
       {
         message: "Estoque mínimo deve ser um número entre 0 e 999999",
-      }
+      },
     )
     .transform((val) => (val === "" ? "0" : val || "0")),
 });
 
 export type EditInputFormData = z.infer<typeof editInputSchema>;
-

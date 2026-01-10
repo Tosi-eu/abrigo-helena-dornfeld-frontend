@@ -84,7 +84,8 @@ export default function InputMovements() {
         ...medicamentos.data.map(normalizeMovement),
       ].sort(
         (a, b) =>
-          new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
+          new Date(b.movementDate).getTime() -
+          new Date(a.movementDate).getTime(),
       );
 
       setEntries(merged.slice(0, TABLE_LIMIT));
@@ -92,7 +93,10 @@ export default function InputMovements() {
         insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
       );
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Não foi possível carregar as movimentações de entrada.";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar as movimentações de entrada.";
       toast({
         title: "Erro ao carregar entradas",
         description: errorMessage,
@@ -131,7 +135,8 @@ export default function InputMovements() {
         ...medicamentos.data.map(normalizeMovement),
       ].sort(
         (a, b) =>
-          new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime(),
+          new Date(b.movementDate).getTime() -
+          new Date(a.movementDate).getTime(),
       );
 
       setExits(merged.slice(0, TABLE_LIMIT));
@@ -139,7 +144,10 @@ export default function InputMovements() {
         insumos.hasNext || medicamentos.hasNext || merged.length > TABLE_LIMIT,
       );
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Não foi possível carregar as movimentações de saída.";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar as movimentações de saída.";
       toast({
         title: "Erro ao carregar saídas",
         description: errorMessage,

@@ -36,7 +36,7 @@ export default function StepItems({ items, selected, onSelectItem }: Props) {
         </div>
       );
     },
-    [selected, onSelectItem]
+    [selected, onSelectItem],
   );
 
   if (shouldVirtualize) {

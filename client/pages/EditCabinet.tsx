@@ -61,7 +61,7 @@ export default function EditCabinet() {
           title: "Erro ao carregar armários",
           description: "Não foi possível buscar os armários do servidor.",
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         }),
       );
   }, []);
@@ -74,7 +74,7 @@ export default function EditCabinet() {
           title: "Erro",
           description: "Não foi possível carregar as categorias.",
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         }),
       );
   }, []);
@@ -100,7 +100,9 @@ export default function EditCabinet() {
     if (watchedNumero && cabinets.length > 0 && categories.length > 0) {
       const cab = cabinets.find((c) => c.numero === Number(watchedNumero));
       if (cab) {
-        const matchedCategory = categories.find((c) => c.nome === cab.categoria);
+        const matchedCategory = categories.find(
+          (c) => c.nome === cab.categoria,
+        );
         if (matchedCategory) {
           reset({
             numero: watchedNumero,
@@ -139,7 +141,10 @@ export default function EditCabinet() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao editar armário",
-        description: getErrorMessage(err, "Não foi possível atualizar o armário."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível atualizar o armário.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -181,7 +186,9 @@ export default function EditCabinet() {
                       </SelectContent>
                     </Select>
                     {errors.numero && (
-                      <p className="text-sm text-red-600 mt-1">{errors.numero.message}</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.numero.message}
+                      </p>
                     )}
                   </>
                 )}
@@ -226,7 +233,9 @@ export default function EditCabinet() {
                           </SelectContent>
                         </Select>
                         {errors.categoria_id && (
-                          <p className="text-sm text-red-600 mt-1">{errors.categoria_id.message}</p>
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.categoria_id.message}
+                          </p>
                         )}
                       </>
                     )}

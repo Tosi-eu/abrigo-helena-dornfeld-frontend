@@ -3,11 +3,7 @@ import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  createMovement,
-  createStockOut,
-  getStock,
-} from "@/api/requests";
+import { createMovement, createStockOut, getStock } from "@/api/requests";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
 import { stockOutQuantitySchema } from "@/schemas/stock-out.schema";
 
@@ -61,7 +57,7 @@ export default function StockOut() {
     OperationType | "Selecione"
   >("Selecione");
   const [selected, setSelected] = useState<StockItemRaw | null>(null);
-  
+
   const quantityForm = useFormWithZod(stockOutQuantitySchema, {
     defaultValues: {
       quantity: 0,
@@ -71,7 +67,6 @@ export default function StockOut() {
   async function fetchStock() {
     setLoading(true);
     try {
-
       if (passedData && passedData.length > 0) {
         const filtered =
           operationType !== "Selecione"
@@ -163,10 +158,10 @@ export default function StockOut() {
 
   const handleConfirm = async () => {
     if (!selected) return;
-    
+
     const isValid = await quantityForm.trigger();
     if (!isValid) return;
-    
+
     const qty = quantityForm.getValues("quantity");
     if (!qty || qty <= 0 || qty > selected.quantidade) return;
 
@@ -423,7 +418,9 @@ export default function StockOut() {
                 <QuantityStep
                   item={selected}
                   quantity={quantityForm.watch("quantity") || 0}
-                  quantityRegister={quantityForm.register("quantity", { valueAsNumber: true })}
+                  quantityRegister={quantityForm.register("quantity", {
+                    valueAsNumber: true,
+                  })}
                   quantityErrors={quantityForm.formState.errors}
                   isSubmitting={quantityForm.formState.isSubmitting}
                   onBack={() => {

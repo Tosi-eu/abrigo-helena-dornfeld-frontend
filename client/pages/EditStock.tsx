@@ -5,8 +5,16 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
-import { editStockSchema, type EditStockFormData } from "@/schemas/edit-stock.schema";
-import { updateStockItem, getCabinets, getDrawers, getResidents } from "@/api/requests";
+import {
+  editStockSchema,
+  type EditStockFormData,
+} from "@/schemas/edit-stock.schema";
+import {
+  updateStockItem,
+  getCabinets,
+  getDrawers,
+  getResidents,
+} from "@/api/requests";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +28,12 @@ import {
 } from "@/components/ui/select";
 import { StockItem } from "@/interfaces/interfaces";
 import { Cabinet, Drawer, Patient } from "@/interfaces/interfaces";
-import { SectorType, OriginType, ItemStockType, StockTypeLabels } from "@/utils/enums";
+import {
+  SectorType,
+  OriginType,
+  ItemStockType,
+  StockTypeLabels,
+} from "@/utils/enums";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import DatePicker from "react-datepicker";
@@ -39,8 +52,13 @@ const cache = {
 
 const getCachedData = async () => {
   const now = Date.now();
-  
-  if (cache.cabinets && cache.drawers && cache.residents && (now - cache.timestamp) < cache.TTL) {
+
+  if (
+    cache.cabinets &&
+    cache.drawers &&
+    cache.residents &&
+    now - cache.timestamp < cache.TTL
+  ) {
     return {
       cabinets: cache.cabinets,
       drawers: cache.drawers,
@@ -213,7 +231,7 @@ export default function EditStock() {
 
     try {
       const formData = watch();
-      
+
       await updateStockItem(
         stockItem.id,
         stockItem.itemType === "medicamento" ? "medicamento" : "insumo",
@@ -221,7 +239,9 @@ export default function EditStock() {
           quantidade: formData.quantidade,
           armario_id: formData.armario_id,
           gaveta_id: formData.gaveta_id,
-          validade: formData.validade ? formData.validade.toISOString().split("T")[0] : null,
+          validade: formData.validade
+            ? formData.validade.toISOString().split("T")[0]
+            : null,
           origem: formData.origem || undefined,
           setor: formData.setor,
           lote: formData.lote || null,
@@ -272,7 +292,10 @@ export default function EditStock() {
             Editar Item de Estoque
           </CardTitle>
           <p className="text-sm text-slate-600 mt-1">
-            {stockItem.name} {isMedicine && stockItem.activeSubstance && `- ${stockItem.activeSubstance}`}
+            {stockItem.name}{" "}
+            {isMedicine &&
+              stockItem.activeSubstance &&
+              `- ${stockItem.activeSubstance}`}
           </p>
         </CardHeader>
 
@@ -290,7 +313,9 @@ export default function EditStock() {
                 aria-invalid={errors.quantidade ? "true" : "false"}
               />
               {errors.quantidade && (
-                <p className="text-sm text-red-600 mt-1">{errors.quantidade.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.quantidade.message}
+                </p>
               )}
             </div>
 
@@ -319,14 +344,19 @@ export default function EditStock() {
                         <SelectContent>
                           <SelectItem value="none">Nenhum</SelectItem>
                           {cabinets.map((cabinet) => (
-                            <SelectItem key={cabinet.numero} value={cabinet.numero.toString()}>
+                            <SelectItem
+                              key={cabinet.numero}
+                              value={cabinet.numero.toString()}
+                            >
                               Armário {cabinet.numero}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       {errors.armario_id && (
-                        <p className="text-sm text-red-600 mt-1">{errors.armario_id.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.armario_id.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -354,14 +384,19 @@ export default function EditStock() {
                         <SelectContent>
                           <SelectItem value="none">Nenhuma</SelectItem>
                           {drawers.map((drawer) => (
-                            <SelectItem key={drawer.numero} value={drawer.numero.toString()}>
+                            <SelectItem
+                              key={drawer.numero}
+                              value={drawer.numero.toString()}
+                            >
                               Gaveta {drawer.numero}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       {errors.gaveta_id && (
-                        <p className="text-sm text-red-600 mt-1">{errors.gaveta_id.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.gaveta_id.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -383,7 +418,11 @@ export default function EditStock() {
                           const value = v === "none" ? null : Number(v);
                           field.onChange(value);
                         }}
-                        disabled={isSubmitting || watchedGavetaId !== null || watchedArmarioId === null}
+                        disabled={
+                          isSubmitting ||
+                          watchedGavetaId !== null ||
+                          watchedArmarioId === null
+                        }
                       >
                         <SelectTrigger className="bg-white" id="casela_id">
                           <SelectValue placeholder="Selecione" />
@@ -391,14 +430,19 @@ export default function EditStock() {
                         <SelectContent>
                           <SelectItem value="none">Nenhuma</SelectItem>
                           {residents.map((resident) => (
-                            <SelectItem key={resident.casela} value={resident.casela.toString()}>
+                            <SelectItem
+                              key={resident.casela}
+                              value={resident.casela.toString()}
+                            >
                               {resident.casela}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       {errors.casela_id && (
-                        <p className="text-sm text-red-600 mt-1">{errors.casela_id.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.casela_id.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -439,7 +483,9 @@ export default function EditStock() {
                 )}
               />
               {errors.validade && (
-                <p className="text-sm text-red-600 mt-1">{errors.validade.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.validade.message}
+                </p>
               )}
             </div>
 
@@ -454,7 +500,9 @@ export default function EditStock() {
                       <Select
                         value={field.value || "none"}
                         onValueChange={(v) => {
-                          field.onChange(v === "none" ? null : (v as OriginType));
+                          field.onChange(
+                            v === "none" ? null : (v as OriginType),
+                          );
                         }}
                         disabled={isSubmitting}
                       >
@@ -471,7 +519,9 @@ export default function EditStock() {
                         </SelectContent>
                       </Select>
                       {errors.origem && (
-                        <p className="text-sm text-red-600 mt-1">{errors.origem.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.origem.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -497,13 +547,17 @@ export default function EditStock() {
                         <SelectContent>
                           {Object.values(ItemStockType).map((tipo) => (
                             <SelectItem key={tipo} value={tipo}>
-                              {StockTypeLabels[tipo as keyof typeof StockTypeLabels] || tipo}
+                              {StockTypeLabels[
+                                tipo as keyof typeof StockTypeLabels
+                              ] || tipo}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       {errors.tipo && (
-                        <p className="text-sm text-red-600 mt-1">{errors.tipo.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.tipo.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -531,13 +585,17 @@ export default function EditStock() {
                         <SelectContent>
                           {Object.values(SectorType).map((sector) => (
                             <SelectItem key={sector} value={sector}>
-                              {sector === SectorType.FARMACIA ? "Farmácia" : "Enfermagem"}
+                              {sector === SectorType.FARMACIA
+                                ? "Farmácia"
+                                : "Enfermagem"}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       {errors.setor && (
-                        <p className="text-sm text-red-600 mt-1">{errors.setor.message}</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.setor.message}
+                        </p>
                       )}
                     </>
                   )}
@@ -554,7 +612,9 @@ export default function EditStock() {
                   placeholder="Número do lote"
                 />
                 {errors.lote && (
-                  <p className="text-sm text-red-600 mt-1">{errors.lote.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.lote.message}
+                  </p>
                 )}
               </div>
             </div>

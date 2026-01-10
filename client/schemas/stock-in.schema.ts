@@ -8,4 +8,3 @@ export const stockInSchema = z.object({
 });
 
 export type StockInFormData = z.infer<typeof stockInSchema>;
-

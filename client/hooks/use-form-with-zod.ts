@@ -4,11 +4,10 @@ import { z, ZodTypeAny } from "zod";
 
 export function useFormWithZod<TSchema extends ZodTypeAny>(
   schema: TSchema,
-  options?: Omit<UseFormProps<z.infer<TSchema>>, "resolver">
+  options?: Omit<UseFormProps<z.infer<TSchema>>, "resolver">,
 ): UseFormReturn<z.infer<TSchema>> {
   return useForm<z.infer<TSchema>>({
     resolver: zodResolver(schema),
     ...options,
   });
 }
-

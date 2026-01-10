@@ -77,9 +77,12 @@ export default function StockIn() {
       } catch (err: unknown) {
         toast({
           title: "Erro ao carregar dados",
-          description: getErrorMessage(err, "Não foi possível carregar os dados."),
+          description: getErrorMessage(
+            err,
+            "Não foi possível carregar os dados.",
+          ),
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
         setMedicines([]);
         setInputs([]);
@@ -132,7 +135,10 @@ export default function StockIn() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao registrar",
-        description: getErrorMessage(err, "Não foi possível registrar a entrada."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível registrar a entrada.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -179,7 +185,10 @@ export default function StockIn() {
     } catch (err: unknown) {
       toast({
         title: "Erro ao registrar entrada",
-        description: getErrorMessage(err, "Não foi possível registrar a entrada."),
+        description: getErrorMessage(
+          err,
+          "Não foi possível registrar a entrada.",
+        ),
         variant: "error",
         duration: 3000,
       });
@@ -216,10 +225,7 @@ export default function StockIn() {
             control={control}
             render={({ field }) => (
               <>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="bg-white" id="operationType">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>

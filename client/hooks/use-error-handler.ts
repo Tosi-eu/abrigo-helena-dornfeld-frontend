@@ -12,10 +12,7 @@ export function useErrorHandler() {
   const { toast } = useToast();
 
   const handleError = useCallback(
-    (
-      error: unknown,
-      options: ErrorHandlerOptions = {}
-    ) => {
+    (error: unknown, options: ErrorHandlerOptions = {}) => {
       const {
         defaultTitle = "Erro",
         showDetails = true,
@@ -46,7 +43,10 @@ export function useErrorHandler() {
       } else if (message.includes("404") || message.includes("not found")) {
         message = ERROR_MESSAGES.NOT_FOUND;
         title = "Não Encontrado";
-      } else if (message.includes("validation") || message.includes("invalid")) {
+      } else if (
+        message.includes("validation") ||
+        message.includes("invalid")
+      ) {
         title = "Erro de Validação";
       }
 
@@ -59,9 +59,8 @@ export function useErrorHandler() {
 
       return { title, message };
     },
-    [toast]
+    [toast],
   );
 
   return { handleError };
 }
-

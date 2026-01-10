@@ -53,7 +53,9 @@ const App = () => (
               <Route
                 path="/user/login"
                 element={
-                  <Suspense fallback={<LoadingFallback title="Carregando login..." />}>
+                  <Suspense
+                    fallback={<LoadingFallback title="Carregando login..." />}
+                  >
                     <Auth />
                   </Suspense>
                 }
@@ -63,7 +65,11 @@ const App = () => (
                 path="/dashboard"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando dashboard..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando dashboard..." />
+                      }
+                    >
                       <Dashboard />
                     </Suspense>
                   </PrivateRoute>
@@ -73,7 +79,11 @@ const App = () => (
                 path="/Movements"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando movimentações..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando movimentações..." />
+                      }
+                    >
                       <Movements />
                     </Suspense>
                   </PrivateRoute>
@@ -83,7 +93,11 @@ const App = () => (
                 path="/medicines"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando medicamentos..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando medicamentos..." />
+                      }
+                    >
                       <Medicines />
                     </Suspense>
                   </PrivateRoute>
@@ -93,7 +107,11 @@ const App = () => (
                 path="/medicines/register"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando formulário..." />
+                      }
+                    >
                       <SignUpMedicine />
                     </Suspense>
                   </PrivateRoute>
@@ -103,7 +121,11 @@ const App = () => (
                 path="/medicines/edit"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando edição..." />
+                      }
+                    >
                       <EditMedicine />
                     </Suspense>
                   </PrivateRoute>
@@ -113,7 +135,11 @@ const App = () => (
                 path="/stock"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando estoque..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando estoque..." />
+                      }
+                    >
                       <Stock />
                     </Suspense>
                   </PrivateRoute>
@@ -123,7 +149,11 @@ const App = () => (
                 path="/stock/in"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando entrada..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando entrada..." />
+                      }
+                    >
                       <StockEntry />
                     </Suspense>
                   </PrivateRoute>
@@ -133,7 +163,9 @@ const App = () => (
                 path="/stock/out"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando saída..." />}>
+                    <Suspense
+                      fallback={<LoadingFallback title="Carregando saída..." />}
+                    >
                       <StockOut />
                     </Suspense>
                   </PrivateRoute>
@@ -143,7 +175,11 @@ const App = () => (
                 path="/stock/edit"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando edição..." />
+                      }
+                    >
                       <EditStock />
                     </Suspense>
                   </PrivateRoute>
@@ -153,7 +189,11 @@ const App = () => (
                 path="/residents"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando residentes..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando residentes..." />
+                      }
+                    >
                       <Resident />
                     </Suspense>
                   </PrivateRoute>
@@ -163,7 +203,11 @@ const App = () => (
                 path="/residents/register"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando formulário..." />
+                      }
+                    >
                       <RegisterResident />
                     </Suspense>
                   </PrivateRoute>
@@ -173,7 +217,11 @@ const App = () => (
                 path="/residents/edit"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando edição..." />
+                      }
+                    >
                       <EditResident />
                     </Suspense>
                   </PrivateRoute>
@@ -183,7 +231,11 @@ const App = () => (
                 path="/inputs"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando insumos..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando insumos..." />
+                      }
+                    >
                       <Inputs />
                     </Suspense>
                   </PrivateRoute>
@@ -193,7 +245,11 @@ const App = () => (
                 path="/inputs/register"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando formulário..." />
+                      }
+                    >
                       <RegisterInput />
                     </Suspense>
                   </PrivateRoute>
@@ -203,7 +259,11 @@ const App = () => (
                 path="/inputs/edit"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando edição..." />
+                      }
+                    >
                       <EditInput />
                     </Suspense>
                   </PrivateRoute>
@@ -213,7 +273,11 @@ const App = () => (
                 path="/cabinets"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando armários..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando armários..." />
+                      }
+                    >
                       <Cabinets />
                     </Suspense>
                   </PrivateRoute>
@@ -223,7 +287,11 @@ const App = () => (
                 path="/cabinets/register"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando formulário..." />
+                      }
+                    >
                       <RegisterCabinet />
                     </Suspense>
                   </PrivateRoute>
@@ -233,7 +301,11 @@ const App = () => (
                 path="/cabinets/edit"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando edição..." />
+                      }
+                    >
                       <EditCabinet />
                     </Suspense>
                   </PrivateRoute>
@@ -243,7 +315,11 @@ const App = () => (
                 path="/drawers"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando gavetas..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando gavetas..." />
+                      }
+                    >
                       <Drawers />
                     </Suspense>
                   </PrivateRoute>
@@ -253,7 +329,11 @@ const App = () => (
                 path="/drawer/register"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando formulário..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando formulário..." />
+                      }
+                    >
                       <RegisterDrawer />
                     </Suspense>
                   </PrivateRoute>
@@ -263,7 +343,11 @@ const App = () => (
                 path="/drawers/edit"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando edição..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando edição..." />
+                      }
+                    >
                       <EditDrawer />
                     </Suspense>
                   </PrivateRoute>
@@ -273,7 +357,11 @@ const App = () => (
                 path="/user/profile"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback title="Carregando perfil..." />}>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando perfil..." />
+                      }
+                    >
                       <Profile />
                     </Suspense>
                   </PrivateRoute>
@@ -282,7 +370,9 @@ const App = () => (
               <Route
                 path="/user/forgot-password"
                 element={
-                  <Suspense fallback={<LoadingFallback title="Carregando..." />}>
+                  <Suspense
+                    fallback={<LoadingFallback title="Carregando..." />}
+                  >
                     <ForgotPassword />
                   </Suspense>
                 }

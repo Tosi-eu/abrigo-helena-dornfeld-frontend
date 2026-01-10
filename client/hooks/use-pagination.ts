@@ -9,33 +9,41 @@ interface PaginationResponse<T> {
 }
 
 interface UsePaginationOptions<T> {
-  fetchFunction: (page: number, limit: number) => Promise<PaginationResponse<T>>;
+  fetchFunction: (
+    page: number,
+    limit: number,
+  ) => Promise<PaginationResponse<T>>;
   limit?: number;
   initialPage?: number;
   autoFetch?: boolean;
 }
 
 export function usePagination<T extends Record<string, unknown>>(
-  options: UsePaginationOptions<T>
+  options: UsePaginationOptions<T>,
 ) {
-  const { fetchFunction, limit = 10, initialPage = 1, autoFetch = true } = options;
-  
+  const {
+    fetchFunction,
+    limit = 10,
+    initialPage = 1,
+    autoFetch = true,
+  } = options;
+
   const [data, setData] = useState<T[]>([]);
   const [page, setPage] = useState(initialPage);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  
+
   const { handleError } = useErrorHandler();
 
   const fetchData = useCallback(
     async (pageNumber: number) => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const res = await fetchFunction(pageNumber, limit);
-        
+
         setData(Array.isArray(res.data) ? res.data : []);
         setPage(res.page ?? pageNumber);
         setHasNextPage(Boolean(res.hasNext));
@@ -49,7 +57,7 @@ export function usePagination<T extends Record<string, unknown>>(
         setLoading(false);
       }
     },
-    [fetchFunction, limit, handleError]
+    [fetchFunction, limit, handleError],
   );
 
   const nextPage = useCallback(() => {
@@ -70,7 +78,7 @@ export function usePagination<T extends Record<string, unknown>>(
         fetchData(pageNumber);
       }
     },
-    [loading, fetchData]
+    [loading, fetchData],
   );
 
   const refresh = useCallback(() => {
@@ -96,4 +104,3 @@ export function usePagination<T extends Record<string, unknown>>(
     fetchData,
   };
 }
-

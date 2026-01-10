@@ -32,10 +32,9 @@ export const editMedicineSchema = z.object({
       },
       {
         message: "Estoque mínimo deve ser um número maior ou igual a zero",
-      }
+      },
     )
     .transform((val) => (val === "" ? undefined : val)),
 });
 
 export type EditMedicineFormData = z.infer<typeof editMedicineSchema>;
-

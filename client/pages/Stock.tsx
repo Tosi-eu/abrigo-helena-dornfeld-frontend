@@ -123,7 +123,7 @@ export default function Stock() {
   useEffect(() => {
     async function init() {
       setLoading(true);
-      
+
       if (data && Array.isArray(data)) {
         if (data.length > 0) {
           setItems(formatStockItems(data));
@@ -153,7 +153,6 @@ export default function Stock() {
     }
   }, [page]);
 
-  
   const columns = [
     { key: "stockType", label: "Tipo", editable: false },
     { key: "name", label: "Nome", editable: true },
@@ -260,14 +259,15 @@ export default function Stock() {
         });
       }
     } catch (err: any) {
-      const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
+      const errorMessage =
+        err?.message || "Ocorreu um erro ao executar a ação.";
 
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
-        toast({ 
-          title: messages.error, 
+        toast({
+          title: messages.error,
           description: errorMessage,
-          variant: "error" 
+          variant: "error",
         });
       } else {
         toast({

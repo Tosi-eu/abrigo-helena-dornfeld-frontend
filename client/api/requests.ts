@@ -299,9 +299,10 @@ export const transferStockSector = (payload: {
   setor: SectorType;
   itemType: StockItemType;
 }) => {
-  const basePath = payload.itemType === 'medicamento' 
-    ? '/estoque/medicamento' 
-    : '/estoque/insumo';
+  const basePath =
+    payload.itemType === "medicamento"
+      ? "/estoque/medicamento"
+      : "/estoque/insumo";
   return api.patch(`${basePath}/${payload.estoque_id}/transferir-setor`, {
     setor: payload.setor,
   });
@@ -323,10 +324,10 @@ export const updateStockItem = (
   },
 ) => {
   const { tipo: stockTipo, ...restData } = data;
-  return api.put(`/estoque/${estoqueId}`, { 
+  return api.put(`/estoque/${estoqueId}`, {
     tipo: itemTipo,
     stockTipo: stockTipo,
-    ...restData 
+    ...restData,
   });
 };
 

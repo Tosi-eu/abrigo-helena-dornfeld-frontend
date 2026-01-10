@@ -20,4 +20,3 @@ export const stockOutQuantitySchema = z.object({
 
 export type StockOutTypeFormData = z.infer<typeof stockOutTypeSchema>;
 export type StockOutQuantityFormData = z.infer<typeof stockOutQuantitySchema>;
-

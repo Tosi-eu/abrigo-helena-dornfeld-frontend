@@ -1,6 +1,13 @@
 import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 
 interface DashboardChartCardProps {
   title: string;
@@ -57,4 +64,3 @@ export const DashboardChartCard = memo(function DashboardChartCard({
     </Card>
   );
 });
-

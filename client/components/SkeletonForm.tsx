@@ -23,4 +23,3 @@ export function SkeletonForm({ fields = 5 }: SkeletonFormProps) {
     </div>
   );
 }
-

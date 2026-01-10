@@ -72,7 +72,7 @@ function sanitizeErrorMessage(message: string): string {
     /stack[_-]?trace/i,
     /error[_-]?code/i,
     /exception/i,
-    /at\s+\w+\.\w+/i, 
+    /at\s+\w+\.\w+/i,
     /line\s+\d+/i,
     /column\s+\d+/i,
     /host/i,
@@ -91,9 +91,9 @@ function sanitizeErrorMessage(message: string): string {
   }
 
   const cleanedMessage = message
-    .split("\n")[0] 
-    .replace(/at\s+.*/gi, "") 
-    .replace(/\(.*\)/g, "") 
+    .split("\n")[0]
+    .replace(/at\s+.*/gi, "")
+    .replace(/\(.*\)/g, "")
     .trim();
 
   const maxLength = 150;
