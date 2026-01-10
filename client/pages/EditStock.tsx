@@ -133,7 +133,6 @@ export default function EditStock() {
             rawTipo = tipoMap[item.stockType] || "";
           }
 
-          // Validate tipo is a valid ItemStockType value, default to GERAL if invalid
           let validTipo: ItemStockType = ItemStockType.GERAL;
           if (
             rawTipo === ItemStockType.GERAL ||

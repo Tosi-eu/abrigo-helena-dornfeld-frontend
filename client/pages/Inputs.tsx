@@ -43,7 +43,6 @@ export default function Inputs() {
     }
   }
 
-  // Filter inputs based on search (only by name)
   const filteredInputs = useMemo(() => {
     if (!searchFilter.trim()) {
       return data;

@@ -36,7 +36,6 @@ import {
   RawMovement,
   DrawerStockItem,
 } from "@/interfaces/interfaces";
-// Lazy load NotificationModal
 const NotificationReminderModal = lazy(() => import("@/components/NotificationModal"));
 import StockProportionCard from "@/components/StockProportionCard";
 import { prepareStockDistributionData } from "@/helpers/estoque.helper";
@@ -217,7 +216,6 @@ export default function Dashboard() {
           variant: "error",
         duration: 3000,
         });
-        // Error is already handled by toast notification
       } finally {
         setLoadingNonMovement(false);
         setLoadingRecentMovements(false);

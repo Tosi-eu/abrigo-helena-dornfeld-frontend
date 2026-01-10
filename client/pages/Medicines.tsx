@@ -45,7 +45,6 @@ export default function Medicines() {
     }
   }
 
-  // Filter medicines based on search (only by name)
   const filteredMedicines = useMemo(() => {
     if (!searchFilter.trim()) {
       return medicines;

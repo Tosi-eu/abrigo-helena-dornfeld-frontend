@@ -62,7 +62,6 @@ export default function StockOut() {
   >("Selecione");
   const [selected, setSelected] = useState<StockItemRaw | null>(null);
   
-  // Form para quantidade usando React Hook Form
   const quantityForm = useFormWithZod(stockOutQuantitySchema, {
     defaultValues: {
       quantity: 0,
