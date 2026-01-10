@@ -62,7 +62,6 @@ export default function EditCabinet() {
           description: "Não foi possível buscar os armários do servidor.",
           variant: "error",
         duration: 3000,
-        duration: 3000,
         }),
       );
   }, []);
@@ -75,7 +74,6 @@ export default function EditCabinet() {
           title: "Erro",
           description: "Não foi possível carregar as categorias.",
           variant: "error",
-        duration: 3000,
         duration: 3000,
         }),
       );
@@ -120,7 +118,6 @@ export default function EditCabinet() {
         description: "Selecione um armário e uma categoria.",
         variant: "warning",
         duration: 3000,
-        duration: 3000,
       });
       return;
     }
@@ -136,7 +133,6 @@ export default function EditCabinet() {
         description: `O armário ${data.numero} foi atualizado com sucesso.`,
         variant: "success",
         duration: 3000,
-        duration: 3000,
       });
 
       navigate("/cabinets");
@@ -145,7 +141,6 @@ export default function EditCabinet() {
         title: "Erro ao editar armário",
         description: getErrorMessage(err, "Não foi possível atualizar o armário."),
         variant: "error",
-        duration: 3000,
         duration: 3000,
       });
     }

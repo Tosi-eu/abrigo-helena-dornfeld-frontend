@@ -282,16 +282,30 @@ export const suspendMedicineFromStock = (stockId: number) =>
 export const resumeMedicineFromStock = (stockId: number) =>
   api.patch(`/estoque/medicamento/${stockId}/retomar`);
 
+export const removeIndividualInputFromStock = (stockId: number) =>
+  api.patch(`/estoque/insumo/${stockId}/remover-individual`);
+
+export const suspendInputFromStock = (stockId: number) =>
+  api.patch(`/estoque/insumo/${stockId}/suspender`);
+
+export const resumeInputFromStock = (stockId: number) =>
+  api.patch(`/estoque/insumo/${stockId}/retomar`);
+
 export const deleteStockItem = (stockId: number, type: StockItemType) =>
   api.delete(`/estoque/${type}/${stockId}`);
 
 export const transferStockSector = (payload: {
   estoque_id: number;
   setor: SectorType;
-}) =>
-  api.patch(`/estoque/medicamento/${payload.estoque_id}/transferir-setor`, {
+  itemType: StockItemType;
+}) => {
+  const basePath = payload.itemType === 'medicamento' 
+    ? '/estoque/medicamento' 
+    : '/estoque/insumo';
+  return api.patch(`${basePath}/${payload.estoque_id}/transferir-setor`, {
     setor: payload.setor,
   });
+};
 
 export const updateStockItem = (
   estoqueId: number,

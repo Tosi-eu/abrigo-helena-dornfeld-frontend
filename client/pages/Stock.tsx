@@ -13,10 +13,13 @@ import {
   removeIndividualMedicineFromStock,
   resumeMedicineFromStock,
   suspendMedicineFromStock,
+  removeIndividualInputFromStock,
+  resumeInputFromStock,
+  suspendInputFromStock,
   transferStockSector,
 } from "@/api/requests";
 import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
-import { StockActionType } from "@/interfaces/types";
+import { StockActionType, StockItemType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import {
   actionConfig,
@@ -200,15 +203,6 @@ export default function Stock() {
     setConfirmOpen(true);
   };
 
-  const updateItemLocally = (
-    id: number,
-    updater: (item: StockItem) => StockItem,
-  ) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? updater(item) : item)),
-    );
-  };
-
   const handleConfirmAction = async () => {
     if (!pendingAction.row || !pendingAction.type) return;
 
@@ -218,49 +212,42 @@ export default function Stock() {
 
     try {
       if (type === "remove") {
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          patient: "-",
-          casela: "-",
-        }));
-
-        await removeIndividualMedicineFromStock(row.id);
+        if (row.itemType === "medicamento") {
+          await removeIndividualMedicineFromStock(row.id);
+        } else if (row.itemType === "insumo") {
+          await removeIndividualInputFromStock(row.id);
+        }
       }
 
       if (type === "suspend") {
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          status: "suspended",
-          suspended_at: new Date(),
-        }));
-
-        await suspendMedicineFromStock(row.id);
+        if (row.itemType === "medicamento") {
+          await suspendMedicineFromStock(row.id);
+        } else if (row.itemType === "insumo") {
+          await suspendInputFromStock(row.id);
+        }
       }
 
       if (type === "resume") {
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          status: "active",
-          suspended_at: null,
-        }));
-
-        await resumeMedicineFromStock(row.id);
+        if (row.itemType === "medicamento") {
+          await resumeMedicineFromStock(row.id);
+        } else if (row.itemType === "insumo") {
+          await resumeInputFromStock(row.id);
+        }
       }
 
       if (type === "transfer") {
         const nextSector =
           row.sector === "farmacia" ? "enfermagem" : "farmacia";
 
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          sector: nextSector,
-        }));
-
         await transferStockSector({
           estoque_id: row.id,
           setor: nextSector as SectorType,
+          itemType: row.itemType as StockItemType,
         });
       }
+
+      await loadStock(page);
+      await loadAllStock();
 
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
@@ -269,11 +256,10 @@ export default function Stock() {
         toast({
           title: actionMessages[type].success,
           variant: "success",
-        duration: 3000,
+          duration: 3000,
         });
       }
     } catch (err: any) {
-
       const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
 
       if (type === "transfer") {
@@ -288,7 +274,7 @@ export default function Stock() {
           title: actionMessages[type].error,
           description: errorMessage,
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
       }
 

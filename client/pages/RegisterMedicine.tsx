@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast.hook";
-import { sanitizeInput } from "@/helpers/validation.helper";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { createMedicine, getMedicines } from "@/api/requests";
 import { medicineSchema, type MedicineFormData } from "@/schemas/medicine.schema";
