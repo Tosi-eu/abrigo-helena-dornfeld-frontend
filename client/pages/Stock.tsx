@@ -7,7 +7,6 @@ import { StockItem } from "@/interfaces/interfaces";
 import { lazy, Suspense } from "react";
 import { SkeletonCard } from "@/components/SkeletonCard";
 
-// Lazy load ReportModal (usa @react-pdf/renderer que é pesado)
 const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
   getStock,
@@ -16,7 +15,7 @@ import {
   suspendMedicineFromStock,
   transferStockSector,
 } from "@/api/requests";
-import { MedicineStockType, SectorType, StockTypeLabels } from "@/utils/enums";
+import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import {
@@ -57,8 +56,8 @@ export default function Stock() {
       cabinet: item.armario_id ?? "-",
       drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
-      stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
-      tipo: item.tipo, // Store raw tipo value
+      stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
+      tipo: item.tipo,
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
@@ -122,7 +121,6 @@ export default function Stock() {
     async function init() {
       setLoading(true);
       
-      // If data comes from Dashboard (filtered view)
       if (data && Array.isArray(data)) {
         if (data.length > 0) {
           setItems(formatStockItems(data));
@@ -131,28 +129,22 @@ export default function Stock() {
         }
         setHasNext(false);
         setLoading(false);
-        // Still load all data for other operations (like stock out)
         try {
           await loadAllStock();
         } catch (err) {
-          // Silently fail - not critical for filtered view
           console.error("Error loading all stock:", err);
         }
         return;
       }
 
-      // Normal load from API
       await loadStock(1);
       await loadAllStock();
     }
 
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Only load new page if we're not showing filtered data from Dashboard
-    // and page changed (not initial load)
     if ((!data || !Array.isArray(data)) && page > 1) {
       loadStock(page);
     }
@@ -281,7 +273,6 @@ export default function Stock() {
         });
       }
     } catch (err: any) {
-      // Error is already handled by toast notification
 
       const errorMessage = err?.message || "Ocorreu um erro ao executar a ação.";
 

@@ -1,7 +1,3 @@
-/**
- * Application-wide constants
- */
-
 export const APP_CONFIG = {
   MAX_CONTAINER_WIDTH: 1651,
   DEFAULT_PAGE_SIZE: 8,

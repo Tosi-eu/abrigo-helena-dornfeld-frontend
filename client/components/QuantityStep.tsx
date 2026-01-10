@@ -5,7 +5,7 @@ import clsx from "clsx";
 interface Props {
   item: StockItemRaw | null;
   quantity: number;
-  quantityRegister: any; // UseFormRegisterReturn from react-hook-form
+  quantityRegister: any;
   quantityErrors: { quantity?: { message?: string } };
   isSubmitting: boolean;
   onBack: () => void;

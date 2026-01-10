@@ -11,7 +11,7 @@ import { getErrorMessage } from "@/helpers/validation.helper";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
 import { medicineFormSchema, type MedicineFormData } from "@/schemas/medicine-form.schema";
 import {
-  MedicineStockType,
+  ItemStockType,
   OriginType,
   SectorType,
   StockTypeLabels,
@@ -70,7 +70,7 @@ export const MedicineForm = memo(function MedicineForm({
   const casela = watch("casela");
 
   const selectedMedicine = medicines.find((m) => m.id === selectedMedicineId);
-  const isEmergencyCart = stockType === MedicineStockType.CARRINHO;
+  const isEmergencyCart = stockType === ItemStockType.CARRINHO;
 
   useEffect(() => {
     if (isEmergencyCart) {
@@ -253,7 +253,7 @@ export const MedicineForm = memo(function MedicineForm({
           <option value="" disabled hidden>
             Selecione
           </option>
-          {Object.values(MedicineStockType).map((t) => (
+          {Object.values(ItemStockType).map((t) => (
             <option key={t} value={t}>
               {StockTypeLabels[t]}
             </option>

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { StockItem } from "@/interfaces/interfaces";
 import { Cabinet, Drawer, Patient } from "@/interfaces/interfaces";
-import { SectorType, OriginType, MedicineStockType, InputStockType, StockTypeLabels } from "@/utils/enums";
+import { SectorType, OriginType, ItemStockType, StockTypeLabels } from "@/utils/enums";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import DatePicker from "react-datepicker";
@@ -78,9 +78,6 @@ export default function EditStock() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const isMedicine = stockItem?.itemType === "medicamento";
-  const availableStockTypes = isMedicine
-    ? Object.values(MedicineStockType)
-    : Object.values(InputStockType);
 
   const {
     register,
@@ -100,7 +97,7 @@ export default function EditStock() {
       setor: SectorType.FARMACIA,
       lote: null,
       casela_id: null,
-      tipo: isMedicine ? MedicineStockType.GERAL : InputStockType.GERAL,
+      tipo: ItemStockType.GERAL,
     },
   });
 
@@ -136,6 +133,16 @@ export default function EditStock() {
             rawTipo = tipoMap[item.stockType] || "";
           }
 
+          // Validate tipo is a valid ItemStockType value, default to GERAL if invalid
+          let validTipo: ItemStockType = ItemStockType.GERAL;
+          if (
+            rawTipo === ItemStockType.GERAL ||
+            rawTipo === ItemStockType.INDIVIDUAL ||
+            rawTipo === ItemStockType.CARRINHO
+          ) {
+            validTipo = rawTipo as ItemStockType;
+          }
+
           const cached = await getCachedData();
           setCabinets(cached.cabinets);
           setDrawers(cached.drawers);
@@ -150,14 +157,13 @@ export default function EditStock() {
             setor: (item.sector as SectorType) || SectorType.FARMACIA,
             lote: item.lot || null,
             casela_id: typeof item.casela === "number" ? item.casela : null,
-            tipo: (rawTipo as MedicineStockType | InputStockType) || (isMedicine ? MedicineStockType.GERAL : InputStockType.GERAL),
+            tipo: validTipo,
           });
         } else {
           toast({
             title: "Erro",
             description: "Item de estoque não encontrado.",
             variant: "error",
-        duration: 3000,
             duration: 3000,
           });
           navigate("/stock");
@@ -167,7 +173,6 @@ export default function EditStock() {
           title: "Erro",
           description: getErrorMessage(err, "Erro ao carregar dados"),
           variant: "error",
-        duration: 3000,
           duration: 3000,
         });
         navigate("/stock");
@@ -179,24 +184,21 @@ export default function EditStock() {
     loadData();
   }, [location.state, navigate, reset, isMedicine]);
 
-  // Auto-set sector and type when drawer is selected
   useEffect(() => {
     if (watchedGavetaId !== null) {
       setValue("setor", SectorType.ENFERMAGEM);
-      setValue("tipo", isMedicine ? MedicineStockType.CARRINHO : InputStockType.CARRINHO);
+      setValue("tipo", ItemStockType.CARRINHO);
       setValue("armario_id", null);
       setValue("casela_id", null);
     }
   }, [watchedGavetaId, setValue, isMedicine]);
 
-  // Auto-set type when casela is selected (for medicines)
   useEffect(() => {
-    if (watchedCaselaId !== null && isMedicine) {
-      setValue("tipo", MedicineStockType.INDIVIDUAL);
+    if (watchedCaselaId !== null) {
+      setValue("tipo", ItemStockType.INDIVIDUAL);
     }
-  }, [watchedCaselaId, setValue, isMedicine]);
+  }, [watchedCaselaId, setValue]);
 
-  // Clear casela when armario is cleared
   useEffect(() => {
     if (watchedArmarioId === null) {
       setValue("casela_id", null);
@@ -234,7 +236,6 @@ export default function EditStock() {
         description: "O item de estoque foi atualizado com sucesso.",
         variant: "success",
         duration: 3000,
-        duration: 3000,
       });
 
       navigate("/stock");
@@ -243,7 +244,6 @@ export default function EditStock() {
         title: "Erro ao atualizar",
         description: getErrorMessage(err, "Erro ao atualizar item de estoque"),
         variant: "error",
-        duration: 3000,
         duration: 3000,
       });
     } finally {
@@ -496,7 +496,7 @@ export default function EditStock() {
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableStockTypes.map((tipo) => (
+                          {Object.values(ItemStockType).map((tipo) => (
                             <SelectItem key={tipo} value={tipo}>
                               {StockTypeLabels[tipo as keyof typeof StockTypeLabels] || tipo}
                             </SelectItem>

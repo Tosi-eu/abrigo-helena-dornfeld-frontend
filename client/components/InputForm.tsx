@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
 import { inputFormSchema, type InputFormData } from "@/schemas/input-form.schema";
-import { InputStockType, StockTypeLabels, SectorType } from "@/utils/enums";
+import { ItemStockType, StockTypeLabels, SectorType } from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -64,25 +64,22 @@ export const InputForm = memo(function InputForm({
   const casela = watch("casela");
 
   const selectedInput = inputs.find((i) => i.id === selectedInputId);
-  const isEmergencyCart = stockType === InputStockType.CARRINHO;
+  const isEmergencyCart = stockType === ItemStockType.CARRINHO;
   const selectedCasela = caselas.find((c) => c.casela === casela);
 
-  // Auto-set sector when emergency cart is selected
   useEffect(() => {
     if (isEmergencyCart) {
       setValue("sector", SectorType.ENFERMAGEM);
     }
   }, [isEmergencyCart, setValue]);
 
-  // Reset storage when stock type changes
   useEffect(() => {
     setValue("cabinetId", null);
     setValue("drawerId", null);
   }, [stockType, setValue]);
 
-  // Reset casela when stock type is not individual
   useEffect(() => {
-    if (stockType !== InputStockType.INDIVIDUAL) {
+    if (stockType !== ItemStockType.INDIVIDUAL) {
       setValue("casela", null);
     }
   }, [stockType, setValue]);
@@ -245,7 +242,7 @@ export const InputForm = memo(function InputForm({
           <option value="" disabled hidden>
             Selecione
           </option>
-          {Object.values(InputStockType).map((t) => (
+          {Object.values(ItemStockType).map((t) => (
             <option key={t} value={t}>
               {StockTypeLabels[t]}
             </option>

@@ -4,7 +4,7 @@ import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
-const DEFAULT_DURATION = 3000; // 3 segundos
+const DEFAULT_DURATION = 3000; 
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -73,7 +73,6 @@ const addToRemoveQueue = (toastId: string) => {
 };
 
 const scheduleDismiss = (toastId: string, duration: number) => {
-  // Limpar timeout anterior se existir
   if (toastDismissTimeouts.has(toastId)) {
     clearTimeout(toastDismissTimeouts.get(toastId));
   }
@@ -164,7 +163,6 @@ function toast({ duration = DEFAULT_DURATION, ...props }: Toast) {
       toast: { ...props, id },
     });
   const dismiss = () => {
-    // Limpar timeout de dismiss se existir
     if (toastDismissTimeouts.has(id)) {
       clearTimeout(toastDismissTimeouts.get(id));
       toastDismissTimeouts.delete(id);
@@ -185,7 +183,6 @@ function toast({ duration = DEFAULT_DURATION, ...props }: Toast) {
     },
   });
 
-  // Agendar dismiss automático após a duração especificada
   if (duration > 0) {
     scheduleDismiss(id, duration);
   }

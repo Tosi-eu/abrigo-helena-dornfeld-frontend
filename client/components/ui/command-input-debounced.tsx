@@ -8,9 +8,6 @@ interface CommandInputDebouncedProps
   onDebouncedChange?: (value: string) => void;
 }
 
-/**
- * CommandInput com debounce para melhorar performance em buscas
- */
 export function CommandInputDebounced({
   value,
   onValueChange,

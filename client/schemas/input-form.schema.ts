@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SectorType, InputStockType } from "@/utils/enums";
+import { SectorType, ItemStockType } from "@/utils/enums";
 
 export const inputFormSchema = z
   .object({
@@ -12,7 +12,7 @@ export const inputFormSchema = z
       .int("Quantidade deve ser um número inteiro")
       .min(1, "Quantidade deve ser maior que zero")
       .max(999999, "Quantidade não pode ser maior que 999.999"),
-    stockType: z.nativeEnum(InputStockType, {
+    stockType: z.nativeEnum(ItemStockType, {
       required_error: "Tipo de estoque é obrigatório",
     }),
     validity: z.date().nullable().optional(),
@@ -30,8 +30,7 @@ export const inputFormSchema = z
   })
   .refine(
     (data) => {
-      // Se é carrinho de emergência, deve ter gaveta
-      if (data.stockType === InputStockType.CARRINHO) {
+      if (data.stockType === ItemStockType.CARRINHO) {
         return data.drawerId !== null;
       }
       return true;
@@ -43,8 +42,7 @@ export const inputFormSchema = z
   )
   .refine(
     (data) => {
-      // Se não é carrinho, deve ter armário
-      if (data.stockType !== InputStockType.CARRINHO) {
+      if (data.stockType !== ItemStockType.CARRINHO) {
         return data.cabinetId !== null;
       }
       return true;
@@ -56,7 +54,6 @@ export const inputFormSchema = z
   )
   .refine(
     (data) => {
-      // Armário e gaveta não podem ser selecionados ao mesmo tempo
       if (data.cabinetId !== null && data.drawerId !== null) {
         return false;
       }
@@ -69,8 +66,7 @@ export const inputFormSchema = z
   )
   .refine(
     (data) => {
-      // Casela só pode ser preenchida para tipo individual
-      if (data.casela !== null && data.stockType !== InputStockType.INDIVIDUAL) {
+      if (data.casela !== null && data.stockType !== ItemStockType.INDIVIDUAL) {
         return false;
       }
       return true;

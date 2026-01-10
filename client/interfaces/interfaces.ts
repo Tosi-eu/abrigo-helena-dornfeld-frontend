@@ -1,5 +1,5 @@
 import {
-  MedicineStockType,
+  ItemStockType,
   MovementType,
   OperationType,
   OriginType,
@@ -110,7 +110,7 @@ export interface MedicineInventory {
   quantity: number;
   expiry: string;
   origin: OriginType;
-  stockType: MedicineStockType;
+  stockType: ItemStockType;
 }
 
 export interface InputInventory {
@@ -152,7 +152,7 @@ export interface StockItem {
   drawer?: number | string;
   casela?: string | number;
   itemType: OperationType;
-  stockType: MedicineStockType | string;
+  stockType: ItemStockType | string;
   tipo?: string;
   status?: string | null;
   sector: string;
@@ -297,7 +297,7 @@ export interface DrawerCategory {
 export interface MedicineFormInitialData {
   id: number | null;
   quantity: number;
-  stockType: MedicineStockType;
+  stockType: ItemStockType;
   expirationDate: Date | null;
   resident: string;
   casela: number | null;

@@ -1,22 +1,12 @@
 import { useForm, UseFormProps, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ZodSchema, TypeOf } from "zod";
+import { z, ZodTypeAny } from "zod";
 
-/**
- * Hook wrapper para simplificar o uso de React Hook Form com Zod
- * 
- * @example
- * ```tsx
- * const form = useFormWithZod(medicineSchema, {
- *   defaultValues: { name: "", substance: "" }
- * });
- * ```
- */
-export function useFormWithZod<T extends ZodSchema>(
-  schema: T,
-  options?: Omit<UseFormProps<TypeOf<T>>, "resolver">
-): UseFormReturn<TypeOf<T>> {
-  return useForm<TypeOf<T>>({
+export function useFormWithZod<TSchema extends ZodTypeAny>(
+  schema: TSchema,
+  options?: Omit<UseFormProps<z.infer<TSchema>>, "resolver">
+): UseFormReturn<z.infer<TSchema>> {
+  return useForm<z.infer<TSchema>>({
     resolver: zodResolver(schema),
     ...options,
   });

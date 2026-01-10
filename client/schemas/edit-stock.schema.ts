@@ -1,13 +1,5 @@
 import { z } from "zod";
-import { SectorType, OriginType, MedicineStockType, InputStockType } from "@/utils/enums";
-
-const stockTypeSchema = z.union([
-  z.literal(MedicineStockType.GERAL),
-  z.literal(MedicineStockType.INDIVIDUAL),
-  z.literal(MedicineStockType.CARRINHO),
-  z.literal(InputStockType.GERAL),
-  z.literal(InputStockType.CARRINHO),
-]);
+import { SectorType, OriginType, ItemStockType } from "@/utils/enums";
 
 export const editStockSchema = z
   .object({
@@ -33,7 +25,10 @@ export const editStockSchema = z
       .optional()
       .nullable(),
     casela_id: z.number().nullable().optional(),
-    tipo: stockTypeSchema,
+    tipo: z.nativeEnum(ItemStockType, {
+      required_error: "Tipo de estoque é obrigatório",
+      invalid_type_error: "Tipo de estoque inválido",
+    }),
   })
   .refine(
     (data) => {
