@@ -196,7 +196,6 @@ export default function EditableTable({
         description: "Reative o medicamento para poder editá-lo.",
         variant: "error",
         duration: 3000,
-        duration: 3000,
       });
       return;
     }
@@ -294,7 +293,6 @@ export default function EditableTable({
         title: "Erro ao remover item", 
         description: err?.message || "Não foi possível remover o item.",
         variant: "error",
-        duration: 3000,
         duration: 3000,
       });
     } finally {
