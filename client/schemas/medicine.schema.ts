@@ -36,6 +36,20 @@ export const medicineSchema = z.object({
       },
     )
     .transform((val) => (val === "" ? undefined : val)),
+  price: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === "") return true;
+        const num = Number(val);
+        return !isNaN(num) && num >= 0 && num <= 999999.99;
+      },
+      {
+        message: "Preço deve ser um número entre 0 e 999999.99",
+      },
+    )
+    .transform((val) => (val === "" ? undefined : val)),
 });
 
 export type MedicineFormData = z.infer<typeof medicineSchema>;

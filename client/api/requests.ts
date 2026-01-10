@@ -110,11 +110,13 @@ export const createInput = (
   nome: string,
   descricao?: string,
   estoque_minimo?: number,
+  preco?: number | null,
 ) =>
   api.post("/insumos", {
     nome,
     descricao: descricao ?? null,
     estoque_minimo: estoque_minimo ?? 0,
+    preco: preco ?? null,
   });
 
 export const createMedicine = (
@@ -123,6 +125,7 @@ export const createMedicine = (
   dosagem: string,
   unidade_medida: string,
   estoque_minimo?: number,
+  preco?: number | null,
 ) =>
   api.post("/medicamentos", {
     nome,
@@ -130,6 +133,7 @@ export const createMedicine = (
     dosagem,
     unidade_medida,
     estoque_minimo: Number(estoque_minimo) ?? null,
+    preco: preco ?? null,
   });
 
 export const createResident = (nome: string, casela: string) =>
