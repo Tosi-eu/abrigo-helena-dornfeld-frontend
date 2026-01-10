@@ -86,7 +86,6 @@ export default function CreateNotificationForm({
           title: "Erro ao carregar opções",
           description: "Não foi possível carregar residentes ou medicamentos.",
           variant: "error",
-        duration: 3000,
           duration: 3000,
         });
       } finally {
@@ -104,7 +103,6 @@ export default function CreateNotificationForm({
         title: "Campos obrigatórios",
         description: "Preencha medicamento, residente e data prevista.",
         variant: "error",
-        duration: 3000,
         duration: 3000,
       });
       return;
@@ -127,7 +125,6 @@ export default function CreateNotificationForm({
         title: "Erro ao salvar notificação",
         description: "Ocorreu um erro ao tentar salvar a notificação.",
         variant: "error",
-        duration: 3000,
         duration: 3000,
       });
     } finally {
