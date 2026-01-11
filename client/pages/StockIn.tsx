@@ -108,9 +108,30 @@ export default function StockIn() {
         setor: data.sector,
         lote: data.lot ?? null,
         observacao: data.observacao ?? null,
+        preco: data.preco ? Number(data.preco) : null,
       };
 
-      await createStockIn(payload);
+      const response = await createStockIn(payload);
+
+      console.log(response);
+
+      if (response?.data?.priceSearchResult?.found) {
+        const priceResult = response.data.priceSearchResult;
+          const precoTotal = priceResult.price * data.quantity;
+          toast({
+            title: "Preço encontrado automaticamente!",
+            description: `Preço unitário: R$ ${priceResult.price.toFixed(2).replace(".", ",")}. Total: R$ ${precoTotal.toFixed(2).replace(".", ",")} (${priceResult.price.toFixed(2).replace(".", ",")} × ${data.quantity}). Verifique e edite se necessário.`,
+            variant: "success",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Preço não encontrado",
+            description: "Não foi possível encontrar o preço automaticamente. Edite o item de estoque para adicionar o preço manualmente.",
+            variant: "warning",
+            duration: 5000,
+          });
+        }
 
       await createMovement({
         tipo: MovementType.IN,
@@ -158,9 +179,31 @@ export default function StockIn() {
         validade: data.validity,
         setor: data.sector,
         lote: data.lot ?? null,
+        preco: data.preco ? Number(data.preco) * data.quantity : null,
       };
 
-      await createStockIn(payload);
+      const response = await createStockIn(payload);
+
+      // Mostrar toast sobre busca de preço se o preço não foi informado
+      if (!data.preco && response?.data?.priceSearchResult) {
+        const priceResult = response.data.priceSearchResult;
+        if (priceResult.found && priceResult.price) {
+          const precoTotal = priceResult.price * data.quantity;
+          toast({
+            title: "Preço encontrado automaticamente!",
+            description: `Preço unitário: R$ ${priceResult.price.toFixed(2).replace(".", ",")}. Total: R$ ${precoTotal.toFixed(2).replace(".", ",")} (${priceResult.price.toFixed(2).replace(".", ",")} × ${data.quantity}). Verifique e edite se necessário.`,
+            variant: "success",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Preço não encontrado",
+            description: "Não foi possível encontrar o preço automaticamente. Edite o item de estoque para adicionar o preço manualmente.",
+            variant: "warning",
+            duration: 5000,
+          });
+        }
+      }
 
       await createMovement({
         tipo: MovementType.IN,

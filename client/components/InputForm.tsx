@@ -59,6 +59,7 @@ export const InputForm = memo(function InputForm({
       drawerId: null,
       sector: SectorType.FARMACIA,
       lot: null,
+      preco: "",
     },
   });
 
@@ -107,6 +108,7 @@ export const InputForm = memo(function InputForm({
         stockType: data.stockType,
         sector: data.sector,
         lot: data.lot ?? undefined,
+        preco: data.preco && data.preco.trim() !== "" ? data.preco : undefined,
       });
     } catch (err: unknown) {
       toast({
@@ -407,6 +409,35 @@ export const InputForm = memo(function InputForm({
         {errors.lot && (
           <p className="text-sm text-red-500 mt-1">{errors.lot.message}</p>
         )}
+      </div>
+
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-700">
+          Preço (R$)
+          <span className="text-xs font-normal text-slate-500 ml-1">
+            (Opcional)
+          </span>
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          max="999999.99"
+          {...register("preco")}
+          placeholder="0.00"
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm",
+            errors.preco ? "border-red-500" : "border-slate-300",
+          )}
+        />
+        {errors.preco && (
+          <p className="text-sm text-red-500 mt-1">
+            {errors.preco.message}
+          </p>
+        )}
+        <p className="text-xs text-slate-500">
+          Preço unitário de compra do insumo. O sistema calculará automaticamente o preço total (unitário × quantidade).
+        </p>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">

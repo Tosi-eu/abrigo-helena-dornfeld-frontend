@@ -159,6 +159,7 @@ export interface StockItem {
   suspended_at?: Date | null;
   origin?: string;
   lot?: string | null;
+  preco?: number | null;
 }
 
 export interface InputFormProps {
@@ -181,6 +182,7 @@ export interface InputFormProps {
     stockType: string;
     sector: string;
     lot?: string | null;
+    preco?: string;
   }) => void;
 }
 
@@ -206,6 +208,7 @@ export interface MedicineFormProps {
     sector: string;
     lot?: string | null;
     observacao?: string;
+    preco?: string;
   }) => void;
 }
 

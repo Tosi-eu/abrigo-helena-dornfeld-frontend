@@ -73,6 +73,7 @@ export default function Stock() {
       itemType: item.tipo_item,
       sector: item.setor,
       lot: item.lote ?? null,
+      preco: item.preco ? Number(item.preco) : null,
     }));
   };
 

@@ -33,6 +33,20 @@ export const medicineFormSchema = z
       .max(500, "Observação não pode ter mais de 500 caracteres")
       .optional()
       .nullable(),
+    preco: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val === "") return true;
+          const num = Number(val);
+          return !isNaN(num) && num >= 0 && num <= 999999.99;
+        },
+        {
+          message: "Preço deve ser um número entre 0 e 999999.99",
+        },
+      )
+      .transform((val) => (val === "" ? undefined : val)),
   })
   .refine(
     (data) => {

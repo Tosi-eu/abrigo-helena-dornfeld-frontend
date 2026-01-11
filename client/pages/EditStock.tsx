@@ -116,6 +116,7 @@ export default function EditStock() {
       lote: null,
       casela_id: null,
       tipo: ItemStockType.GERAL,
+      preco: "",
     },
   });
 
@@ -175,6 +176,7 @@ export default function EditStock() {
             lote: item.lot || null,
             casela_id: typeof item.casela === "number" ? item.casela : null,
             tipo: validTipo,
+            preco: item.preco ? item.preco.toFixed(2).replace(".", ",") : "",
           });
         } else {
           toast({
@@ -247,6 +249,9 @@ export default function EditStock() {
           lote: formData.lote || null,
           casela_id: formData.casela_id,
           tipo: formData.tipo,
+          preco: formData.preco && formData.preco.trim() !== ""
+            ? parseFloat(formData.preco.replace(",", "."))
+            : null,
         },
       );
 
@@ -614,6 +619,23 @@ export default function EditStock() {
                 {errors.lote && (
                   <p className="text-sm text-red-600 mt-1">
                     {errors.lote.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="preco">Preço (R$)</Label>
+                <Input
+                  id="preco"
+                  type="text"
+                  {...register("preco")}
+                  disabled={isSubmitting}
+                  placeholder="0,00"
+                  aria-invalid={errors.preco ? "true" : "false"}
+                />
+                {errors.preco && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.preco.message}
                   </p>
                 )}
               </div>

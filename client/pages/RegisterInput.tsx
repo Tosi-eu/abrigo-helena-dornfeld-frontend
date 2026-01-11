@@ -25,17 +25,15 @@ export default function RegisterInput() {
       name: "",
       description: "",
       minimum: "",
-      price: "",
     },
   });
 
   const onSubmit = async (data: InputFormData) => {
     try {
-      await createInput(
+      const response =       await createInput(
         data.name.trim(),
         data.description.trim(),
         Number(data.minimum) || 0,
-        data.price ? Number(data.price) : null,
       );
 
       toast({
@@ -121,29 +119,6 @@ export default function RegisterInput() {
                   {errors.minimum.message}
                 </p>
               )}
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="price">Preço (R$)</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                max="999999.99"
-                {...register("price")}
-                placeholder="0.00"
-                disabled={isSubmitting}
-                aria-invalid={errors.price ? "true" : "false"}
-              />
-              {errors.price && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.price.message}
-                </p>
-              )}
-              <p className="text-xs text-slate-500">
-                Opcional. Se deixado em branco, o sistema tentará buscar automaticamente o preço médio.
-              </p>
             </div>
 
             <div className="flex justify-end pt-4 gap-2">

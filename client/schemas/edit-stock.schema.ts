@@ -29,6 +29,19 @@ export const editStockSchema = z
       required_error: "Tipo de estoque é obrigatório",
       invalid_type_error: "Tipo de estoque inválido",
     }),
+    preco: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val.trim() === "") return true;
+          const num = parseFloat(val.replace(",", "."));
+          return !isNaN(num) && num >= 0;
+        },
+        {
+          message: "Preço deve ser um número válido maior ou igual a zero",
+        },
+      ),
   })
   .refine(
     (data) => {
