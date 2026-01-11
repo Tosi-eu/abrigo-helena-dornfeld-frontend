@@ -175,6 +175,7 @@ export default function EditableTable({
     const routes: Record<string, string> = {
       entries: "/stock/in",
       exits: "/stock/out",
+      stock: "/stock/in",
       medicines: "/medicines/register",
       residents: "/residents/register",
       inputs: "/inputs/register",

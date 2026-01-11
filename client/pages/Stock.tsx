@@ -292,19 +292,6 @@ export default function Stock() {
       <div className="space-y-6">
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => navigate("/stock/in")}
-            className="
-              h-12 px-6 rounded-lg font-semibold
-              bg-green-600 text-white
-              shadow-md hover:bg-green-700 hover:shadow-lg active:bg-green-800 active:shadow-xl
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all ease-in-out duration-200
-            "
-          >
-            Entrada de Estoque
-          </button>
-
-          <button
             onClick={() =>
               navigate("/stock/out", {
                 state: { data: allRawData.length > 0 ? allRawData : undefined },

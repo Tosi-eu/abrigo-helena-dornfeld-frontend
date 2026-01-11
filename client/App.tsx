@@ -89,7 +89,7 @@ const AppContent = () => {
                 }
               />
               <Route
-                path="/Movements"
+                path="/movements"
                 element={
                   <PrivateRoute>
                     <Suspense
