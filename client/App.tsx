@@ -6,12 +6,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import React from "react";
 
 import { AuthProvider } from "./context/auth-context";
 import PrivateRoute from "./pages/PrivateRoute";
 import { NotificationProvider } from "./context/notification.context";
+import { InvalidSessionProvider, useInvalidSession } from "./context/invalid-session.context";
 import { LoadingFallback } from "./components/LoadingFallback";
+import { InvalidSessionModal } from "./components/InvalidSessionModal";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -40,15 +43,25 @@ const RegisterDrawer = lazy(() => import("./pages/RegisterDrawer"));
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <NotificationProvider>
-          <BrowserRouter>
-            <Routes>
+const AppContent = () => {
+  const { showModal, setShowModal } = useInvalidSession();
+
+  // Escutar evento de sessão inválida
+  useEffect(() => {
+    const handleInvalidSession = () => {
+      setShowModal(true);
+    };
+
+    window.addEventListener("invalid-session", handleInvalidSession);
+    return () => {
+      window.removeEventListener("invalid-session", handleInvalidSession);
+    };
+  }, [setShowModal]);
+
+  return (
+    <>
+      <InvalidSessionModal open={showModal} onClose={() => setShowModal(false)} />
+      <Routes>
               <Route path="/" element={<Navigate to="/user/login" replace />} />
               <Route
                 path="/user/login"
@@ -377,8 +390,23 @@ const App = () => (
                   </Suspense>
                 }
               />
-            </Routes>
-          </BrowserRouter>
+      </Routes>
+    </>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AuthProvider>
+        <NotificationProvider>
+          <InvalidSessionProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </InvalidSessionProvider>
         </NotificationProvider>
       </AuthProvider>
     </TooltipProvider>
