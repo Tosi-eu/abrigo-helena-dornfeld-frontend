@@ -123,17 +123,29 @@ async function request(path: string, options: RequestInit = {}) {
   const data = await res.json().catch(() => null);
 
   if (!res.ok) {
-    // Detectar erro 401 (sessão inválida)
+    const rawMsg = data?.error || data?.message || "Erro inesperado";
+    const messageStr = String(rawMsg).toLowerCase();
+    
     if (res.status === 401) {
-      // Disparar evento customizado para o modal de sessão inválida
-      window.dispatchEvent(new CustomEvent("invalid-session"));
+
+      const isAuthError = 
+        messageStr.includes("invalidation") ||
+        messageStr.includes("invalid session") ||
+        messageStr.includes("sessão inválida") ||
+        messageStr.includes("token inválido") ||
+        messageStr.includes("invalid token") ||
+        messageStr.includes("unauthorized") ||
+        messageStr.includes("não autorizado") ||
+        messageStr.includes("authentication") ||
+        messageStr.includes("autenticação");
       
-      // Limpar dados de sessão
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("token");
+      if (isAuthError) {
+        window.dispatchEvent(new CustomEvent("invalid-session"));
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+      }
     }
     
-    const rawMsg = data?.error || data?.message || "Erro inesperado";
     const sanitizedMsg = sanitizeErrorMessage(String(rawMsg));
     throw new Error(sanitizedMsg);
   }

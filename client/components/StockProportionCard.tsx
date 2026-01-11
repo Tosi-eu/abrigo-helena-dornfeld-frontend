@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { StockDistributionItem } from "@/interfaces/interfaces";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface StockProportionCardProps {
   title: string;
@@ -24,10 +24,25 @@ export default function StockProportionCard({
   colors,
 }: StockProportionCardProps) {
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (index: number) => {
+    // Cancelar qualquer timeout pendente
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setActivePieIndex(index);
+  };
 
   const handleMouseLeave = () => {
-    setTimeout(() => {
+    // Cancelar qualquer timeout pendente antes de criar um novo
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
       setActivePieIndex(null);
+      timeoutRef.current = null;
     }, 120);
   };
 
@@ -99,7 +114,7 @@ export default function StockProportionCard({
                   outerRadius={80}
                   activeIndex={activePieIndex ?? undefined}
                   activeShape={renderActiveShape}
-                  onMouseEnter={(_, i) => setActivePieIndex(i)}
+                  onMouseEnter={(_, i) => handleMouseEnter(i)}
                   onMouseLeave={handleMouseLeave}
                 >
                   {data.map((_, i) => (
@@ -112,7 +127,7 @@ export default function StockProportionCard({
                           : 0.45
                       }
                       style={{
-                        transition: "opacity 400ms ease",
+                        transition: "opacity 200ms ease",
                         cursor: "pointer",
                       }}
                     />
