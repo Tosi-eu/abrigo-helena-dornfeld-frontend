@@ -161,7 +161,6 @@ export default function Stock() {
     { key: "description", label: "Descrição", editable: true },
     { key: "expiry", label: "Validade", editable: true },
     { key: "quantity", label: "Quantidade", editable: true },
-    { key: "patient", label: "Residente", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "casela", label: "Casela", editable: false },

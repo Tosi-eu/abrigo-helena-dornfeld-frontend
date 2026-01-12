@@ -324,17 +324,17 @@ export default function EditableTable({
         )}
       </div>
 
-      <div className="overflow-hidden">
-        <table className="w-full min-w-max">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-max table-auto">
           <thead>
             <tr className="bg-sky-100 border-b">
               {columns.map((col) => (
-                <th key={col.key} className="px-4 py-3 text-xs font-semibold">
+                <th key={col.key} className="px-4 py-3 text-xs font-semibold text-center whitespace-nowrap">
                   {col.label}
                 </th>
               ))}
               {showAddons && (
-                <th className="px-4 py-3 text-xs font-semibold sticky right-0 bg-sky-100 z-10 min-w-[120px]">
+                <th className="px-4 py-3 text-xs font-semibold sticky right-0 bg-sky-100 z-10 min-w-[120px] whitespace-nowrap text-center">
                   Ações
                 </th>
               )}
@@ -371,11 +371,13 @@ export default function EditableTable({
                       {columns.map((col) => (
                         <td
                           key={col.key}
-                          className={`px-4 py-3 text-xs text-center ${
+                          className={`px-4 py-4 text-xs text-center align-middle ${
                             !row ? "group-hover:bg-sky-50" : ""
                           }`}
                         >
-                          {renderCell(row, col.key)}
+                          <div className="max-w-[200px] mx-auto">
+                            {renderCell(row, col.key)}
+                          </div>
                         </td>
                       ))}
 
