@@ -6,7 +6,6 @@ import { TableFilter } from "@/components/TableFilter";
 import { getMedicines } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
 import { DEFAULT_PAGE_SIZE } from "@/helpers/paginacao.helper";
-import { MedicineRaw } from "@/interfaces/interfaces";
 
 const columns = [
   { key: "nome", label: "Nome" },
@@ -17,7 +16,7 @@ const columns = [
 ];
 
 export default function Medicines() {
-  const [medicines, setMedicines] = useState<MedicineRaw[]>([]);
+  const [medicines, setMedicines] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -64,8 +63,8 @@ export default function Medicines() {
 
   return (
     <Layout title="Medicamentos">
-      <div className="pt-8">
-        <div className="w-full mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+      <div className="pt-12">
+        <div className="max-w-4xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           <div className="mb-4">
             <TableFilter
               placeholder="Buscar por nome"

@@ -4,7 +4,6 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { getCabinets } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
-import { CabinetRaw } from "@/interfaces/interfaces";
 
 const DEFAULT_LIMIT = 10;
 
@@ -14,7 +13,7 @@ const columns = [
 ];
 
 export default function Cabinets() {
-  const [cabinets, setCabinets] = useState<CabinetRaw[]>([]);
+  const [cabinets, setCabinets] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -47,8 +46,8 @@ export default function Cabinets() {
 
   return (
     <Layout title="Armários">
-      <div className="pt-8">
-        <div className="w-full mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+      <div className="pt-12">
+        <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           {loading ? (
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (

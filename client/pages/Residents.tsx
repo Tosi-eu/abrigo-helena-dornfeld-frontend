@@ -4,7 +4,6 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { toast } from "@/hooks/use-toast.hook";
 import { getResidents } from "@/api/requests";
-import { ResidentRaw } from "@/interfaces/interfaces";
 
 const columns = [
   { key: "name", label: "Nome", editable: true },
@@ -12,7 +11,7 @@ const columns = [
 ];
 
 export default function Resident() {
-  const [residents, setResidents] = useState<ResidentRaw[]>([]);
+  const [residents, setResidents] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,7 +49,7 @@ export default function Resident() {
   return (
     <Layout title="Residentes">
       <div className="pt-8">
-        <div className="w-full mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+        <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           {loading ? (
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (

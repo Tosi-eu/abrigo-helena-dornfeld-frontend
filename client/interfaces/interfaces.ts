@@ -325,37 +325,6 @@ export interface DrawerCategory {
   nome: string;
 }
 
-export interface ResidentRaw {
-  nome: string;
-  casela: number;
-}
-
-export interface MedicineRaw {
-  id: number;
-  nome: string;
-  principio_ativo: string;
-  dosagem: string;
-  unidade_medida: string;
-  estoque_minimo: number;
-}
-
-export interface InputRaw {
-  id: number;
-  nome: string;
-  descricao: string;
-  estoque_minimo: number;
-}
-
-export interface CabinetRaw {
-  numero: number;
-  categoria: string;
-}
-
-export interface DrawerRaw {
-  numero: number;
-  categoria: string;
-}
-
 export interface MedicineFormInitialData {
   id: number | null;
   quantity: number;

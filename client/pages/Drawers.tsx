@@ -4,7 +4,6 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { getDrawers } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
-import { DrawerRaw } from "@/interfaces/interfaces";
 
 const DEFAULT_LIMIT = 10;
 
@@ -14,7 +13,7 @@ const columns = [
 ];
 
 export default function Drawers() {
-  const [drawers, setDrawers] = useState<DrawerRaw[]>([]);
+  const [drawers, setDrawers] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -47,8 +46,8 @@ export default function Drawers() {
 
   return (
     <Layout title="Gavetas">
-      <div className="pt-8">
-        <div className="w-full mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+      <div className="pt-12">
+        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           {loading ? (
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (

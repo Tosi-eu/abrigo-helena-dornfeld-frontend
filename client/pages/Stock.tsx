@@ -3,8 +3,9 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { StockItem, StockItemRaw } from "@/interfaces/interfaces";
+import { StockItem } from "@/interfaces/interfaces";
 import { lazy, Suspense } from "react";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
@@ -17,7 +18,7 @@ import {
   suspendInputFromStock,
   transferStockSector,
 } from "@/api/requests";
-import { ItemStockType, OperationType, SectorType, StockTypeLabels } from "@/utils/enums";
+import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType, StockItemType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import {
@@ -35,7 +36,7 @@ export default function Stock() {
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
-  const [allRawData, setAllRawData] = useState<StockItemRaw[]>([]);
+  const [allRawData, setAllRawData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
@@ -47,7 +48,7 @@ export default function Stock() {
   const [actionLoading, setActionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const formatStockItems = (raw: StockItemRaw[]): StockItem[] => {
+  const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
       id: item.estoque_id,
       name: item.nome || "-",
@@ -69,7 +70,7 @@ export default function Stock() {
       quantityStatus: item.st_quantidade,
       status: item.status || null,
       suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
-      itemType: item.tipo_item as OperationType,
+      itemType: item.tipo_item,
       sector: item.setor,
       lot: item.lote ?? null,
       preco: item.preco ? Number(item.preco) : null,
@@ -105,7 +106,7 @@ export default function Stock() {
         (page, limit) => getStock(page, limit),
         100,
       );
-      setAllRawData(allItems as StockItemRaw[]);
+      setAllRawData(allItems);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -288,7 +289,7 @@ export default function Stock() {
   return (
     <Layout title="Estoque de Medicamentos e Insumos">
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-3 justify-end">
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={() =>
               navigate("/stock/out", {
@@ -320,33 +321,31 @@ export default function Stock() {
           </button>
         </div>
 
-        <div className="pt-8">
-          <div className="w-full mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-            {loading ? (
-              <SkeletonTable rows={8} cols={columns.length} />
-            ) : (
-              <EditableTable
-                data={items}
-                columns={columns}
-                showAddons={true}
-                currentPage={page}
-                hasNextPage={hasNext}
-                onNextPage={() => setPage((p) => p + 1)}
-                onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-                onTransferSector={requestTransferSector}
-                onRemoveIndividual={requestRemoveIndividual}
-                onSuspend={requestSuspend}
-                onResume={requestResume}
-                onDeleteSuccess={() => {
-                  if (!data) {
-                    loadStock(page);
-                    loadAllStock();
-                  }
-                }}
-                entityType="stock"
-              />
-            )}
-          </div>
+        <div className="pt-12">
+          {loading ? (
+            <SkeletonTable rows={8} cols={columns.length} />
+          ) : (
+            <EditableTable
+              data={items}
+              columns={columns}
+              showAddons={true}
+              currentPage={page}
+              hasNextPage={hasNext}
+              onNextPage={() => setPage((p) => p + 1)}
+              onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+              onTransferSector={requestTransferSector}
+              onRemoveIndividual={requestRemoveIndividual}
+              onSuspend={requestSuspend}
+              onResume={requestResume}
+              onDeleteSuccess={() => {
+                if (!data) {
+                  loadStock(page);
+                  loadAllStock();
+                }
+              }}
+              entityType="stock"
+            />
+          )}
         </div>
       </div>
 
