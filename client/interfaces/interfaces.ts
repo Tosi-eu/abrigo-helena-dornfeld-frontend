@@ -126,6 +126,7 @@ export interface StockItemRaw {
   tipo_item: OperationType | string;
   nome: string;
   principio_ativo?: string;
+  descricao?: string | null;
   validade: string;
   quantidade: number;
   minimo?: number;
@@ -137,6 +138,14 @@ export interface StockItemRaw {
   casela_id?: number | null;
   detalhes?: string;
   setor: string;
+  status?: string | null;
+  suspenso_em?: string | null;
+  st_expiracao?: string | null;
+  msg_expiracao?: string | null;
+  st_quantidade?: string | null;
+  msg_quantidade?: string | null;
+  lote?: string | null;
+  preco?: number | null;
 }
 
 export interface StockItem {
@@ -234,6 +243,24 @@ export interface StockStatusItem {
   paciente?: string | null;
   armario_id?: number | null;
   casela_id?: number | null;
+}
+
+export interface StockProportionResponse {
+  percentuais: {
+    medicamentos_geral: number;
+    medicamentos_individual: number;
+    insumos: number;
+    carrinho_medicamentos: number;
+    carrinho_insumos: number;
+  };
+  totais: {
+    medicamentos_geral: number;
+    medicamentos_individual: number;
+    insumos: number;
+    carrinho_medicamentos: number;
+    carrinho_insumos: number;
+    total_geral: number;
+  };
 }
 
 export interface StockDistributionItem {

@@ -61,8 +61,8 @@ export default function Inputs() {
 
   return (
     <Layout title="Insumos">
-      <div className="pt-12">
-        <div className="max-w-3xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+      <div className="pt-8">
+        <div className="w-full mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           <div className="mb-4">
             <TableFilter
               placeholder="Buscar por nome"

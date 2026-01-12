@@ -289,7 +289,7 @@ export default function Stock() {
   return (
     <Layout title="Estoque de Medicamentos e Insumos">
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 justify-end">
           <button
             onClick={() =>
               navigate("/stock/out", {
@@ -321,31 +321,33 @@ export default function Stock() {
           </button>
         </div>
 
-        <div className="pt-12">
-          {loading ? (
-            <SkeletonTable rows={8} cols={columns.length} />
-          ) : (
-            <EditableTable
-              data={items}
-              columns={columns}
-              showAddons={true}
-              currentPage={page}
-              hasNextPage={hasNext}
-              onNextPage={() => setPage((p) => p + 1)}
-              onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-              onTransferSector={requestTransferSector}
-              onRemoveIndividual={requestRemoveIndividual}
-              onSuspend={requestSuspend}
-              onResume={requestResume}
-              onDeleteSuccess={() => {
-                if (!data) {
-                  loadStock(page);
-                  loadAllStock();
-                }
-              }}
-              entityType="stock"
-            />
-          )}
+        <div className="pt-8">
+          <div className="w-full mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+            {loading ? (
+              <SkeletonTable rows={8} cols={columns.length} />
+            ) : (
+              <EditableTable
+                data={items}
+                columns={columns}
+                showAddons={true}
+                currentPage={page}
+                hasNextPage={hasNext}
+                onNextPage={() => setPage((p) => p + 1)}
+                onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+                onTransferSector={requestTransferSector}
+                onRemoveIndividual={requestRemoveIndividual}
+                onSuspend={requestSuspend}
+                onResume={requestResume}
+                onDeleteSuccess={() => {
+                  if (!data) {
+                    loadStock(page);
+                    loadAllStock();
+                  }
+                }}
+                entityType="stock"
+              />
+            )}
+          </div>
         </div>
       </div>
 

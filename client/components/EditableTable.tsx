@@ -324,8 +324,8 @@ export default function EditableTable({
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-max table-auto">
+      <div>
+        <table className="w-full table-auto">
           <thead>
             <tr className="bg-sky-100 border-b">
               {columns.map((col) => (

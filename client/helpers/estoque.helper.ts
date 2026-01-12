@@ -1,16 +1,25 @@
-import { StockDistributionItem } from "@/interfaces/interfaces";
+import { StockDistributionItem, StockProportionResponse } from "@/interfaces/interfaces";
 import { SectorType } from "@/utils/enums";
 
 export function prepareStockDistributionData(
-  proportionRes: any,
+  proportionRes: StockProportionResponse | { data?: StockProportionResponse } | unknown,
   sector: SectorType,
 ): StockDistributionItem[] {
-  const data = proportionRes?.data || proportionRes;
-  const { percentuais, totais } = data || {};
+  let data: StockProportionResponse | null = null;
   
-  if (!percentuais || !totais) {
+  if (proportionRes && typeof proportionRes === 'object') {
+    if ('data' in proportionRes && proportionRes.data) {
+      data = proportionRes.data as StockProportionResponse;
+    } else if ('percentuais' in proportionRes && 'totais' in proportionRes) {
+      data = proportionRes as StockProportionResponse;
+    }
+  }
+  
+  if (!data || !data.percentuais || !data.totais) {
     return [];
   }
+  
+  const { percentuais, totais } = data;
 
   if (sector === SectorType.FARMACIA) {
     return [

@@ -49,7 +49,7 @@ export default function Resident() {
   return (
     <Layout title="Residentes">
       <div className="pt-8">
-        <div className="max-w-5xl mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
+        <div className="w-full mx-auto mt-10 bg-white border border-slate-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
           {loading ? (
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (
