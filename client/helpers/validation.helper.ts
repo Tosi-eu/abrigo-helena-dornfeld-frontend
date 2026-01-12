@@ -173,6 +173,10 @@ export function getErrorMessage(
   error: unknown,
   defaultMessage = "Ocorreu um erro inesperado",
 ): string {
+  if (error instanceof Error && error.name === "InvalidSessionError") {
+    return "";
+  }
+  
   if (error instanceof Error) {
     return error.message || defaultMessage;
   }

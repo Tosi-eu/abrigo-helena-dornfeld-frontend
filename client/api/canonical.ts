@@ -11,6 +11,13 @@ if (!API_BASE_URL) {
   );
 }
 
+export class InvalidSessionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InvalidSessionError";
+  }
+}
+
 function buildQueryString(params?: Record<string, any>): string {
   if (!params) return "";
 
@@ -109,12 +116,10 @@ function sanitizeErrorMessage(message: string): string {
 }
 
 async function request(path: string, options: RequestInit = {}) {
-  const token = sessionStorage.getItem("token");
-
   const res = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: 'include',
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
     ...options,
@@ -127,7 +132,6 @@ async function request(path: string, options: RequestInit = {}) {
     const messageStr = String(rawMsg).toLowerCase();
     
     if (res.status === 401) {
-
       const isAuthError = 
         messageStr.includes("invalidation") ||
         messageStr.includes("invalid session") ||
@@ -142,7 +146,7 @@ async function request(path: string, options: RequestInit = {}) {
       if (isAuthError) {
         window.dispatchEvent(new CustomEvent("invalid-session"));
         sessionStorage.removeItem("user");
-        sessionStorage.removeItem("token");
+        throw new InvalidSessionError("Sessão inválida");
       }
     }
     

@@ -42,6 +42,7 @@ export const MedicineForm = memo(function MedicineForm({
   cabinets,
   drawers,
   onSubmit,
+  isLoading = false,
 }: MedicineFormProps) {
   const navigate = useNavigate();
   const [medicineOpen, setMedicineOpen] = useState(false);
@@ -517,9 +518,15 @@ export const MedicineForm = memo(function MedicineForm({
         </button>
         <button
           type="submit"
-          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 transition-colors"
+          disabled={isLoading}
+          className={cn(
+            "px-5 py-2 bg-sky-600 text-white rounded-lg text-sm transition-colors",
+            isLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-sky-700"
+          )}
         >
-          Confirmar
+          {isLoading ? "Processando..." : "Confirmar"}
         </button>
       </div>
     </form>

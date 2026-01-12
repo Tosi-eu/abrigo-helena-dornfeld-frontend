@@ -1,7 +1,4 @@
 export const authStorage = {
-  getToken: () => sessionStorage.getItem("token"),
-  setToken: (token: string) => sessionStorage.setItem("token", token),
-  clearToken: () => sessionStorage.removeItem("token"),
 
   getUser: () => {
     const user = sessionStorage.getItem("user");
@@ -11,7 +8,6 @@ export const authStorage = {
   clearUser: () => sessionStorage.removeItem("user"),
 
   clearAll: () => {
-    sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
   },
 };

@@ -18,21 +18,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleLogout = useCallback(async () => {
     try {
       await logoutRequest();
+      // O backend limpa o cookie HttpOnly automaticamente
     } catch (err) {
       console.error(err);
     } finally {
       setUser(null);
       sessionStorage.removeItem("user");
-      sessionStorage.removeItem("token");
+      // Token não está mais em sessionStorage (está em cookie HttpOnly)
       cleanupSessionTimeout();
     }
   }, []);
 
   useEffect(() => {
+    // Verificar se há usuário armazenado
+    // O token agora está em cookie HttpOnly (não acessível via JavaScript)
     const storedUser = sessionStorage.getItem("user");
-    const token = sessionStorage.getItem("token");
 
-    if (storedUser && token) {
+    if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
@@ -48,7 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error("Erro ao restaurar sessão:", error);
         sessionStorage.removeItem("user");
-        sessionStorage.removeItem("token");
         setUser(null);
       }
     } else {
@@ -69,8 +70,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setUser(loggedUser);
 
+    // Armazenar apenas user (token agora está em cookie HttpOnly)
     sessionStorage.setItem("user", JSON.stringify(loggedUser));
-    sessionStorage.setItem("token", data.token);
+    // Token não é mais armazenado em sessionStorage (segurança)
 
     initSessionTimeout(
       () => {

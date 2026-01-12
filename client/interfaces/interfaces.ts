@@ -176,6 +176,7 @@ export interface InputFormProps {
   caselas: Patient[];
   cabinets: Cabinet[];
   drawers: Drawer[];
+  isLoading?: boolean;
 
   onSubmit: (data: {
     inputId: number;
@@ -201,6 +202,7 @@ export interface MedicineFormProps {
   cabinets: Cabinet[];
   drawers: Drawer[];
   initialData?: MedicineFormInitialData;
+  isLoading?: boolean;
 
   onSubmit: (data: {
     id: number;

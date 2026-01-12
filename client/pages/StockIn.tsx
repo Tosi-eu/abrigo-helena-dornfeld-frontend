@@ -53,6 +53,7 @@ export default function StockIn() {
   const [caselas, setCaselas] = useState<Patient[]>([]);
   const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -95,6 +96,9 @@ export default function StockIn() {
   }, []);
 
   const handleMedicineSubmit = async (data) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       const payload = {
         tipo: data.stockType,
@@ -155,19 +159,27 @@ export default function StockIn() {
 
       navigate("/stock");
     } catch (err: unknown) {
-      toast({
-        title: "Erro ao registrar",
-        description: getErrorMessage(
-          err,
-          "Não foi possível registrar a entrada.",
-        ),
-        variant: "error",
-        duration: 3000,
-      });
+      const errorMessage = getErrorMessage(
+        err,
+        "Não foi possível registrar a entrada.",
+      );
+      if (errorMessage) {
+        toast({
+          title: "Erro ao registrar",
+          description: errorMessage,
+          variant: "error",
+          duration: 3000,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleInputSubmit = async (data) => {
+    if (isSubmitting) return; // Prevenir duplo clique
+    
+    setIsSubmitting(true);
     try {
       const payload = {
         tipo: data.stockType,
@@ -227,15 +239,20 @@ export default function StockIn() {
 
       navigate("/stock");
     } catch (err: unknown) {
-      toast({
-        title: "Erro ao registrar entrada",
-        description: getErrorMessage(
-          err,
-          "Não foi possível registrar a entrada.",
-        ),
-        variant: "error",
-        duration: 3000,
-      });
+      const errorMessage = getErrorMessage(
+        err,
+        "Não foi possível registrar a entrada.",
+      );
+      if (errorMessage) {
+        toast({
+          title: "Erro ao registrar entrada",
+          description: errorMessage,
+          variant: "error",
+          duration: 3000,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -299,6 +316,7 @@ export default function StockIn() {
             cabinets={cabinets}
             drawers={drawers}
             onSubmit={handleMedicineSubmit}
+            isLoading={isSubmitting}
           />
         )}
 
@@ -309,6 +327,7 @@ export default function StockIn() {
             cabinets={cabinets}
             drawers={drawers}
             onSubmit={handleInputSubmit}
+            isLoading={isSubmitting}
           />
         )}
       </div>
