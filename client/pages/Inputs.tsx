@@ -5,6 +5,7 @@ import { SkeletonTable } from "@/components/SkeletonTable";
 import { TableFilter } from "@/components/TableFilter";
 import { useToast } from "@/hooks/use-toast.hook";
 import { getInputs } from "@/api/requests";
+import { InputRaw } from "@/interfaces/interfaces";
 
 const columns = [
   { key: "nome", label: "Nome", editable: true },
@@ -13,7 +14,7 @@ const columns = [
 ];
 
 export default function Inputs() {
-  const [data, setData] = useState<Record<string, unknown>[]>([]);
+  const [data, setData] = useState<InputRaw[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);

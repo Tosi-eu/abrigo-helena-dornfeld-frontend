@@ -4,6 +4,7 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { toast } from "@/hooks/use-toast.hook";
 import { getResidents } from "@/api/requests";
+import { ResidentRaw } from "@/interfaces/interfaces";
 
 const columns = [
   { key: "name", label: "Nome", editable: true },
@@ -11,7 +12,7 @@ const columns = [
 ];
 
 export default function Resident() {
-  const [residents, setResidents] = useState<Record<string, unknown>[]>([]);
+  const [residents, setResidents] = useState<ResidentRaw[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);

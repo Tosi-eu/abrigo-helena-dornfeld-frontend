@@ -3,9 +3,8 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { StockItem } from "@/interfaces/interfaces";
+import { StockItem, StockItemRaw } from "@/interfaces/interfaces";
 import { lazy, Suspense } from "react";
-import { SkeletonCard } from "@/components/SkeletonCard";
 
 const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
@@ -18,7 +17,7 @@ import {
   suspendInputFromStock,
   transferStockSector,
 } from "@/api/requests";
-import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
+import { ItemStockType, OperationType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType, StockItemType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import {
@@ -36,7 +35,7 @@ export default function Stock() {
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
-  const [allRawData, setAllRawData] = useState<any[]>([]);
+  const [allRawData, setAllRawData] = useState<StockItemRaw[]>([]);
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
@@ -48,7 +47,7 @@ export default function Stock() {
   const [actionLoading, setActionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const formatStockItems = (raw: any[]): StockItem[] => {
+  const formatStockItems = (raw: StockItemRaw[]): StockItem[] => {
     return raw.map((item) => ({
       id: item.estoque_id,
       name: item.nome || "-",
@@ -70,7 +69,7 @@ export default function Stock() {
       quantityStatus: item.st_quantidade,
       status: item.status || null,
       suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
-      itemType: item.tipo_item,
+      itemType: item.tipo_item as OperationType,
       sector: item.setor,
       lot: item.lote ?? null,
       preco: item.preco ? Number(item.preco) : null,
@@ -106,7 +105,7 @@ export default function Stock() {
         (page, limit) => getStock(page, limit),
         100,
       );
-      setAllRawData(allItems);
+      setAllRawData(allItems as StockItemRaw[]);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error

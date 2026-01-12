@@ -4,6 +4,7 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { getCabinets } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
+import { CabinetRaw } from "@/interfaces/interfaces";
 
 const DEFAULT_LIMIT = 10;
 
@@ -13,7 +14,7 @@ const columns = [
 ];
 
 export default function Cabinets() {
-  const [cabinets, setCabinets] = useState<Record<string, unknown>[]>([]);
+  const [cabinets, setCabinets] = useState<CabinetRaw[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);

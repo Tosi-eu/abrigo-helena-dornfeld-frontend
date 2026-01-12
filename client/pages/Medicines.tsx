@@ -6,6 +6,7 @@ import { TableFilter } from "@/components/TableFilter";
 import { getMedicines } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
 import { DEFAULT_PAGE_SIZE } from "@/helpers/paginacao.helper";
+import { MedicineRaw } from "@/interfaces/interfaces";
 
 const columns = [
   { key: "nome", label: "Nome" },
@@ -16,7 +17,7 @@ const columns = [
 ];
 
 export default function Medicines() {
-  const [medicines, setMedicines] = useState<Record<string, unknown>[]>([]);
+  const [medicines, setMedicines] = useState<MedicineRaw[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -4,6 +4,7 @@ import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
 import { getDrawers } from "@/api/requests";
 import { toast } from "@/hooks/use-toast.hook";
+import { DrawerRaw } from "@/interfaces/interfaces";
 
 const DEFAULT_LIMIT = 10;
 
@@ -13,7 +14,7 @@ const columns = [
 ];
 
 export default function Drawers() {
-  const [drawers, setDrawers] = useState<Record<string, unknown>[]>([]);
+  const [drawers, setDrawers] = useState<DrawerRaw[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
