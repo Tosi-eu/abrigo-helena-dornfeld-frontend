@@ -1,5 +1,5 @@
 import {
-  MedicineStockType,
+  ItemStockType,
   MovementType,
   OperationType,
   OriginType,
@@ -110,7 +110,7 @@ export interface MedicineInventory {
   quantity: number;
   expiry: string;
   origin: OriginType;
-  stockType: MedicineStockType;
+  stockType: ItemStockType;
 }
 
 export interface InputInventory {
@@ -126,6 +126,7 @@ export interface StockItemRaw {
   tipo_item: OperationType | string;
   nome: string;
   principio_ativo?: string;
+  descricao?: string | null;
   validade: string;
   quantidade: number;
   minimo?: number;
@@ -137,29 +138,45 @@ export interface StockItemRaw {
   casela_id?: number | null;
   detalhes?: string;
   setor: string;
+  status?: string | null;
+  suspenso_em?: string | null;
+  st_expiracao?: string | null;
+  msg_expiracao?: string | null;
+  st_quantidade?: string | null;
+  msg_quantidade?: string | null;
+  lote?: string | null;
+  preco?: number | null;
 }
 
 export interface StockItem {
   id: number;
   name: string;
-  description: string;
+  description?: string | null;
+  activeSubstance?: string | null;
   expiry: string;
   quantity: number;
   minimumStock?: number;
   patient?: string;
   cabinet?: number | string;
+  drawer?: number | string;
   casela?: string | number;
   itemType: OperationType;
-  stockType: MedicineStockType;
+  stockType: ItemStockType | string;
+  tipo?: string;
   status?: string | null;
   sector: string;
   suspended_at?: Date | null;
+  origin?: string;
+  lot?: string | null;
+  preco?: number | null;
 }
 
 export interface InputFormProps {
   inputs: Input[];
+  caselas: Patient[];
   cabinets: Cabinet[];
   drawers: Drawer[];
+  isLoading?: boolean;
 
   onSubmit: (data: {
     inputId: number;
@@ -170,11 +187,12 @@ export interface InputFormProps {
 
     isEmergencyCart: boolean;
 
-    caselaId?: number;
+    casela?: number;
     validity?: Date | null;
     stockType: string;
     sector: string;
     lot?: string | null;
+    preco?: string;
   }) => void;
 }
 
@@ -184,6 +202,7 @@ export interface MedicineFormProps {
   cabinets: Cabinet[];
   drawers: Drawer[];
   initialData?: MedicineFormInitialData;
+  isLoading?: boolean;
 
   onSubmit: (data: {
     id: number;
@@ -198,6 +217,9 @@ export interface MedicineFormProps {
     origin: string;
     stockType: string;
     sector: string;
+    lot?: string | null;
+    observacao?: string;
+    preco?: string;
   }) => void;
 }
 
@@ -223,6 +245,24 @@ export interface StockStatusItem {
   paciente?: string | null;
   armario_id?: number | null;
   casela_id?: number | null;
+}
+
+export interface StockProportionResponse {
+  percentuais: {
+    medicamentos_geral: number;
+    medicamentos_individual: number;
+    insumos: number;
+    carrinho_medicamentos: number;
+    carrinho_insumos: number;
+  };
+  totais: {
+    medicamentos_geral: number;
+    medicamentos_individual: number;
+    insumos: number;
+    carrinho_medicamentos: number;
+    carrinho_insumos: number;
+    total_geral: number;
+  };
 }
 
 export interface StockDistributionItem {
@@ -290,7 +330,7 @@ export interface DrawerCategory {
 export interface MedicineFormInitialData {
   id: number | null;
   quantity: number;
-  stockType: MedicineStockType;
+  stockType: ItemStockType;
   expirationDate: Date | null;
   resident: string;
   casela: number | null;

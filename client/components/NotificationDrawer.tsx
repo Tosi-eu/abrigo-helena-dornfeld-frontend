@@ -45,6 +45,7 @@ export function NotificationDrawer() {
         title: "Erro",
         description: "Não foi possível carregar as notificações.",
         variant: "error",
+        duration: 3000,
       });
 
       if (!append) {
@@ -71,13 +72,14 @@ export function NotificationDrawer() {
   ) => {
     try {
       await updateNotification(id, { status });
-      toast({ title: message, variant: "success" });
+      toast({ title: message, variant: "success", duration: 3000 });
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch {
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a notificação.",
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -98,13 +100,20 @@ export function NotificationDrawer() {
         {mode === "list" && (
           <>
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-              {items.length === 0 ? (
-                <div className="flex items-center justify-center h-[70vh] text-slate-400 text-center">
-                  Nenhuma notificação pendente.
-                </div>
-              ) : (
-                <AnimatePresence mode="popLayout">
-                  {items.map((n) => (
+              <AnimatePresence mode="popLayout" initial={false}>
+                {items.length === 0 ? (
+                  <motion.div
+                    key="empty-state"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center justify-center h-[70vh] text-slate-400 text-center"
+                  >
+                    Nenhuma notificação pendente.
+                  </motion.div>
+                ) : (
+                  items.map((n) => (
                     <motion.div
                       key={n.id}
                       initial={{ opacity: 0, y: -10 }}
@@ -147,9 +156,9 @@ export function NotificationDrawer() {
                         }}
                       />
                     </motion.div>
-                  ))}
-                </AnimatePresence>
-              )}
+                  ))
+                )}
+              </AnimatePresence>
 
               {items.length > 0 && hasNext && (
                 <div className="text-center py-2">

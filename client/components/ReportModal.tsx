@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -15,10 +15,11 @@ import {
   Loader2,
   User,
   Syringe,
+  Users,
 } from "lucide-react";
-import { createStockPDF } from "./StockReporter";
 import { pdf } from "@react-pdf/renderer";
-import { getReport } from "@/api/requests";
+import { getReport, getResidents } from "@/api/requests";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 type StatusType = "idle" | "loading" | "success" | "error";
 
@@ -27,9 +28,17 @@ interface ReportModalProps {
   onClose: () => void;
 }
 
+interface Resident {
+  casela: number;
+  name: string;
+}
+
 export default function ReportModal({ open, onClose }: ReportModalProps) {
   const [status, setStatus] = useState<StatusType>("idle");
   const [selectedReports, setSelectedReports] = useState<string[]>([]);
+  const [selectedResident, setSelectedResident] = useState<number | null>(null);
+  const [residents, setResidents] = useState<Resident[]>([]);
+  const [loadingResidents, setLoadingResidents] = useState(false);
 
   const reportOptions = [
     { value: "insumos", label: "Insumos", icon: Package },
@@ -41,20 +50,54 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       label: "Insumos e Medicamentos",
       icon: Check,
     },
+    {
+      value: "residente_consumo",
+      label: "Consumo por Residente",
+      icon: Users,
+    },
   ];
+
+  useEffect(() => {
+    if (open && selectedReports[0] === "residente_consumo") {
+      loadResidents();
+    }
+  }, [open, selectedReports]);
+
+  const loadResidents = async () => {
+    setLoadingResidents(true);
+    try {
+      const residentsList = await fetchAllPaginated<Resident>(getResidents);
+      setResidents(residentsList);
+    } catch (error) {
+      console.error("Erro ao carregar residentes:", error);
+      setResidents([]);
+    } finally {
+      setLoadingResidents(false);
+    }
+  };
 
   const handleSelectReport = (value: string) => {
     setSelectedReports([value]);
+    if (value !== "residente_consumo") {
+      setSelectedResident(null);
+    }
   };
 
   const handleGenerate = async () => {
     if (!selectedReports.length) return;
+    
+    if (selectedReports[0] === "residente_consumo" && !selectedResident) {
+      return;
+    }
+
     setStatus("loading");
 
     try {
       const tipo = selectedReports[0];
+      const casela = tipo === "residente_consumo" ? selectedResident : undefined;
 
-      const data = await getReport(tipo);
+      const data = await getReport(tipo, casela || undefined);
+      const { createStockPDF } = await import("./StockReporter");
       const doc = createStockPDF(tipo, data);
 
       const blob = await pdf(doc).toBlob();
@@ -62,7 +105,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = `relatorio-${tipo}.pdf`;
+      link.download = `relatorio-${tipo}${casela ? `-casela-${casela}` : ''}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -77,8 +120,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
   const handleClose = () => {
     setStatus("idle");
     setSelectedReports([]);
+    setSelectedResident(null);
     onClose();
   };
+
+  const showResidentSelector = selectedReports[0] === "residente_consumo";
 
   const iconSize = 100;
 
@@ -133,6 +179,44 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                   );
                 })}
 
+                {showResidentSelector && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Selecione o Residente:
+                    </label>
+                    {loadingResidents ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-5 h-5 animate-spin text-sky-600" />
+                        <span className="ml-2 text-sm text-gray-600">
+                          Carregando residentes...
+                        </span>
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedResident || ""}
+                        onChange={(e) =>
+                          setSelectedResident(
+                            e.target.value ? parseInt(e.target.value) : null
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                      >
+                        <option value="">Selecione um residente...</option>
+                        {residents.map((resident) => (
+                          <option key={resident.casela} value={resident.casela}>
+                            Casela {resident.casela} - {resident.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </motion.div>
+                )}
+
                 <div className="mt-6 flex justify-center">
                   <Button
                     className="
@@ -144,7 +228,10 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                       transition
                       disabled:opacity-50
                     "
-                    disabled={selectedReports.length === 0}
+                    disabled={
+                      selectedReports.length === 0 ||
+                      (showResidentSelector && !selectedResident)
+                    }
                     onClick={handleGenerate}
                   >
                     Gerar

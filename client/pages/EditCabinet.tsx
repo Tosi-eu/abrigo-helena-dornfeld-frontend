@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import { Controller } from "react-hook-form";
 import Layout from "@/components/Layout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { cabinetSchema } from "@/schemas/cabinet.schema";
 
 import {
   getCabinets,
@@ -32,12 +36,22 @@ export default function EditCabinet() {
   const [categories, setCategories] = useState<{ id: number; nome: string }[]>(
     [],
   );
-  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    id: 0,
-    categoryId: 0,
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useFormWithZod(cabinetSchema, {
+    defaultValues: {
+      numero: "",
+      categoria_id: "",
+    },
   });
+
+  const watchedNumero = watch("numero");
 
   useEffect(() => {
     getCabinets()
@@ -47,6 +61,7 @@ export default function EditCabinet() {
           title: "Erro ao carregar armários",
           description: "Não foi possível buscar os armários do servidor.",
           variant: "error",
+          duration: 3000,
         }),
       );
   }, []);
@@ -59,6 +74,7 @@ export default function EditCabinet() {
           title: "Erro",
           description: "Não foi possível carregar as categorias.",
           variant: "error",
+          duration: 3000,
         }),
       );
   }, []);
@@ -72,70 +88,66 @@ export default function EditCabinet() {
           (c) => c.nome === cab.categoria,
         );
 
-        setFormData({
-          id: cab.numero,
-          categoryId: matchedCategory?.id ?? 0,
+        reset({
+          numero: cab.numero.toString(),
+          categoria_id: matchedCategory?.id.toString() ?? "",
         });
       }
     }
-  }, [item, cabinets, categories]);
+  }, [item, cabinets, categories, reset]);
 
-  const handleSelectChange = (value: string) => {
-    const cab = cabinets.find((c) => c.numero === Number(value));
-
-    if (!cab) {
-      setFormData({ id: 0, categoryId: 0 });
-      return;
+  useEffect(() => {
+    if (watchedNumero && cabinets.length > 0 && categories.length > 0) {
+      const cab = cabinets.find((c) => c.numero === Number(watchedNumero));
+      if (cab) {
+        const matchedCategory = categories.find(
+          (c) => c.nome === cab.categoria,
+        );
+        if (matchedCategory) {
+          reset({
+            numero: watchedNumero,
+            categoria_id: matchedCategory.id.toString(),
+          });
+        }
+      }
     }
+  }, [watchedNumero, cabinets, categories, reset]);
 
-    const matchedCategory = categories.find((c) => c.nome === cab.categoria);
-
-    setFormData({
-      id: cab.numero,
-      categoryId: matchedCategory?.id ?? 0,
-    });
-  };
-
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSave = async () => {
-    if (!formData.id || !formData.categoryId) {
+  const onSubmit = async (data: { numero: string; categoria_id: string }) => {
+    if (!data.numero || !data.categoria_id) {
       toast({
         title: "Campos obrigatórios",
         description: "Selecione um armário e uma categoria.",
         variant: "warning",
+        duration: 3000,
       });
       return;
     }
 
-    setLoading(true);
-
     try {
-      await updateCabinet(formData.id, {
-        numero: formData.id,
-        categoria_id: formData.categoryId,
+      await updateCabinet(Number(data.numero), {
+        numero: Number(data.numero),
+        categoria_id: Number(data.categoria_id),
       });
 
       toast({
         title: "Armário atualizado",
-        description: `O armário ${formData.id} foi atualizado com sucesso.`,
+        description: `O armário ${data.numero} foi atualizado com sucesso.`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/cabinets");
-    } catch {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao editar armário",
-        description: "Não foi possível atualizar o armário.",
+        description: getErrorMessage(
+          err,
+          "Não foi possível atualizar o armário.",
+        ),
         variant: "error",
+        duration: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -149,61 +161,85 @@ export default function EditCabinet() {
         </CardHeader>
 
         <CardContent>
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Armário</Label>
-
-              <Select
-                value={formData.id ? String(formData.id) : ""}
-                onValueChange={handleSelectChange}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Selecione o armário" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {cabinets.map((c) => (
-                    <SelectItem key={c.numero} value={String(c.numero)}>
-                      Armário {c.numero} ({c.categoria})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="numero">Armário</Label>
+              <Controller
+                name="numero"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="bg-white" id="numero">
+                        <SelectValue placeholder="Selecione o armário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cabinets.map((c) => (
+                          <SelectItem key={c.numero} value={String(c.numero)}>
+                            Armário {c.numero} ({c.categoria})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.numero && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.numero.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              />
             </div>
 
-            {formData.id !== 0 && (
+            {watchedNumero && (
               <>
                 <div className="space-y-1">
-                  <Label>Número do armário</Label>
+                  <Label htmlFor="numero-display">Número do armário</Label>
                   <Input
+                    id="numero-display"
                     className="bg-slate-100 text-slate-500"
                     type="number"
-                    value={formData.id}
-                    onChange={(e) => handleChange("id", Number(e.target.value))}
-                    disabled={loading}
+                    value={watchedNumero}
+                    disabled
                     readOnly
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label>Categoria</Label>
-
-                  <Select
-                    value={String(formData.categoryId)}
-                    onValueChange={(v) => handleChange("categoryId", Number(v))}
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Selecione a categoria" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="categoria_id">Categoria</Label>
+                  <Controller
+                    name="categoria_id"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger className="bg-white" id="categoria_id">
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={String(c.id)}>
+                                {c.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.categoria_id && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.categoria_id.message}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4">
@@ -211,18 +247,18 @@ export default function EditCabinet() {
                     type="button"
                     variant="outline"
                     onClick={() => navigate("/cabinets")}
-                    disabled={loading}
+                    disabled={isSubmitting}
                     className="rounded-lg"
                   >
                     Cancelar
                   </Button>
 
                   <Button
-                    onClick={handleSave}
-                    disabled={loading}
+                    type="submit"
+                    disabled={isSubmitting}
                     className="bg-sky-600 hover:bg-sky-700 text-white rounded-lg"
                   >
-                    {loading ? "Salvando..." : "Salvar Alterações"}
+                    {isSubmitting ? "Salvando..." : "Salvar Alterações"}
                   </Button>
                 </div>
               </>

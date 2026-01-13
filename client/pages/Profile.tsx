@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import Layout from "@/components/Layout";
 import { updateUser } from "@/api/requests";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { authStorage } from "@/helpers/auth.helper";
+import { profileSchema, type ProfileFormData } from "@/schemas/profile.schema";
 
 import {
   Card,
@@ -20,63 +25,70 @@ import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
 export default function Profile() {
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const [currentEmail, setCurrentEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [userId, setUserId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      currentLogin: "",
+      currentPassword: "",
+      login: "",
+      password: "",
+    },
+  });
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        const u = JSON.parse(raw);
-        setCurrentEmail(u?.login || "");
-        setNewEmail(u?.login || "");
-        setUserId(u.id || null);
+      const user = authStorage.getUser();
+      if (user) {
+        reset({
+          currentLogin: user.login || "",
+          currentPassword: "",
+          login: user.login || "",
+          password: "",
+        });
       }
-    } catch (e) {
-      console.error("Erro ao ler usuário do localStorage", e);
-    }
-  }, []);
+    } catch (e) {}
+  }, [reset]);
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userId)
-      return toast({ title: "Usuário não identificado", variant: "error" });
-    setLoading(true);
-
+  const onSubmit = async (data: ProfileFormData) => {
     try {
-      if (!currentPassword)
-        throw new Error("Senha atual é obrigatória para autenticar");
-      if (!newPassword) throw new Error("Informe a nova senha");
-
-      const data = await updateUser(userId, {
-        login: newEmail,
-        password: newPassword,
-        currentLogin: currentEmail,
-        currentPassword,
+      const response = await updateUser({
+        login: data.login.trim(),
+        password: data.password,
+        currentLogin: data.currentLogin.trim(),
+        currentPassword: data.currentPassword,
       });
 
-      localStorage.setItem("user", JSON.stringify(data));
+      authStorage.setUser(response);
 
-      toast({ title: "Perfil atualizado", variant: "success" });
-      setCurrentPassword("");
-      setNewPassword("");
-      setCurrentEmail(data?.login || "");
-      setNewEmail(data?.login || "");
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "error" });
-    } finally {
-      setLoading(false);
+      toast({ title: "Perfil atualizado", variant: "success", duration: 3000 });
+
+      reset({
+        currentLogin: response.login || "",
+        currentPassword: "",
+        login: response.login || "",
+        password: "",
+      });
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    authStorage.clearAll();
     navigate("/user/login");
   };
 
@@ -91,17 +103,23 @@ export default function Profile() {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleUpdate} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="currentEmail">E-mail atual</Label>
+                  <Label htmlFor="currentLogin">E-mail atual</Label>
                   <Input
-                    id="currentEmail"
+                    id="currentLogin"
                     type="email"
-                    value={currentEmail}
-                    onChange={(e) => setCurrentEmail(e.target.value)}
-                    required
+                    {...register("currentLogin")}
+                    maxLength={255}
+                    disabled={isSubmitting}
+                    aria-invalid={errors.currentLogin ? "true" : "false"}
                   />
+                  {errors.currentLogin && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.currentLogin.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -109,32 +127,55 @@ export default function Profile() {
                   <Input
                     id="currentPassword"
                     type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
+                    {...register("currentPassword")}
+                    maxLength={128}
+                    disabled={isSubmitting}
+                    aria-invalid={errors.currentPassword ? "true" : "false"}
                   />
+                  {errors.currentPassword && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.currentPassword.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="newEmail">Novo e-mail</Label>
+                  <Label htmlFor="login">Novo e-mail</Label>
                   <Input
-                    id="newEmail"
+                    id="login"
                     type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    required
+                    {...register("login")}
+                    maxLength={255}
+                    disabled={isSubmitting}
+                    aria-invalid={errors.login ? "true" : "false"}
                   />
+                  {errors.login && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.login.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="newPassword">Nova senha</Label>
+                  <Label htmlFor="password">Nova senha</Label>
                   <Input
-                    id="newPassword"
+                    id="password"
                     type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
+                    {...register("password")}
+                    maxLength={128}
+                    disabled={isSubmitting}
+                    className={
+                      errors.password
+                        ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                        : ""
+                    }
+                    aria-invalid={errors.password ? "true" : "false"}
                   />
+                  {errors.password && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -142,9 +183,9 @@ export default function Profile() {
                 <Button
                   type="submit"
                   className="w-full bg-sky-600 hover:bg-sky-700"
-                  disabled={loading}
+                  disabled={isSubmitting}
                 >
-                  Salvar
+                  {isSubmitting ? "Salvando..." : "Salvar"}
                 </Button>
 
                 <Button

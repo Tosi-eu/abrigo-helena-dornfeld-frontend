@@ -1,8 +1,12 @@
 import Layout from "@/components/Layout";
 import { useState, useEffect } from "react";
+import { Controller } from "react-hook-form";
 import { MedicineForm } from "@/components/MedicineForm";
 import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { stockInSchema, type StockInFormData } from "@/schemas/stock-in.schema";
 import {
   Input,
   Medicine,
@@ -23,16 +27,33 @@ import {
 import { useNavigate } from "react-router-dom";
 import { MovementType, OperationType } from "@/utils/enums";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectValue,
+  SelectItem,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function StockIn() {
-  const [operationType, setOperationType] = useState<
-    OperationType | "Selecione"
-  >("Selecione");
+  const {
+    control,
+    watch,
+    formState: { errors },
+  } = useFormWithZod(stockInSchema, {
+    defaultValues: {
+      operationType: undefined,
+    },
+  });
+
+  const operationType = watch("operationType");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [inputs, setInputs] = useState<Input[]>([]);
   const [caselas, setCaselas] = useState<Patient[]>([]);
   const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -54,8 +75,16 @@ export default function StockIn() {
         setCaselas(residents as Patient[]);
         setCabinets(cabinets as Cabinet[]);
         setDrawers(drawers as Drawer[]);
-      } catch (err) {
-        console.error("Erro ao carregar dados da tela de entrada:", err);
+      } catch (err: unknown) {
+        toast({
+          title: "Erro ao carregar dados",
+          description: getErrorMessage(
+            err,
+            "Não foi possível carregar os dados.",
+          ),
+          variant: "error",
+        duration: 3000,
+        });
         setMedicines([]);
         setInputs([]);
         setCaselas([]);
@@ -67,6 +96,9 @@ export default function StockIn() {
   }, []);
 
   const handleMedicineSubmit = async (data) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       const payload = {
         tipo: data.stockType,
@@ -79,9 +111,31 @@ export default function StockIn() {
         origem: data.origin ?? null,
         setor: data.sector,
         lote: data.lot ?? null,
+        observacao: data.observacao ?? null,
+        preco: data.preco ? Number(data.preco) : null,
       };
 
-      await createStockIn(payload);
+      const response = await createStockIn(payload);
+
+      console.log(response);
+
+      if (response?.data?.priceSearchResult?.found) {
+        const priceResult = response.data.priceSearchResult;
+          const precoTotal = priceResult.price * data.quantity;
+          toast({
+            title: "Preço encontrado automaticamente!",
+            description: `Preço unitário: R$ ${priceResult.price.toFixed(2).replace(".", ",")}. Total: R$ ${precoTotal.toFixed(2).replace(".", ",")} (${priceResult.price.toFixed(2).replace(".", ",")} × ${data.quantity}). Verifique e edite se necessário.`,
+            variant: "success",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Preço não encontrado",
+            description: "Não foi possível encontrar o preço automaticamente. Edite o item de estoque para adicionar o preço manualmente.",
+            variant: "warning",
+            duration: 5000,
+          });
+        }
 
       await createMovement({
         tipo: MovementType.IN,
@@ -100,19 +154,32 @@ export default function StockIn() {
         title: "Entrada registrada com sucesso!",
         description: "Medicamento adicionado ao estoque.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/stock");
-    } catch (err: any) {
-      toast({
-        title: "Erro ao registrar",
-        description: err.message,
-        variant: "error",
-      });
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(
+        err,
+        "Não foi possível registrar a entrada.",
+      );
+      if (errorMessage) {
+        toast({
+          title: "Erro ao registrar",
+          description: errorMessage,
+          variant: "error",
+          duration: 3000,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleInputSubmit = async (data) => {
+    if (isSubmitting) return; // Prevenir duplo clique
+    
+    setIsSubmitting(true);
     try {
       const payload = {
         tipo: data.stockType,
@@ -120,12 +187,35 @@ export default function StockIn() {
         quantidade: data.quantity,
         armario_id: data.cabinetId ?? null,
         gaveta_id: data.drawerId ?? null,
+        casela_id: data.casela ?? null,
         validade: data.validity,
         setor: data.sector,
         lote: data.lot ?? null,
+        preco: data.preco ? Number(data.preco) * data.quantity : null,
       };
 
-      await createStockIn(payload);
+      const response = await createStockIn(payload);
+
+      // Mostrar toast sobre busca de preço se o preço não foi informado
+      if (!data.preco && response?.data?.priceSearchResult) {
+        const priceResult = response.data.priceSearchResult;
+        if (priceResult.found && priceResult.price) {
+          const precoTotal = priceResult.price * data.quantity;
+          toast({
+            title: "Preço encontrado automaticamente!",
+            description: `Preço unitário: R$ ${priceResult.price.toFixed(2).replace(".", ",")}. Total: R$ ${precoTotal.toFixed(2).replace(".", ",")} (${priceResult.price.toFixed(2).replace(".", ",")} × ${data.quantity}). Verifique e edite se necessário.`,
+            variant: "success",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Preço não encontrado",
+            description: "Não foi possível encontrar o preço automaticamente. Edite o item de estoque para adicionar o preço manualmente.",
+            variant: "warning",
+            duration: 5000,
+          });
+        }
+      }
 
       await createMovement({
         tipo: MovementType.IN,
@@ -133,6 +223,7 @@ export default function StockIn() {
         insumo_id: data.inputId,
         armario_id: data.cabinetId ?? null,
         gaveta_id: data.drawerId ?? null,
+        casela_id: data.casela ?? null,
         quantidade: data.quantity,
         validade: data.validity,
         setor: data.sector,
@@ -143,15 +234,25 @@ export default function StockIn() {
         title: "Entrada registrada!",
         description: "Insumo adicionado ao estoque.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/stock");
-    } catch (err: any) {
-      toast({
-        title: "Erro ao registrar entrada",
-        description: err.message,
-        variant: "error",
-      });
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(
+        err,
+        "Não foi possível registrar a entrada.",
+      );
+      if (errorMessage) {
+        toast({
+          title: "Erro ao registrar entrada",
+          description: errorMessage,
+          variant: "error",
+          duration: 3000,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -178,24 +279,34 @@ export default function StockIn() {
           Registrar Entrada
         </h2>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Tipo de entrada
-          </label>
-          <select
-            value={operationType === "Selecione" ? "" : operationType}
-            onChange={(e) => setOperationType(e.target.value as OperationType)}
-            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 hover:border-slate-400"
-          >
-            <option value="" disabled hidden>
-              Selecione
-            </option>
-
-            <option value={OperationType.MEDICINE}>
-              {OperationType.MEDICINE}
-            </option>
-            <option value={OperationType.INPUT}>{OperationType.INPUT}</option>
-          </select>
+        <div className="space-y-1">
+          <Label htmlFor="operationType">Tipo de entrada</Label>
+          <Controller
+            name="operationType"
+            control={control}
+            render={({ field }) => (
+              <>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="bg-white" id="operationType">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={OperationType.MEDICINE}>
+                      {OperationType.MEDICINE}
+                    </SelectItem>
+                    <SelectItem value={OperationType.INPUT}>
+                      {OperationType.INPUT}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.operationType && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.operationType.message}
+                  </p>
+                )}
+              </>
+            )}
+          />
         </div>
 
         {operationType === OperationType.MEDICINE && (
@@ -205,15 +316,18 @@ export default function StockIn() {
             cabinets={cabinets}
             drawers={drawers}
             onSubmit={handleMedicineSubmit}
+            isLoading={isSubmitting}
           />
         )}
 
         {operationType === OperationType.INPUT && (
           <InputForm
             inputs={canonicalInputs}
+            caselas={caselas}
             cabinets={cabinets}
             drawers={drawers}
             onSubmit={handleInputSubmit}
+            isLoading={isSubmitting}
           />
         )}
       </div>

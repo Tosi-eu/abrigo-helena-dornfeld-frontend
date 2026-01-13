@@ -3,7 +3,6 @@ import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
 
-// Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
 export type ChartConfig = {
@@ -65,6 +64,19 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+function escapeCSSValue(value: string): string {
+  return value
+    .replace(/[<>]/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/expression\(/gi, "")
+    .replace(/url\(/gi, "")
+    .replace(/@import/gi, "");
+}
+
+function sanitizeChartId(id: string): string {
+  return id.replace(/[^a-zA-Z0-9_-]/g, "");
+}
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([_, config]) => config.theme || config.color,
@@ -74,25 +86,37 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
+  const sanitizedId = sanitizeChartId(id);
+
+  const cssContent = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const cssVars = colorConfig
+        .map(([key, itemConfig]) => {
+          const color =
+            itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+            itemConfig.color;
+          if (!color) return null;
+          const escapedColor = escapeCSSValue(String(color));
+          const escapedKey = key.replace(/[^a-zA-Z0-9_-]/g, "");
+          return `  --color-${escapedKey}: ${escapedColor};`;
+        })
+        .filter(Boolean)
+        .join("\n");
+
+      if (!cssVars) return "";
+      return `${prefix} [data-chart="${sanitizedId}"] {\n${cssVars}\n}`;
+    })
+    .filter(Boolean)
+    .join("\n\n");
+
+  if (!cssContent) {
+    return null;
+  }
+
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
-          )
-          .join("\n"),
+        __html: cssContent,
       }}
     />
   );
@@ -314,7 +338,6 @@ const ChartLegendContent = React.forwardRef<
 );
 ChartLegendContent.displayName = "ChartLegend";
 
-// Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,

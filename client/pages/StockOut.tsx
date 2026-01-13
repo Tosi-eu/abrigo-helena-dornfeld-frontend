@@ -2,12 +2,10 @@ import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
-import { useNavigate } from "react-router-dom";
-import {
-  createMovement,
-  createStockOut,
-  getStock as apiGetStock,
-} from "@/api/requests";
+import { useNavigate, useLocation } from "react-router-dom";
+import { createMovement, createStockOut, getStock } from "@/api/requests";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { stockOutQuantitySchema } from "@/schemas/stock-out.schema";
 
 import { AnimatePresence, motion } from "framer-motion";
 import Pagination from "@/components/Pagination";
@@ -39,6 +37,8 @@ const UI_PAGE_SIZE = 6;
 export default function StockOut() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { data: passedData } = location.state || {};
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<StockItemRaw[]>([]);
@@ -57,27 +57,32 @@ export default function StockOut() {
     OperationType | "Selecione"
   >("Selecione");
   const [selected, setSelected] = useState<StockItemRaw | null>(null);
-  const [quantity, setQuantity] = useState("");
+
+  const quantityForm = useFormWithZod(stockOutQuantitySchema, {
+    defaultValues: {
+      quantity: 0,
+    },
+  });
 
   async function fetchStock() {
     setLoading(true);
     try {
-      const allItems = await fetchAllPaginated(
-        (page, limit) =>
-          apiGetStock(
-            page,
-            limit,
-            operationType !== "Selecione" ? operationType : undefined,
-          ),
-        100,
-      );
-      setItems(allItems as StockItemRaw[]);
+      if (passedData && passedData.length > 0) {
+        const filtered =
+          operationType !== "Selecione"
+            ? passedData.filter(
+                (item: StockItemRaw) => item.tipo_item === operationType,
+              )
+            : passedData;
+        setItems(filtered as StockItemRaw[]);
+      }
     } catch (err) {
       console.error(err);
       toast({
         title: "Erro ao carregar estoque",
         description: "Não foi possível carregar os dados.",
         variant: "error",
+        duration: 3000,
       });
     } finally {
       setLoading(false);
@@ -145,13 +150,20 @@ export default function StockOut() {
 
   const handleSelectItem = (item: StockItemRaw | null) => {
     setSelected(item);
-    if (item) setStep(StockWizardSteps.QUANTIDADE);
+    if (item) {
+      quantityForm.reset({ quantity: 0 });
+      setStep(StockWizardSteps.QUANTIDADE);
+    }
   };
 
   const handleConfirm = async () => {
     if (!selected) return;
-    const qty = Number(quantity);
-    if (!qty || qty <= 0) return;
+
+    const isValid = await quantityForm.trigger();
+    if (!isValid) return;
+
+    const qty = quantityForm.getValues("quantity");
+    if (!qty || qty <= 0 || qty > selected.quantidade) return;
 
     try {
       await createStockOut({
@@ -178,6 +190,7 @@ export default function StockOut() {
         title: "Saída registrada!",
         description: "Item removido do estoque.",
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/stock");
@@ -186,6 +199,7 @@ export default function StockOut() {
         title: "Erro ao registrar saída",
         description: err.message || "Erro inesperado.",
         variant: "error",
+        duration: 3000,
       });
     }
   };
@@ -335,7 +349,6 @@ export default function StockOut() {
         </div>
       </div>
 
-      {/* Wizard Steps */}
       <div className="relative overflow-hidden max-w-7xl mx-auto bg-white border border-slate-400 rounded-xl p-10 px-16 shadow-sm mt-10">
         {step !== StockWizardSteps.TIPO && (
           <button
@@ -404,9 +417,16 @@ export default function StockOut() {
               >
                 <QuantityStep
                   item={selected}
-                  quantity={quantity}
-                  setQuantity={setQuantity}
-                  onBack={() => setStep(StockWizardSteps.ITENS)}
+                  quantity={quantityForm.watch("quantity") || 0}
+                  quantityRegister={quantityForm.register("quantity", {
+                    valueAsNumber: true,
+                  })}
+                  quantityErrors={quantityForm.formState.errors}
+                  isSubmitting={quantityForm.formState.isSubmitting}
+                  onBack={() => {
+                    quantityForm.reset();
+                    setStep(StockWizardSteps.ITENS);
+                  }}
                   onConfirm={handleConfirm}
                 />
               </motion.div>

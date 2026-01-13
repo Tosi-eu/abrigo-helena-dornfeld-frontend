@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
@@ -9,36 +9,33 @@ import {
   getDrawerCategories,
 } from "@/api/requests";
 import { DrawerCategory } from "@/interfaces/interfaces";
-import ConfirmationModal from "@/components/ConfirmationModal";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function RegisterDrawer() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const [numero, setNumero] = useState<number>(0);
   const [category, setCategory] = useState("");
 
   const [categories, setCategories] = useState<DrawerCategory[]>([]);
-  const [page, setPage] = useState(1);
-
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
   useEffect(() => {
-    loadCategories(page);
-  }, [page]);
+    loadCategories();
+  }, []);
 
-  const loadCategories = async (p: number) => {
+  const loadCategories = async () => {
     try {
-      const res = await getDrawerCategories(p, 20);
+      const res = await getDrawerCategories(1, 100);
       setCategories(res.data);
     } catch (err) {
-      console.error(err);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as categorias de gaveta.",
@@ -47,10 +44,15 @@ export default function RegisterDrawer() {
     }
   };
 
+  const findCategoryByName = (name: string) =>
+    categories.find(
+      (c) => c.nome.toLowerCase() === name.trim().toLowerCase(),
+    );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (numero <= 0) {
+    if (!numero || numero <= 0) {
       toast({
         title: "Campos obrigatórios",
         description: "Informe um número de gaveta válido.",
@@ -68,26 +70,25 @@ export default function RegisterDrawer() {
       return;
     }
 
-    const existing = categories.find((c) => c.nome === category);
+    const existingCategory = findCategoryByName(category);
 
-    if (!existing) {
+    if (!existingCategory) {
       setModalOpen(true);
       return;
     }
 
-    await createDrawerFlow(existing.id);
+    await createDrawerFlow(existingCategory.id);
   };
 
   const createDrawerFlow = async (categoryId?: number) => {
     setSaving(true);
-    try {
-      let finalCategoryId: number;
 
-      if (categoryId) {
-        finalCategoryId = categoryId;
-      } else {
-        const createRes = await createDrawerCategory(category);
-        finalCategoryId = createRes?.id;
+    try {
+      let finalCategoryId = categoryId;
+
+      if (!finalCategoryId) {
+        const res = await createDrawerCategory(category.trim());
+        finalCategoryId = res.id;
       }
 
       await createDrawer(numero, finalCategoryId);
@@ -99,8 +100,7 @@ export default function RegisterDrawer() {
       });
 
       navigate("/drawers");
-    } catch (err: any) {
-      console.error(err);
+    } catch (err) {
       toast({
         title: "Erro ao cadastrar",
         description: "Não foi possível cadastrar a gaveta.",
@@ -114,7 +114,7 @@ export default function RegisterDrawer() {
 
   return (
     <Layout title="Cadastrar Gaveta">
-      <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
+      <Card className="max-w-lg mx-auto mt-20 rounded-lg border border-slate-200 shadow-md">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800 text-center">
             Cadastro de Gaveta
@@ -127,13 +127,13 @@ export default function RegisterDrawer() {
               <Label>Número da Gaveta</Label>
               <Input
                 type="number"
-                value={numero}
+                placeholder="Ex: 4"
+                value={numero || ""}
                 onChange={(e) =>
                   setNumero(
-                    e.target.value === "0" ? 0 : parseInt(e.target.value),
+                    e.target.value === "" ? 0 : Number(e.target.value),
                   )
                 }
-                placeholder="Ex: 4"
                 disabled={saving}
               />
             </div>
@@ -147,6 +147,7 @@ export default function RegisterDrawer() {
                 placeholder="Selecione ou digite uma categoria"
                 disabled={saving}
               />
+
               <datalist id="drawer-categories">
                 {categories.map((c) => (
                   <option key={c.id} value={c.nome} />

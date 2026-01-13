@@ -1,6 +1,11 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { AuthContextType, LoggedUser } from "@/interfaces/interfaces";
 import { login as apiLogin, logoutRequest } from "@/api/requests";
+import {
+  initSessionTimeout,
+  cleanupSessionTimeout,
+  resetInactivityTimer,
+} from "@/helpers/session-timeout.helper";
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined,
@@ -10,16 +15,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<LoggedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+  const handleLogout = useCallback(async () => {
+    try {
+      await logoutRequest();
+      // O backend limpa o cookie HttpOnly automaticamente
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUser(null);
+      sessionStorage.removeItem("user");
+      // Token não está mais em sessionStorage (está em cookie HttpOnly)
+      cleanupSessionTimeout();
+    }
+  }, []);
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+  useEffect(() => {
+    // Verificar se há usuário armazenado
+    // O token agora está em cookie HttpOnly (não acessível via JavaScript)
+    const storedUser = sessionStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        
+        initSessionTimeout(
+          () => {
+            handleLogout();
+          },
+          () => {
+            console.warn("Sua sessão expirará em breve por inatividade");
+          },
+        );
+      } catch (error) {
+        console.error("Erro ao restaurar sessão:", error);
+        sessionStorage.removeItem("user");
+        setUser(null);
+      }
+    } else {
+      setUser(null);
     }
 
     setLoading(false);
-  }, []);
+
+    return () => {
+      cleanupSessionTimeout();
+    };
+  }, [handleLogout]);
 
   const login = async (login: string, password: string) => {
     const data = await apiLogin(login, password);
@@ -28,20 +70,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setUser(loggedUser);
 
-    localStorage.setItem("user", JSON.stringify(loggedUser));
-    localStorage.setItem("token", data.token);
+    // Armazenar apenas user (token agora está em cookie HttpOnly)
+    sessionStorage.setItem("user", JSON.stringify(loggedUser));
+    // Token não é mais armazenado em sessionStorage (segurança)
+
+    initSessionTimeout(
+      () => {
+        handleLogout();
+      },
+      () => {
+        console.warn("Sua sessão expirará em breve por inatividade");
+      },
+    );
   };
 
   const logout = async () => {
-    try {
-      await logoutRequest();
-      setUser(null);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-    } catch (err) {
-      console.error(err);
-    }
+    await handleLogout();
   };
+
+  useEffect(() => {
+    if (user) {
+      resetInactivityTimer();
+    }
+  }, [user]);
 
   if (loading) return null;
 

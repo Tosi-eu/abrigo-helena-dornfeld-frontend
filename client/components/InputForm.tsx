@@ -1,12 +1,19 @@
 import "react-datepicker/dist/react-datepicker.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
+import { Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { ptBR } from "date-fns/locale";
 
 import { InputFormProps } from "@/interfaces/interfaces";
 import { toast } from "@/hooks/use-toast.hook";
-import { InputStockType, StockTypeLabels, SectorType } from "@/utils/enums";
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import {
+  inputFormSchema,
+  type InputFormData,
+} from "@/schemas/input-form.schema";
+import { ItemStockType, StockTypeLabels, SectorType } from "@/utils/enums";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,94 +31,106 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function InputForm({
+export const InputForm = memo(function InputForm({
   inputs,
+  caselas,
   cabinets,
   drawers,
   onSubmit,
+  isLoading = false,
 }: InputFormProps) {
-  const [formData, setFormData] = useState({
-    inputId: null as number | null,
-    category: "",
-    quantity: "",
-    stockType: "" as InputStockType | "",
-    validity: null as Date | null,
-    cabinetId: null as number | null,
-    drawerId: null as number | null,
-    sector: "" as SectorType | "",
-    lot: "",
+  const navigate = useNavigate();
+  const [inputOpen, setInputOpen] = useState(false);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormWithZod(inputFormSchema, {
+    defaultValues: {
+      inputId: undefined,
+      quantity: undefined,
+      stockType: undefined,
+      validity: null,
+      casela: null,
+      cabinetId: null,
+      drawerId: null,
+      sector: SectorType.FARMACIA,
+      lot: null,
+      preco: "",
+    },
   });
 
-  const [inputOpen, setInputOpen] = useState(false);
-  const navigate = useNavigate();
+  const stockType = watch("stockType");
+  const selectedInputId = watch("inputId");
+  const casela = watch("casela");
 
-  const selectedInput = inputs.find((i) => i.id === formData.inputId);
-  const isEmergencyCart = formData.stockType === InputStockType.CARRINHO;
-
-  const updateField = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const selectedInput = inputs.find((i) => i.id === selectedInputId);
+  const isEmergencyCart = stockType === ItemStockType.CARRINHO;
+  const isIndividual = stockType === ItemStockType.INDIVIDUAL;
+  const selectedCasela = caselas.find((c) => c.casela === casela);
 
   useEffect(() => {
     if (isEmergencyCart) {
-      setFormData((prev) => ({
-        ...prev,
-        sector: SectorType.ENFERMAGEM,
-      }));
+      setValue("sector", SectorType.ENFERMAGEM);
     }
-  }, [isEmergencyCart]);
+  }, [isEmergencyCart, setValue]);
 
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, cabinetId: null, drawerId: null }));
-  }, [formData.stockType]);
+    setValue("cabinetId", null);
+    setValue("drawerId", null);
+  }, [stockType, setValue]);
+
+  useEffect(() => {
+    if (!isIndividual) {
+      setValue("casela", null);
+    }
+  }, [stockType, setValue, isIndividual]);
 
   const handleInputSelect = (id: number) => {
     const selected = inputs.find((i) => i.id === id);
-    updateField("inputId", id);
-    updateField("category", selected?.description ?? "");
+    setValue("inputId", id);
     setInputOpen(false);
   };
 
-  const handleSubmit = () => {
-    const quantity = Number(formData.quantity);
-
-    if (!formData.inputId) {
-      toast({ title: "Selecione um insumo", variant: "error" });
-      return;
+  const onFormSubmit = async (data: InputFormData) => {
+    try {
+      onSubmit({
+        inputId: data.inputId,
+        quantity: data.quantity,
+        isEmergencyCart,
+        drawerId: data.drawerId ?? undefined,
+        cabinetId: data.cabinetId ?? undefined,
+        casela: data.casela ?? undefined,
+        validity: data.validity ?? undefined,
+        stockType: data.stockType,
+        sector: data.sector,
+        lot: data.lot ?? undefined,
+        preco: data.preco && data.preco.trim() !== "" ? data.preco : undefined,
+      });
+    } catch (err: unknown) {
+      toast({
+        title: "Erro ao processar formulário",
+        description: getErrorMessage(
+          err,
+          "Não foi possível processar o formulário.",
+        ),
+        variant: "error",
+        duration: 3000,
+      });
     }
-
-    if (isNaN(quantity) || quantity <= 0) {
-      toast({ title: "Informe uma quantidade válida", variant: "error" });
-      return;
-    }
-
-    if (isEmergencyCart && !formData.drawerId) {
-      toast({ title: "Selecione uma gaveta", variant: "error" });
-      return;
-    }
-
-    if (!isEmergencyCart && !formData.cabinetId) {
-      toast({ title: "Selecione um armário", variant: "error" });
-      return;
-    }
-
-    onSubmit({
-      inputId: formData.inputId,
-      quantity,
-      isEmergencyCart,
-      drawerId: formData.drawerId || undefined,
-      cabinetId: formData.cabinetId || undefined,
-      validity: formData.validity,
-      stockType: formData.stockType,
-      sector: formData.sector,
-      lot: formData.lot,
-    });
   };
 
   const storageOptions = isEmergencyCart ? drawers : cabinets;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8">
+    <form
+      onSubmit={handleSubmit(onFormSubmit)}
+      className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 space-y-8"
+    >
       <div className="bg-sky-50 px-4 py-3 rounded-lg border border-sky-100">
         <h2 className="text-lg font-semibold text-slate-800">
           Informações do Insumo
@@ -120,128 +139,246 @@ export function InputForm({
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          Nome do Insumo
+          Nome do Insumo <span className="text-red-500">*</span>
         </label>
-        <Popover open={inputOpen} onOpenChange={setInputOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              {selectedInput ? selectedInput.name : "Selecione o insumo"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Buscar insumo..." />
-              <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
-              <CommandGroup>
-                {inputs.map((i) => (
-                  <CommandItem
-                    key={i.id}
-                    value={i.name}
-                    onSelect={() => handleInputSelect(i.id)}
+        <Controller
+          name="inputId"
+          control={control}
+          render={({ field }) => (
+            <>
+              <Popover open={inputOpen} onOpenChange={setInputOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-between",
+                      errors.inputId && "border-red-500",
+                    )}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        formData.inputId === i.id ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    {i.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                    {selectedInput ? selectedInput.name : "Selecione o insumo"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar insumo..." />
+                    <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {inputs.map((i) => (
+                        <CommandItem
+                          key={i.id}
+                          value={i.name}
+                          onSelect={() => {
+                            field.onChange(i.id);
+                            handleInputSelect(i.id);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedInputId === i.id
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          {i.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {errors.inputId && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.inputId.message}
+                </p>
+              )}
+            </>
+          )}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            Quantidade
+            Quantidade <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
-            value={formData.quantity}
-            onChange={(e) => updateField("quantity", e.target.value)}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+            {...register("quantity", { valueAsNumber: true })}
+            min={1}
+            max={999999}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              errors.quantity ? "border-red-500" : "border-slate-300",
+            )}
           />
+          {errors.quantity && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.quantity.message}
+            </p>
+          )}
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
             Validade
           </label>
-          <DatePicker
-            selected={formData.validity}
-            onChange={(date: Date | null) => updateField("validity", date)}
-            locale={ptBR}
-            dateFormat="dd/MM/yyyy"
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          <Controller
+            name="validity"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                selected={field.value}
+                onChange={(date: Date | null) => field.onChange(date)}
+                locale={ptBR}
+                dateFormat="dd/MM/yyyy"
+                placeholderText="dd/mm/aaaa"
+                allowSameDay={true}
+                strictParsing={true}
+                showPopperArrow={false}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                calendarClassName="react-datepicker-calendar"
+              />
+            )}
           />
         </div>
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          Tipo de Estoque
+          Tipo de Estoque <span className="text-red-500">*</span>
         </label>
         <select
-          value={formData.stockType}
-          onChange={(e) =>
-            updateField("stockType", e.target.value as InputStockType)
-          }
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+          {...register("stockType")}
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+            errors.stockType ? "border-red-500" : "border-slate-300",
+          )}
         >
           <option value="" disabled hidden>
             Selecione
           </option>
-          {Object.values(InputStockType).map((t) => (
+          {Object.values(ItemStockType).map((t) => (
             <option key={t} value={t}>
               {StockTypeLabels[t]}
             </option>
           ))}
         </select>
+        {errors.stockType && (
+          <p className="text-sm text-red-500 mt-1">
+            {errors.stockType.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-slate-700">Casela</label>
+          <select
+            {...register("casela", { valueAsNumber: true })}
+            disabled={!isIndividual}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              errors.casela ? "border-red-500" : "border-slate-300",
+              !isIndividual
+                ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                : "bg-white",
+            )}
+          >
+            <option value="">Selecione</option>
+            {caselas.map((c) => (
+              <option key={c.casela} value={c.casela}>
+                {c.casela}
+              </option>
+            ))}
+          </select>
+          {errors.casela && (
+            <p className="text-sm text-red-500 mt-1">{errors.casela.message}</p>
+          )}
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-slate-700">
+            Residente
+          </label>
+          <input
+            type="text"
+            value={selectedCasela?.name || ""}
+            readOnly
+            disabled={!isIndividual}
+            className={cn(
+              "w-full border rounded-lg px-3 py-2 text-sm",
+              !isIndividual
+                ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200"
+                : "bg-slate-50 border-slate-200",
+            )}
+          />
+        </div>
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          {isEmergencyCart ? "Gaveta" : "Armário"}
+          {isEmergencyCart ? "Gaveta" : "Armário"}{" "}
+          <span className="text-red-500">*</span>
         </label>
-        <select
-          value={
-            isEmergencyCart
-              ? (formData.drawerId ?? "")
-              : (formData.cabinetId ?? "")
-          }
-          onChange={(e) =>
-            isEmergencyCart
-              ? updateField("drawerId", Number(e.target.value))
-              : updateField("cabinetId", Number(e.target.value))
-          }
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-        >
-          <option value="" disabled hidden>
-            Selecione
-          </option>
-          {storageOptions.map((s) => (
-            <option key={s.numero} value={s.numero}>
-              {s.numero}
-            </option>
-          ))}
-        </select>
+        {isEmergencyCart ? (
+          <>
+            <select
+              {...register("drawerId", { valueAsNumber: true })}
+              className={cn(
+                "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+                errors.drawerId ? "border-red-500" : "border-slate-300",
+              )}
+            >
+              <option value="">Selecione</option>
+              {storageOptions.map((s) => (
+                <option key={s.numero} value={s.numero}>
+                  {s.numero}
+                </option>
+              ))}
+            </select>
+            {errors.drawerId && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.drawerId.message}
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <select
+              {...register("cabinetId", { valueAsNumber: true })}
+              className={cn(
+                "w-full border rounded-lg px-3 py-2 text-sm bg-white",
+                errors.cabinetId ? "border-red-500" : "border-slate-300",
+              )}
+            >
+              <option value="">Selecione</option>
+              {storageOptions.map((s) => (
+                <option key={s.numero} value={s.numero}>
+                  {s.numero}
+                </option>
+              ))}
+            </select>
+            {errors.cabinetId && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.cabinetId.message}
+              </p>
+            )}
+          </>
+        )}
       </div>
 
       <div className="grid gap-2">
-        <label className="text-sm font-semibold text-slate-700">Setor</label>
+        <label className="text-sm font-semibold text-slate-700">
+          Setor <span className="text-red-500">*</span>
+        </label>
         <select
-          value={formData.sector}
-          onChange={(e) => updateField("sector", e.target.value as SectorType)}
+          {...register("sector")}
           disabled={isEmergencyCart}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
-            isEmergencyCart
-              ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-              : "border-slate-300",
+            errors.sector ? "border-red-500" : "border-slate-300",
+            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
           )}
         >
           <option value="" disabled hidden>
@@ -253,17 +390,55 @@ export function InputForm({
             </option>
           ))}
         </select>
+        {errors.sector && (
+          <p className="text-sm text-red-500 mt-1">{errors.sector.message}</p>
+        )}
       </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">Lote</label>
         <input
           type="text"
-          value={formData.lot}
-          onChange={(e) => updateField("lot", e.target.value)}
+          {...register("lot")}
+          maxLength={100}
           placeholder="Ex: L2024-01"
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm",
+            errors.lot ? "border-red-500" : "border-slate-300",
+          )}
         />
+        {errors.lot && (
+          <p className="text-sm text-red-500 mt-1">{errors.lot.message}</p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-700">
+          Preço (R$)
+          <span className="text-xs font-normal text-slate-500 ml-1">
+            (Opcional)
+          </span>
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          max="999999.99"
+          {...register("preco")}
+          placeholder="0.00"
+          className={cn(
+            "w-full border rounded-lg px-3 py-2 text-sm",
+            errors.preco ? "border-red-500" : "border-slate-300",
+          )}
+        />
+        {errors.preco && (
+          <p className="text-sm text-red-500 mt-1">
+            {errors.preco.message}
+          </p>
+        )}
+        <p className="text-xs text-slate-500">
+          Preço unitário de compra do insumo. O sistema calculará automaticamente o preço total (unitário × quantidade).
+        </p>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
@@ -275,13 +450,18 @@ export function InputForm({
           Cancelar
         </button>
         <button
-          type="button"
-          onClick={handleSubmit}
-          className="px-5 py-2 bg-sky-600 text-white rounded-lg text-sm"
+          type="submit"
+          disabled={isLoading}
+          className={cn(
+            "px-5 py-2 bg-sky-600 text-white rounded-lg text-sm transition-colors",
+            isLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-sky-700"
+          )}
         >
-          Confirmar
+          {isLoading ? "Processando..." : "Confirmar"}
         </button>
       </div>
-    </div>
+    </form>
   );
-}
+});

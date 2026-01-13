@@ -1,17 +1,13 @@
 export const authStorage = {
-  getToken: () => localStorage.getItem("token"),
-  setToken: (token: string) => localStorage.setItem("token", token),
-  clearToken: () => localStorage.removeItem("token"),
 
   getUser: () => {
-    const user = localStorage.getItem("user");
+    const user = sessionStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   },
-  setUser: (user: any) => localStorage.setItem("user", JSON.stringify(user)),
-  clearUser: () => localStorage.removeItem("user"),
+  setUser: (user: any) => sessionStorage.setItem("user", JSON.stringify(user)),
+  clearUser: () => sessionStorage.removeItem("user"),
 
   clearAll: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
   },
 };

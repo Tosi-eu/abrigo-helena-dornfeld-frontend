@@ -1,11 +1,25 @@
-import { StockDistributionItem } from "@/interfaces/interfaces";
+import { StockDistributionItem, StockProportionResponse } from "@/interfaces/interfaces";
 import { SectorType } from "@/utils/enums";
 
 export function prepareStockDistributionData(
-  proportionRes: any,
+  proportionRes: StockProportionResponse | { data?: StockProportionResponse } | unknown,
   sector: SectorType,
 ): StockDistributionItem[] {
-  const { percentuais, totais } = proportionRes;
+  let data: StockProportionResponse | null = null;
+  
+  if (proportionRes && typeof proportionRes === 'object') {
+    if ('data' in proportionRes && proportionRes.data) {
+      data = proportionRes.data as StockProportionResponse;
+    } else if ('percentuais' in proportionRes && 'totais' in proportionRes) {
+      data = proportionRes as StockProportionResponse;
+    }
+  }
+  
+  if (!data || !data.percentuais || !data.totais) {
+    return [];
+  }
+  
+  const { percentuais, totais } = data;
 
   if (sector === SectorType.FARMACIA) {
     return [
@@ -27,21 +41,37 @@ export function prepareStockDistributionData(
     ];
   }
 
-  return [
-    {
-      name: "Medicamentos no Carrinho",
-      value: percentuais.carrinho_medicamentos,
-      rawValue: totais.carrinho_medicamentos,
-    },
-    {
-      name: "Insumos no Carrinho",
-      value: percentuais.carrinho_insumos,
-      rawValue: totais.carrinho_insumos,
-    },
-    {
-      name: "Medicamentos em Caselas",
-      value: percentuais.medicamentos_individual,
-      rawValue: totais.medicamentos_individual,
-    },
-  ];
+  const items: StockDistributionItem[] = [];
+
+  items.push({
+    name: "Medicamentos em Estoque Geral",
+    value: percentuais.medicamentos_geral || 0,
+    rawValue: totais.medicamentos_geral || 0,
+  });
+
+  items.push({
+    name: "Medicamentos em Caselas",
+    value: percentuais.medicamentos_individual || 0,
+    rawValue: totais.medicamentos_individual || 0,
+  });
+
+  items.push({
+    name: "Insumos em Estoque Geral",
+    value: percentuais.insumos || 0,
+    rawValue: totais.insumos || 0,
+  });
+
+  items.push({
+    name: "Medicamentos no Carrinho",
+    value: percentuais.carrinho_medicamentos || 0,
+    rawValue: totais.carrinho_medicamentos || 0,
+  });
+
+  items.push({
+    name: "Insumos no Carrinho",
+    value: percentuais.carrinho_insumos || 0,
+    rawValue: totais.carrinho_insumos || 0,
+  });
+
+  return items.filter(item => item.value > 0 || item.rawValue > 0);
 }

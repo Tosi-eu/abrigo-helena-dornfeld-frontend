@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
@@ -9,36 +9,34 @@ import {
   getCabinetCategories,
 } from "@/api/requests";
 import { CabinetCategory } from "@/interfaces/interfaces";
-import ConfirmationModal from "@/components/ConfirmationModal";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function RegisterCabinet() {
-  const [id, setId] = useState<number>(0);
-  const [category, setCategory] = useState("");
-
-  const [categories, setCategories] = useState<CabinetCategory[]>([]);
-  const [page, setPage] = useState(1);
-
-  const [saving, setSaving] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadCategories(page);
-  }, [page]);
+  const [numero, setNumero] = useState<number>(0);
+  const [category, setCategory] = useState("");
 
-  const loadCategories = async (p: number) => {
+  const [categories, setCategories] = useState<CabinetCategory[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
     try {
-      const res = await getCabinetCategories(p, 100);
+      const res = await getCabinetCategories(1, 100);
       setCategories(res.data);
     } catch (err) {
-      console.error(err);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as categorias.",
@@ -47,10 +45,15 @@ export default function RegisterCabinet() {
     }
   };
 
+  const findCategoryByName = (name: string) =>
+    categories.find(
+      (c) => c.nome.toLowerCase() === name.trim().toLowerCase(),
+    );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (id === 0) {
+    if (!numero || numero <= 0) {
       toast({
         title: "Campos obrigatórios",
         description: "Informe um número de armário válido.",
@@ -68,39 +71,37 @@ export default function RegisterCabinet() {
       return;
     }
 
-    const existing = categories.find((c) => c.nome === category);
+    const existingCategory = findCategoryByName(category);
 
-    if (!existing) {
+    if (!existingCategory) {
       setModalOpen(true);
       return;
     }
 
-    await createCabinetFlow(existing.id);
+    await createCabinetFlow(existingCategory.id);
   };
 
   const createCabinetFlow = async (categoryId?: number) => {
     setSaving(true);
-    try {
-      let finalCategoryId: number;
 
-      if (categoryId) {
-        finalCategoryId = categoryId;
-      } else {
-        const createRes = await createCabinetCategory(category);
-        finalCategoryId = createRes?.id;
+    try {
+      let finalCategoryId = categoryId;
+
+      if (!finalCategoryId) {
+        const res = await createCabinetCategory(category.trim());
+        finalCategoryId = res.id;
       }
 
-      await createCabinet(id, finalCategoryId);
+      await createCabinet(numero, finalCategoryId);
 
       toast({
         title: "Armário criado",
-        description: `O armário ${id} foi cadastrado com sucesso.`,
+        description: `O armário ${numero} foi cadastrado com sucesso.`,
         variant: "success",
       });
 
       navigate("/cabinets");
-    } catch (err: any) {
-      console.error(err);
+    } catch (err) {
       toast({
         title: "Erro ao cadastrar",
         description: "Não foi possível cadastrar o armário.",
@@ -114,7 +115,7 @@ export default function RegisterCabinet() {
 
   return (
     <Layout title="Cadastrar Armário">
-      <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
+      <Card className="max-w-lg mx-auto mt-20 rounded-lg border border-slate-200 shadow-md">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800 text-center">
             Cadastro de Armário
@@ -127,11 +128,13 @@ export default function RegisterCabinet() {
               <Label>Número do Armário</Label>
               <Input
                 type="number"
-                value={id}
-                onChange={(e) =>
-                  setId(e.target.value === "0" ? 0 : parseInt(e.target.value))
-                }
                 placeholder="Ex: 4"
+                value={numero || ""}
+                onChange={(e) =>
+                  setNumero(
+                    e.target.value === "" ? 0 : Number(e.target.value),
+                  )
+                }
                 disabled={saving}
               />
             </div>
@@ -145,6 +148,7 @@ export default function RegisterCabinet() {
                 placeholder="Selecione ou digite uma categoria"
                 disabled={saving}
               />
+
               <datalist id="categories">
                 {categories.map((c) => (
                   <option key={c.id} value={c.nome} />

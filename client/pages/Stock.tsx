@@ -1,18 +1,25 @@
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
+import { SkeletonTable } from "@/components/SkeletonTable";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
-import ReportModal from "@/components/ReportModal";
+import { lazy, Suspense } from "react";
+import { SkeletonCard } from "@/components/SkeletonCard";
+
+const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
   getStock,
   removeIndividualMedicineFromStock,
   resumeMedicineFromStock,
   suspendMedicineFromStock,
+  removeIndividualInputFromStock,
+  resumeInputFromStock,
+  suspendInputFromStock,
   transferStockSector,
 } from "@/api/requests";
-import { MedicineStockType, SectorType, StockTypeLabels } from "@/utils/enums";
-import { StockActionType } from "@/interfaces/types";
+import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
+import { StockActionType, StockItemType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import {
   actionConfig,
@@ -20,14 +27,16 @@ import {
   actionTitles,
 } from "@/helpers/toaster.helper";
 import { toast } from "@/hooks/use-toast.hook";
+import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 export default function Stock() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data } = location.state || {};
+  const { data, filter } = location.state || {};
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
+  const [allRawData, setAllRawData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
@@ -37,18 +46,21 @@ export default function Stock() {
     row: StockItem | null;
   }>({ type: null, row: null });
   const [actionLoading, setActionLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
       id: item.estoque_id,
       name: item.nome || "-",
-      description: item.principio_ativo || item.descricao || "-",
+      activeSubstance: item.principio_ativo || "-",
+      description: item.descricao || "-",
       expiry: item.validade || "-",
       quantity: Number(item.quantidade) || 0,
       cabinet: item.armario_id ?? "-",
       drawer: item.gaveta_id ?? "-",
       casela: item.casela_id ?? "-",
-      stockType: StockTypeLabels[item.tipo as MedicineStockType] ?? item.tipo,
+      stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
+      tipo: item.tipo,
       patient: item.paciente || "-",
       origin: item.origem || "-",
       minimumStock: item.minimo || 0,
@@ -61,57 +73,94 @@ export default function Stock() {
       itemType: item.tipo_item,
       sector: item.setor,
       lot: item.lote ?? null,
+      preco: item.preco ? Number(item.preco) : null,
     }));
   };
 
   async function loadStock(pageToLoad: number) {
+    setLoading(true);
     try {
-      if (data) {
-        setItems(formatStockItems(data));
-        setHasNext(false);
-        return;
-      }
-
       const res = await getStock(pageToLoad, limit);
 
       setItems(formatStockItems(res.data));
       setHasNext(res.hasNext);
-    } catch (err) {
-      console.error("Erro ao buscar estoque:", err);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os itens do estoque.";
+      toast({
+        title: "Erro ao carregar estoque",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadAllStock() {
+    try {
+      const allItems = await fetchAllPaginated(
+        (page, limit) => getStock(page, limit),
+        100,
+      );
+      setAllRawData(allItems);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar todos os itens do estoque.";
+      toast({
+        title: "Erro ao carregar dados",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
     }
   }
 
   useEffect(() => {
     async function init() {
-      if (data) {
-        setItems(formatStockItems(data));
+      setLoading(true);
+
+      if (data && Array.isArray(data)) {
+        if (data.length > 0) {
+          setItems(formatStockItems(data));
+        } else {
+          setItems([]);
+        }
         setHasNext(false);
+        setLoading(false);
+        try {
+          await loadAllStock();
+        } catch (err) {
+          console.error("Error loading all stock:", err);
+        }
         return;
       }
 
       await loadStock(1);
+      await loadAllStock();
     }
 
     init();
   }, []);
 
   useEffect(() => {
-    if (!data) {
+    if ((!data || !Array.isArray(data)) && page > 1) {
       loadStock(page);
     }
   }, [page]);
 
   const columns = [
-    { key: "stockType", label: "Tipo de Estoque", editable: false },
+    { key: "stockType", label: "Tipo", editable: false },
     { key: "name", label: "Nome", editable: true },
-    {
-      key: "description",
-      label: "Descrição / Princípio Ativo",
-      editable: true,
-    },
+    { key: "activeSubstance", label: "P. Ativo", editable: true },
+    { key: "description", label: "Descrição", editable: true },
     { key: "expiry", label: "Validade", editable: true },
     { key: "quantity", label: "Quantidade", editable: true },
-    { key: "patient", label: "Residente", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "casela", label: "Casela", editable: false },
@@ -153,15 +202,6 @@ export default function Stock() {
     setConfirmOpen(true);
   };
 
-  const updateItemLocally = (
-    id: number,
-    updater: (item: StockItem) => StockItem,
-  ) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? updater(item) : item)),
-    );
-  };
-
   const handleConfirmAction = async () => {
     if (!pendingAction.row || !pendingAction.type) return;
 
@@ -171,69 +211,70 @@ export default function Stock() {
 
     try {
       if (type === "remove") {
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          patient: "-",
-          casela: "-",
-        }));
-
-        await removeIndividualMedicineFromStock(row.id);
+        if (row.itemType === "medicamento") {
+          await removeIndividualMedicineFromStock(row.id);
+        } else if (row.itemType === "insumo") {
+          await removeIndividualInputFromStock(row.id);
+        }
       }
 
       if (type === "suspend") {
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          status: "suspended",
-          suspended_at: new Date(),
-        }));
-
-        await suspendMedicineFromStock(row.id);
+        if (row.itemType === "medicamento") {
+          await suspendMedicineFromStock(row.id);
+        } else if (row.itemType === "insumo") {
+          await suspendInputFromStock(row.id);
+        }
       }
 
       if (type === "resume") {
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          status: "active",
-          suspended_at: null,
-        }));
-
-        await resumeMedicineFromStock(row.id);
+        if (row.itemType === "medicamento") {
+          await resumeMedicineFromStock(row.id);
+        } else if (row.itemType === "insumo") {
+          await resumeInputFromStock(row.id);
+        }
       }
 
       if (type === "transfer") {
         const nextSector =
           row.sector === "farmacia" ? "enfermagem" : "farmacia";
 
-        updateItemLocally(row.id, (item) => ({
-          ...item,
-          sector: nextSector,
-        }));
-
         await transferStockSector({
           estoque_id: row.id,
           setor: nextSector as SectorType,
+          itemType: row.itemType as StockItemType,
         });
       }
 
+      await loadStock(page);
+      await loadAllStock();
+
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
-        toast({ title: messages.success, variant: "success" });
+        toast({ title: messages.success, variant: "success", duration: 3000 });
       } else {
         toast({
           title: actionMessages[type].success,
           variant: "success",
+          duration: 3000,
         });
       }
-    } catch (err) {
-      console.error("Erro ao executar ação", err);
+    } catch (err: any) {
+      const errorMessage =
+        err?.message || "Ocorreu um erro ao executar a ação.";
 
       if (type === "transfer") {
         const messages = actionMessages.transfer(row);
-        toast({ title: messages.error, variant: "error" });
+        toast({
+          title: messages.error,
+          description: errorMessage,
+          variant: "error",
+        });
       } else {
         toast({
           title: actionMessages[type].error,
+          description: errorMessage,
           variant: "error",
+          duration: 3000,
         });
       }
 
@@ -250,20 +291,11 @@ export default function Stock() {
       <div className="space-y-6">
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => navigate("/stock/in")}
-            className="
-              h-12 px-6 rounded-lg font-semibold
-              bg-green-600 text-white
-              shadow-md hover:bg-green-700 hover:shadow-lg active:bg-green-800 active:shadow-xl
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all ease-in-out duration-200
-            "
-          >
-            Entrada de Estoque
-          </button>
-
-          <button
-            onClick={() => navigate("/stock/out")}
+            onClick={() =>
+              navigate("/stock/out", {
+                state: { data: allRawData.length > 0 ? allRawData : undefined },
+              })
+            }
             className="
               h-12 px-6 rounded-lg font-semibold
               bg-red-600 text-white
@@ -290,7 +322,9 @@ export default function Stock() {
         </div>
 
         <div className="pt-12">
-          <>
+          {loading ? (
+            <SkeletonTable rows={8} cols={columns.length} />
+          ) : (
             <EditableTable
               data={items}
               columns={columns}
@@ -303,9 +337,15 @@ export default function Stock() {
               onRemoveIndividual={requestRemoveIndividual}
               onSuspend={requestSuspend}
               onResume={requestResume}
+              onDeleteSuccess={() => {
+                if (!data) {
+                  loadStock(page);
+                  loadAllStock();
+                }
+              }}
               entityType="stock"
             />
-          </>
+          )}
         </div>
       </div>
 
@@ -323,10 +363,12 @@ export default function Stock() {
         onCancel={() => setConfirmOpen(false)}
       />
 
-      <ReportModal
-        open={reportModalOpen}
-        onClose={() => setReportModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <ReportModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+        />
+      </Suspense>
     </Layout>
   );
 }

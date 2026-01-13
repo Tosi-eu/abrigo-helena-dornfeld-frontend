@@ -4,8 +4,10 @@ import clsx from "clsx";
 
 interface Props {
   item: StockItemRaw | null;
-  quantity: string;
-  setQuantity: (q: string) => void;
+  quantity: number;
+  quantityRegister: any;
+  quantityErrors: { quantity?: { message?: string } };
+  isSubmitting: boolean;
   onBack: () => void;
   onConfirm: () => void;
 }
@@ -13,15 +15,16 @@ interface Props {
 export default function QuantityStep({
   item,
   quantity,
-  setQuantity,
+  quantityRegister,
+  quantityErrors,
+  isSubmitting,
   onBack,
   onConfirm,
 }: Props) {
   if (!item) return null;
 
-  const numericQuantity = Number(quantity);
-  const exceedsStock = numericQuantity > item.quantidade;
-  const isInvalid = !numericQuantity || numericQuantity <= 0 || exceedsStock;
+  const exceedsStock = quantity > item.quantidade;
+  const isInvalid = !quantity || quantity <= 0 || exceedsStock;
 
   return (
     <div className="max-w-4xl mx-auto w-full">
@@ -50,13 +53,14 @@ export default function QuantityStep({
             <input
               type="number"
               min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              max={item.quantidade}
+              {...quantityRegister}
               placeholder="0"
+              disabled={isSubmitting}
               className={clsx(
                 "w-full rounded-lg p-3 text-sm transition-all focus:outline-none",
-                exceedsStock
-                  ? "border border-red-500 focus:ring-2 focus:ring-red-500 bg-red-50 animate-pulse"
+                exceedsStock || quantityErrors.quantity
+                  ? "border border-red-500 focus:ring-2 focus:ring-red-500 bg-red-50"
                   : "border border-slate-300 focus:ring-2 focus:ring-sky-600 focus:border-sky-600",
               )}
             />
@@ -68,6 +72,11 @@ export default function QuantityStep({
             {exceedsStock && (
               <span className="text-xs text-red-600 mt-1 font-medium">
                 Quantidade maior do que o disponível
+              </span>
+            )}
+            {quantityErrors.quantity && (
+              <span className="text-xs text-red-600 mt-1 font-medium">
+                {quantityErrors.quantity.message}
               </span>
             )}
 
@@ -83,15 +92,15 @@ export default function QuantityStep({
               <button
                 onClick={onConfirm}
                 type="button"
-                disabled={isInvalid}
+                disabled={isInvalid || isSubmitting}
                 className={clsx(
                   "flex-1 px-4 py-2 rounded-lg font-semibold transition",
-                  isInvalid
+                  isInvalid || isSubmitting
                     ? "bg-slate-300 text-slate-500 cursor-not-allowed"
                     : "bg-sky-600 text-white hover:bg-sky-700",
                 )}
               >
-                Confirmar
+                {isSubmitting ? "Confirmando..." : "Confirmar"}
               </button>
             </div>
           </div>

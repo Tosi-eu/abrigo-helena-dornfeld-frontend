@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { Controller } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
-
+import { getErrorMessage } from "@/helpers/validation.helper";
+import { useFormWithZod } from "@/hooks/use-form-with-zod";
+import { residentSchema } from "@/schemas/resident.schema";
 import { updateResident } from "@/api/requests";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -15,67 +18,70 @@ export default function EditResident() {
   const item = location.state?.item;
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    num_casela: "",
-    nome: "",
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useFormWithZod(residentSchema, {
+    defaultValues: {
+      name: "",
+      casela: "",
+    },
   });
-
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (item) {
-      setFormData({
-        num_casela: item.casela?.toString() || "",
-        nome: item.name || "",
+      reset({
+        name: item.name || "",
+        casela: item.casela?.toString() || "",
       });
     } else {
       toast({
         title: "Nenhum residente selecionado",
         description: "Volte à lista e escolha um residente para editar.",
         variant: "warning",
+        duration: 3000,
       });
       navigate("/residents");
     }
-  }, [item, navigate]);
+  }, [item, navigate, reset]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!formData.nome || !formData.num_casela) {
+  const onSubmit = async (data: { name: string; casela: string }) => {
+    if (!data.casela) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos antes de salvar.",
-        variant: "warning",
+        title: "Erro",
+        description: "Casela não identificada.",
+        variant: "error",
+        duration: 3000,
       });
       return;
     }
 
-    setSaving(true);
-
     try {
-      const updated = await updateResident(formData.num_casela, {
-        nome: formData.nome,
+      const updated = await updateResident(data.casela, {
+        nome: data.name.trim(),
       });
 
       toast({
         title: "Residente atualizado",
         description: `O residente ${updated.name} foi atualizado com sucesso!`,
         variant: "success",
+        duration: 3000,
       });
 
       navigate("/residents");
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
       toast({
         title: "Erro ao editar residente",
-        description: err.message || "Não foi possível atualizar o residente.",
+        description: getErrorMessage(
+          err,
+          "Não foi possível atualizar o residente.",
+        ),
         variant: "error",
+        duration: 3000,
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -89,25 +95,43 @@ export default function EditResident() {
         </CardHeader>
 
         <CardContent>
-          <div className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-1">
-              <Label>Nome</Label>
+              <Label htmlFor="name">Nome do residente</Label>
               <Input
-                name="nome"
-                value={formData.nome}
-                onChange={handleChange}
-                disabled={saving}
+                id="name"
+                {...register("name")}
+                maxLength={60}
+                disabled={isSubmitting}
+                aria-invalid={errors.name ? "true" : "false"}
               />
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
-              <Label>Casela</Label>
-              <Input
-                name="num_casela"
-                value={formData.num_casela}
-                disabled
-                className="bg-slate-100 text-slate-500"
+              <Label htmlFor="casela">Casela</Label>
+              <Controller
+                name="casela"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="casela"
+                    {...field}
+                    disabled
+                    className="bg-slate-100 text-slate-500"
+                    aria-invalid={errors.casela ? "true" : "false"}
+                  />
+                )}
               />
+              {errors.casela && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.casela.message}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end pt-4 gap-2">
@@ -115,20 +139,20 @@ export default function EditResident() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/residents")}
-                disabled={saving}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
 
               <Button
-                onClick={handleSave}
-                disabled={saving}
+                type="submit"
+                disabled={isSubmitting}
                 className="bg-sky-600 hover:bg-sky-700 text-white"
               >
-                {saving ? "Salvando..." : "Salvar Alterações"}
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
-          </div>
+          </form>
         </CardContent>
       </Card>
     </Layout>
