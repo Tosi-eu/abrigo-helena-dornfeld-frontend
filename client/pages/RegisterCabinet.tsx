@@ -1,107 +1,121 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
-import { getErrorMessage } from "@/helpers/validation.helper";
 
-import { createCabinet, getCabinetCategories } from "@/api/requests";
+import {
+  createCabinet,
+  createCabinetCategory,
+  getCabinetCategories,
+} from "@/api/requests";
 import { CabinetCategory } from "@/interfaces/interfaces";
-import { cabinetSchema, type CabinetFormData } from "@/schemas/cabinet.schema";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-  SelectItem,
-} from "@/components/ui/select";
-import { Controller } from "react-hook-form";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function RegisterCabinet() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm<CabinetFormData>({
-    resolver: zodResolver(cabinetSchema),
-    defaultValues: {
-      numero: "",
-      categoria_id: "",
-    },
-  });
+  const [numero, setNumero] = useState<number>(0);
+  const [category, setCategory] = useState("");
 
   const [categories, setCategories] = useState<CabinetCategory[]>([]);
-  const [page, setPage] = useState(1);
+  const [saving, setSaving] = useState(false);
+
   const [modalOpen, setModalOpen] = useState(false);
 
-  const watchedCategory = watch("categoria_id");
-
   useEffect(() => {
-    loadCategories(page);
-  }, [page]);
+    loadCategories();
+  }, []);
 
-  const loadCategories = async (p: number) => {
+  const loadCategories = async () => {
     try {
-      const res = await getCabinetCategories(p, 100);
+      const res = await getCabinetCategories(1, 100);
       setCategories(res.data);
-    } catch (err: unknown) {
+    } catch (err) {
       toast({
         title: "Erro",
-        description: getErrorMessage(
-          err,
-          "Não foi possível carregar as categorias.",
-        ),
+        description: "Não foi possível carregar as categorias.",
         variant: "error",
-        duration: 3000,
       });
     }
   };
 
-  const onSubmit = async (data: CabinetFormData) => {
-    const categoryId = Number(data.categoria_id);
-    await createCabinetFlow(Number(data.numero), categoryId);
+  const findCategoryByName = (name: string) =>
+    categories.find(
+      (c) => c.nome.toLowerCase() === name.trim().toLowerCase(),
+    );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!numero || numero <= 0) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Informe um número de armário válido.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (!category.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Informe uma categoria.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    const existingCategory = findCategoryByName(category);
+
+    if (!existingCategory) {
+      setModalOpen(true);
+      return;
+    }
+
+    await createCabinetFlow(existingCategory.id);
   };
 
-  const createCabinetFlow = async (numero: number, categoryId: number) => {
+  const createCabinetFlow = async (categoryId?: number) => {
+    setSaving(true);
+
     try {
-      await createCabinet(numero, categoryId);
+      let finalCategoryId = categoryId;
+
+      if (!finalCategoryId) {
+        const res = await createCabinetCategory(category.trim());
+        finalCategoryId = res.id;
+      }
+
+      await createCabinet(numero, finalCategoryId);
 
       toast({
         title: "Armário criado",
         description: `O armário ${numero} foi cadastrado com sucesso.`,
         variant: "success",
-        duration: 3000,
       });
 
       navigate("/cabinets");
-    } catch (err: unknown) {
+    } catch (err) {
       toast({
         title: "Erro ao cadastrar",
-        description: getErrorMessage(
-          err,
-          "Não foi possível cadastrar o armário.",
-        ),
+        description: "Não foi possível cadastrar o armário.",
         variant: "error",
-        duration: 3000,
       });
+    } finally {
+      setSaving(false);
+      setModalOpen(false);
     }
   };
 
   return (
     <Layout title="Cadastrar Armário">
-      <Card className="max-w-lg mx-auto mt-20 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-slate-200">
+      <Card className="max-w-lg mx-auto mt-20 rounded-lg border border-slate-200 shadow-md">
         <CardHeader>
           <CardTitle className="text-lg text-slate-800 text-center">
             Cadastro de Armário
@@ -109,55 +123,37 @@ export default function RegisterCabinet() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1">
-              <Label htmlFor="numero">Número do Armário</Label>
+              <Label>Número do Armário</Label>
               <Input
-                id="numero"
                 type="number"
-                {...register("numero")}
                 placeholder="Ex: 4"
-                disabled={isSubmitting}
-                aria-invalid={errors.numero ? "true" : "false"}
+                value={numero || ""}
+                onChange={(e) =>
+                  setNumero(
+                    e.target.value === "" ? 0 : Number(e.target.value),
+                  )
+                }
+                disabled={saving}
               />
-              {errors.numero && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.numero.message}
-                </p>
-              )}
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="categoria_id">Categoria</Label>
-              <Controller
-                name="categoria_id"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isSubmitting}
-                    >
-                      <SelectTrigger className="bg-white" id="categoria_id">
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={String(c.id)}>
-                            {c.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.categoria_id && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {errors.categoria_id.message}
-                      </p>
-                    )}
-                  </>
-                )}
+              <Label>Categoria</Label>
+              <Input
+                list="categories"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Selecione ou digite uma categoria"
+                disabled={saving}
               />
+
+              <datalist id="categories">
+                {categories.map((c) => (
+                  <option key={c.id} value={c.nome} />
+                ))}
+              </datalist>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
@@ -165,17 +161,17 @@ export default function RegisterCabinet() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/cabinets")}
-                disabled={isSubmitting}
+                disabled={saving}
               >
                 Cancelar
               </Button>
 
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={saving}
                 className="bg-sky-600 hover:bg-sky-700 text-white"
               >
-                {isSubmitting ? "Cadastrando..." : "Cadastrar"}
+                {saving ? "Cadastrando..." : "Cadastrar"}
               </Button>
             </div>
           </form>
@@ -184,15 +180,8 @@ export default function RegisterCabinet() {
 
       <ConfirmationModal
         open={modalOpen}
-        categoryName={
-          categories.find((c) => c.id === Number(watchedCategory))?.nome ||
-          watchedCategory
-        }
-        onConfirm={() => {
-          const numero = watch("numero");
-          const categoriaId = Number(watchedCategory);
-          createCabinetFlow(Number(numero), categoriaId);
-        }}
+        categoryName={category}
+        onConfirm={() => createCabinetFlow()}
         onCancel={() => setModalOpen(false)}
       />
     </Layout>

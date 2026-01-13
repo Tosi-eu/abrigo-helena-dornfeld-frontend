@@ -88,7 +88,7 @@ export default function SignUpMedicine() {
         setValue("dosageValue", dosageValue);
         if (
           measurementUnit &&
-          ["mg", "ml", "g", "mcg", "mg/ml"].includes(measurementUnit)
+          ["mg", "ml", "g", "mcg", "mg/ml", "UI", "gts"].includes(measurementUnit)
         ) {
           setValue("measurementUnit", measurementUnit);
         }
@@ -221,6 +221,8 @@ export default function SignUpMedicine() {
                           <SelectItem value="g">g</SelectItem>
                           <SelectItem value="mcg">mcg</SelectItem>
                           <SelectItem value="mg/ml">mg/ml</SelectItem>
+                          <SelectItem value="UI">UI</SelectItem>
+                          <SelectItem value="gts">gts</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.measurementUnit && (

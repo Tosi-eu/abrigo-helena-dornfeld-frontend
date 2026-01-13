@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import logo from "/logo.png";
@@ -27,6 +27,15 @@ export default function Auth() {
     valid: boolean;
     error?: string;
   } | null>(null);
+
+  useEffect(() => {
+    setLogin("");
+    setPassword("");
+    setPasswordStrength(null);
+    setPasswordValidation(null);
+    setRememberMe(false);
+    setLoading(false);
+  }, [isLogin]);
 
   const handlePasswordChange = (value: string) => {
     const sanitized = sanitizeInput(value);

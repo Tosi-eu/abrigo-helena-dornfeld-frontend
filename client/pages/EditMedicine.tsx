@@ -181,9 +181,12 @@ export default function EditMedicine() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="mg">mg</SelectItem>
+                          <SelectItem value="ml">ml</SelectItem>
                           <SelectItem value="g">g</SelectItem>
                           <SelectItem value="mcg">mcg</SelectItem>
-                          <SelectItem value="ml">ml</SelectItem>
+                          <SelectItem value="mg/ml">mg/ml</SelectItem>
+                          <SelectItem value="UI">UI</SelectItem>
+                          <SelectItem value="gts">gts</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.unidade_medida && (
