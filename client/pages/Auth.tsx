@@ -14,6 +14,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login: authLogin } = useAuth();
+  const [isVisible, setIsVisible] = useState(false);
 
   const [isLogin, setIsLogin] = useState(true);
   const [login, setLogin] = useState("");
@@ -36,6 +37,15 @@ export default function Auth() {
     setRememberMe(false);
     setLoading(false);
   }, [isLogin]);
+
+  // Fade-in quando a página carrega
+  useEffect(() => {
+    setIsVisible(false);
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handlePasswordChange = (value: string) => {
     const sanitized = sanitizeInput(value);
@@ -180,7 +190,13 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-100 flex flex-col">
+    <div 
+      className="min-h-screen bg-sky-100 flex flex-col"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transition: "opacity 0.6s ease-in",
+      }}
+    >
       <header className="shrink-0 border-b border-sky-200 bg-sky-100">
         <div className="max-w-[1651px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center gap-4">
           <img src={logo} alt="Logo" className="h-20 w-auto" />
