@@ -14,7 +14,7 @@ export const editStockSchema = z
     armario_id: z.number().nullable().optional(),
     gaveta_id: z.number().nullable().optional(),
     validade: z.date().nullable().optional(),
-    origem: z.nativeEnum(OriginType).nullable().optional(),
+    origem: z.union([z.nativeEnum(OriginType), z.null(), z.undefined()]).optional(),
     setor: z.nativeEnum(SectorType, {
       required_error: "Setor é obrigatório",
       invalid_type_error: "Setor inválido",

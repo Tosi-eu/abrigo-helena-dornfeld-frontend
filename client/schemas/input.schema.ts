@@ -25,6 +25,20 @@ export const inputSchema = z.object({
       },
     )
     .transform((val) => (val === "" ? "0" : val || "0")),
+  price: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === "") return true;
+        const num = Number(val);
+        return !isNaN(num) && num >= 0;
+      },
+      {
+        message: "Preço deve ser um número positivo",
+      },
+    )
+    .transform((val) => (val === "" ? undefined : val)),
 });
 
 export type InputFormData = z.infer<typeof inputSchema>;

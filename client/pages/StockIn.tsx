@@ -6,7 +6,7 @@ import { InputForm } from "@/components/InputForm";
 import { toast } from "@/hooks/use-toast.hook";
 import { getErrorMessage } from "@/helpers/validation.helper";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
-import { stockInSchema, type StockInFormData } from "@/schemas/stock-in.schema";
+import { stockInSchema } from "@/schemas/stock-in.schema";
 import {
   Input,
   Medicine,
@@ -14,9 +14,8 @@ import {
   Cabinet,
   Drawer,
 } from "@/interfaces/interfaces";
-import { useAuth } from "@/hooks/use-auth.hook";
+
 import {
-  createMovement,
   createStockIn,
   getCabinets,
   getDrawers,
@@ -25,7 +24,6 @@ import {
   getResidents,
 } from "@/api/requests";
 import { useNavigate } from "react-router-dom";
-import { MovementType, OperationType } from "@/utils/enums";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 import {
   Select,
@@ -35,6 +33,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { OperationType } from "@/utils/enums";
 
 export default function StockIn() {
   const {
@@ -54,8 +53,6 @@ export default function StockIn() {
   const [drawers, setDrawers] = useState<Drawer[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,43 +109,9 @@ export default function StockIn() {
         setor: data.sector,
         lote: data.lot ?? null,
         observacao: data.observacao ?? null,
-        preco: data.preco ? Number(data.preco) : null,
       };
 
-      const response = await createStockIn(payload);
-
-      console.log(response);
-
-      if (response?.data?.priceSearchResult?.found) {
-        const priceResult = response.data.priceSearchResult;
-          const precoTotal = priceResult.price * data.quantity;
-          toast({
-            title: "Preço encontrado automaticamente!",
-            description: `Preço unitário: R$ ${priceResult.price.toFixed(2).replace(".", ",")}. Total: R$ ${precoTotal.toFixed(2).replace(".", ",")} (${priceResult.price.toFixed(2).replace(".", ",")} × ${data.quantity}). Verifique e edite se necessário.`,
-            variant: "success",
-            duration: 5000,
-          });
-        } else {
-          toast({
-            title: "Preço não encontrado",
-            description: "Não foi possível encontrar o preço automaticamente. Edite o item de estoque para adicionar o preço manualmente.",
-            variant: "warning",
-            duration: 5000,
-          });
-        }
-
-      await createMovement({
-        tipo: MovementType.IN,
-        login_id: user?.id,
-        armario_id: data.cabinetId ?? null,
-        quantidade: data.quantity,
-        casela_id: data.casela ?? null,
-        gaveta_id: data.drawerId ?? null,
-        medicamento_id: data.id,
-        validade: data.expirationDate,
-        setor: data.sector,
-        lote: data.lot ?? null,
-      });
+      await createStockIn(payload);
 
       toast({
         title: "Entrada registrada com sucesso!",
@@ -177,7 +140,7 @@ export default function StockIn() {
   };
 
   const handleInputSubmit = async (data) => {
-    if (isSubmitting) return; // Prevenir duplo clique
+    if (isSubmitting) return; 
     
     setIsSubmitting(true);
     try {
@@ -191,44 +154,9 @@ export default function StockIn() {
         validade: data.validity,
         setor: data.sector,
         lote: data.lot ?? null,
-        preco: data.preco ? Number(data.preco) * data.quantity : null,
       };
 
-      const response = await createStockIn(payload);
-
-      // Mostrar toast sobre busca de preço se o preço não foi informado
-      if (!data.preco && response?.data?.priceSearchResult) {
-        const priceResult = response.data.priceSearchResult;
-        if (priceResult.found && priceResult.price) {
-          const precoTotal = priceResult.price * data.quantity;
-          toast({
-            title: "Preço encontrado automaticamente!",
-            description: `Preço unitário: R$ ${priceResult.price.toFixed(2).replace(".", ",")}. Total: R$ ${precoTotal.toFixed(2).replace(".", ",")} (${priceResult.price.toFixed(2).replace(".", ",")} × ${data.quantity}). Verifique e edite se necessário.`,
-            variant: "success",
-            duration: 5000,
-          });
-        } else {
-          toast({
-            title: "Preço não encontrado",
-            description: "Não foi possível encontrar o preço automaticamente. Edite o item de estoque para adicionar o preço manualmente.",
-            variant: "warning",
-            duration: 5000,
-          });
-        }
-      }
-
-      await createMovement({
-        tipo: MovementType.IN,
-        login_id: user?.id!,
-        insumo_id: data.inputId,
-        armario_id: data.cabinetId ?? null,
-        gaveta_id: data.drawerId ?? null,
-        casela_id: data.casela ?? null,
-        quantidade: data.quantity,
-        validade: data.validity,
-        setor: data.sector,
-        lote: data.lot ?? null,
-      });
+      await createStockIn(payload);
 
       toast({
         title: "Entrada registrada!",

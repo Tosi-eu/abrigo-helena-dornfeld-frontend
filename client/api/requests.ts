@@ -81,6 +81,14 @@ export const getReport = (type: string, casela?: number) => {
   return api.get(`/relatorios?${params.toString()}`);
 };
 
+export const getTransferReport = () => {
+  return api.get('/relatorios?type=transferencias');
+};
+
+export const getDailyMovementsReport = () => {
+  return api.get('/relatorios?type=movimentos_dia');
+};
+
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
 
@@ -116,11 +124,13 @@ export const createInput = (
   nome: string,
   descricao?: string,
   estoque_minimo?: number,
+  preco?: number | null,
 ) =>
   api.post("/insumos", {
     nome,
     descricao: descricao ?? null,
     estoque_minimo: estoque_minimo ?? 0,
+    preco: preco ?? null,
   });
 
 export const createMedicine = (
@@ -128,7 +138,8 @@ export const createMedicine = (
   principio_ativo: string,
   dosagem: string,
   unidade_medida: string,
-  estoque_minimo?: number,
+  estoque_minimo?: number | null,
+  preco?: number | null,
 ) =>
   api.post("/medicamentos", {
     nome,
@@ -306,6 +317,8 @@ export const transferStockSector = (payload: {
   estoque_id: number;
   setor: SectorType;
   itemType: StockItemType;
+  quantidade?: number;
+  casela_id?: number;
 }) => {
   const basePath =
     payload.itemType === "medicamento"
@@ -313,6 +326,8 @@ export const transferStockSector = (payload: {
       : "/estoque/insumo";
   return api.patch(`${basePath}/${payload.estoque_id}/transferir-setor`, {
     setor: payload.setor,
+    quantidade: payload.quantidade,
+    casela_id: payload.casela_id,
   });
 };
 

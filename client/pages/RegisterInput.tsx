@@ -34,6 +34,7 @@ export default function RegisterInput() {
         data.name.trim(),
         data.description.trim(),
         Number(data.minimum) || 0,
+        data.price ? Number(data.price) : null,
       );
 
       toast({
@@ -117,6 +118,25 @@ export default function RegisterInput() {
               {errors.minimum && (
                 <p className="text-sm text-red-600 mt-1">
                   {errors.minimum.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="price">Preço unitário (R$)</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("price")}
+                placeholder="0.00"
+                disabled={isSubmitting}
+                aria-invalid={errors.price ? "true" : "false"}
+              />
+              {errors.price && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.price.message}
                 </p>
               )}
             </div>

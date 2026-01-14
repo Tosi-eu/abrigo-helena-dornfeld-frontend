@@ -40,13 +40,13 @@ const Inputs = lazy(() => import("./pages/Inputs"));
 const Drawers = lazy(() => import("./pages/Drawers"));
 const EditDrawer = lazy(() => import("./pages/EditDrawer"));
 const RegisterDrawer = lazy(() => import("./pages/RegisterDrawer"));
+const TransferReport = lazy(() => import("./pages/TransferReport"));
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { showModal, setShowModal } = useInvalidSession();
 
-  // Escutar evento de sessão inválida
   useEffect(() => {
     const handleInvalidSession = () => {
       setShowModal(true);
@@ -388,6 +388,20 @@ const AppContent = () => {
                   >
                     <ForgotPassword />
                   </Suspense>
+                }
+              />
+              <Route
+                path="/reports/transfers"
+                element={
+                  <PrivateRoute>
+                    <Suspense
+                      fallback={
+                        <LoadingFallback title="Carregando relatório..." />
+                      }
+                    >
+                      <TransferReport />
+                    </Suspense>
+                  </PrivateRoute>
                 }
               />
       </Routes>
