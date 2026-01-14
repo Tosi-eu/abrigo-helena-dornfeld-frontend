@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const unitsOfMeasurement = ["mg", "ml", "g", "mcg", "mg/ml", "UI", "gts"];
+
 export const medicineSchema = z.object({
   name: z
     .string()
@@ -19,7 +21,7 @@ export const medicineSchema = z.object({
   measurementUnit: z
     .string()
     .min(1, "Unidade de medida é obrigatória")
-    .refine((val) => ["mg", "ml", "g", "mcg", "mg/ml", "UI", "gts"].includes(val), {
+    .refine((val) => unitsOfMeasurement.includes(val), {
       message: "Unidade de medida inválida",
     }),
   minimumStock: z
@@ -33,6 +35,20 @@ export const medicineSchema = z.object({
       },
       {
         message: "Estoque mínimo deve ser um número entre 0 e 999999",
+      },
+    )
+    .transform((val) => (val === "" ? undefined : val)),
+  price: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === "") return true;
+        const num = Number(val);
+        return !isNaN(num) && num >= 0;
+      },
+      {
+        message: "Preço deve ser um número positivo",
       },
     )
     .transform((val) => (val === "" ? undefined : val)),

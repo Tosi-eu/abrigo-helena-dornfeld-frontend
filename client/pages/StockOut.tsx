@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { useNavigate, useLocation } from "react-router-dom";
-import { createMovement, createStockOut, getStock } from "@/api/requests";
+import { createStockOut } from "@/api/requests";
 import { useFormWithZod } from "@/hooks/use-form-with-zod";
 import { stockOutQuantitySchema } from "@/schemas/stock-out.schema";
 
@@ -11,11 +11,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import Pagination from "@/components/Pagination";
 import QuantityStep from "@/components/QuantityStep";
 
-import { MovementType, OperationType, StockWizardSteps } from "@/utils/enums";
+import { OperationType, StockWizardSteps } from "@/utils/enums";
 import { StockItemRaw } from "@/interfaces/interfaces";
 import StepType from "@/components/StepType";
 import StepItems from "@/components/StepItens";
-import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 
 import {
   Popover,
@@ -170,20 +169,6 @@ export default function StockOut() {
         estoqueId: selected.estoque_id,
         tipo: selected.tipo_item as OperationType,
         quantidade: qty,
-      });
-
-      await createMovement({
-        tipo: MovementType.OUT,
-        login_id: user?.id,
-        armario_id: selected.armario_id ?? null,
-        gaveta_id: selected.gaveta_id ?? null,
-        casela_id: selected.casela_id ?? null,
-        quantidade: qty,
-        validade: selected.validade,
-        ...(selected.tipo_item === "medicamento"
-          ? { medicamento_id: selected.item_id }
-          : { insumo_id: selected.item_id }),
-        setor: selected.setor,
       });
 
       toast({

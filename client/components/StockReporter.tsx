@@ -12,6 +12,20 @@ interface ResidentesResponse {
   consumo_mensal: RowData[];
 }
 
+export interface TransferReport {
+  data: string,
+  tipo_item: "medicamento" | "insumo",
+  nome: string,
+  principio_ativo: string | null,
+  quantidade: number,
+  casela: number,
+  residente: string,
+  armario: number,
+  setor: string,
+  lote: string | null,
+  usuario: string 
+}
+
 interface ResidentConsumptionReport {
   residente: string;
   casela: number;
@@ -180,10 +194,12 @@ function renderTable(headers: string[], rows: RowData[]) {
 
 export function createStockPDF(
   tipo: string,
-  data: RowData[] | ResidentesResponse | ResidentConsumptionReport,
+  data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[],
 ) {
   const isResidentConsumption = tipo === "residente_consumo";
+  const isTransferReport = tipo === "transferencias";
   const consumptionData = isResidentConsumption ? (data as ResidentConsumptionReport) : null;
+  const transferData = isTransferReport ? (data as TransferReport[]) : null;
 
   return (
     <Document>
@@ -200,7 +216,11 @@ export function createStockPDF(
             style={styles.logo}
           />
           <Text style={styles.title}>
-            {isResidentConsumption ? "RELATÓRIO DE CONSUMO" : "ESTOQUE ATUAL"}
+            {isResidentConsumption 
+              ? "RELATÓRIO DE CONSUMO" 
+              : isTransferReport 
+              ? "RELATÓRIO DE TRANSFERÊNCIAS" 
+              : "ESTOQUE ATUAL"}
           </Text>
         </View>
 
@@ -447,6 +467,75 @@ export function createStockPDF(
             )}
           </>
         )}
+
+{isTransferReport && transferData && (
+  <>
+    <Text style={styles.sectionTitle}>
+      Transferências de Farmácia para Enfermaria
+    </Text>
+
+    {transferData.length > 0 ? (
+      <>
+        <View style={[styles.tableHeader, { fontSize: 8 }]}>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Item</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Princípio Ativo</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Usuário</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Data</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Armário</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Casela</Text>
+          <Text style={[styles.cell, { fontSize: 8 }]}>Residente</Text>
+        </View>
+
+        {transferData.map((transfer, idx) => (
+              <View
+                  key={idx}
+                  style={[
+                    styles.tableRow,
+                    idx % 2 === 0 ? styles.striped : undefined,
+                  ]}
+                >
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.nome || "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.principio_ativo || "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.quantidade ?? "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.usuario || "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.data || "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.armario ?? "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.casela ?? "-"}
+                  </Text>
+
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {transfer.residente || "-"}
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+              Nenhuma transferência encontrada no período selecionado.
+            </Text>
+          )}
+        </>
+      )}
 
         <Text style={styles.footer}>
           Gerado em: {new Date().toLocaleDateString("pt-BR")} às{" "}

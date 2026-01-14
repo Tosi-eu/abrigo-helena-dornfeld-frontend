@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
 import { lazy, Suspense } from "react";
-import { SkeletonCard } from "@/components/SkeletonCard";
 
 const ReportModal = lazy(() => import("@/components/ReportModal"));
 import {
@@ -17,10 +16,12 @@ import {
   resumeInputFromStock,
   suspendInputFromStock,
   transferStockSector,
+  getResidents,
 } from "@/api/requests";
 import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
 import { StockActionType, StockItemType } from "@/interfaces/types";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
+import TransferQuantityModal from "@/components/TransferQuantityModal";
 import {
   actionConfig,
   actionMessages,
@@ -41,12 +42,14 @@ export default function Stock() {
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     type: StockActionType;
     row: StockItem | null;
   }>({ type: null, row: null });
   const [actionLoading, setActionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [residents, setResidents] = useState<Array<{ casela: number; name: string }>>([]);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
@@ -58,7 +61,7 @@ export default function Stock() {
       quantity: Number(item.quantidade) || 0,
       cabinet: item.armario_id ?? "-",
       drawer: item.gaveta_id ?? "-",
-      casela: item.casela_id ?? "-",
+      casela: item.casela_id ?? null,
       stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
       tipo: item.tipo,
       patient: item.paciente || "-",
@@ -73,7 +76,6 @@ export default function Stock() {
       itemType: item.tipo_item,
       sector: item.setor,
       lot: item.lote ?? null,
-      preco: item.preco ? Number(item.preco) : null,
     }));
   };
 
@@ -121,6 +123,27 @@ export default function Stock() {
     }
   }
 
+  async function loadResidents() {
+    try {
+      const allResidents = await fetchAllPaginated(
+        (page, limit) => getResidents(page, limit),
+        100,
+      );
+      setResidents(allResidents.map((r: any) => ({ casela: r.casela, name: r.name })));
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os residentes.";
+      toast({
+        title: "Erro ao carregar residentes",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
+    }
+  }
+
   useEffect(() => {
     async function init() {
       setLoading(true);
@@ -143,6 +166,7 @@ export default function Stock() {
 
       await loadStock(1);
       await loadAllStock();
+      await loadResidents();
     }
 
     init();
@@ -175,7 +199,7 @@ export default function Stock() {
       type: "transfer",
       row,
     });
-    setConfirmOpen(true);
+    setTransferModalOpen(true);
   };
 
   const requestRemoveIndividual = (row: StockItem) => {
@@ -234,54 +258,80 @@ export default function Stock() {
         }
       }
 
-      if (type === "transfer") {
-        const nextSector =
-          row.sector === "farmacia" ? "enfermagem" : "farmacia";
-
-        await transferStockSector({
-          estoque_id: row.id,
-          setor: nextSector as SectorType,
-          itemType: row.itemType as StockItemType,
-        });
-      }
 
       await loadStock(page);
       await loadAllStock();
 
-      if (type === "transfer") {
-        const messages = actionMessages.transfer(row);
-        toast({ title: messages.success, variant: "success", duration: 3000 });
-      } else {
-        toast({
-          title: actionMessages[type].success,
-          variant: "success",
-          duration: 3000,
-        });
-      }
+      const messages =
+        typeof actionMessages[type] === "function"
+          ? actionMessages[type](row)
+          : actionMessages[type];
+
+      toast({
+        title: messages.success,
+        variant: "success",
+        duration: 3000,
+      });
     } catch (err: any) {
       const errorMessage =
         err?.message || "Ocorreu um erro ao executar a ação.";
 
-      if (type === "transfer") {
-        const messages = actionMessages.transfer(row);
-        toast({
-          title: messages.error,
-          description: errorMessage,
-          variant: "error",
-        });
-      } else {
-        toast({
-          title: actionMessages[type].error,
-          description: errorMessage,
-          variant: "error",
-          duration: 3000,
-        });
-      }
+      const messages =
+        typeof actionMessages[type] === "function"
+          ? actionMessages[type](row)
+          : actionMessages[type];
+
+      toast({
+        title: messages.error,
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
 
       await loadStock(page);
     } finally {
       setActionLoading(false);
       setConfirmOpen(false);
+      setPendingAction({ type: null, row: null });
+    }
+  };
+
+  const handleTransferConfirm = async (quantity: number, casela?: number | null) => {
+    if (!pendingAction.row || pendingAction.type !== "transfer") return;
+
+    const { row } = pendingAction;
+    setActionLoading(true);
+
+    try {
+      await transferStockSector({
+        estoque_id: row.id,
+        setor: SectorType.ENFERMAGEM,
+        itemType: row.itemType as StockItemType,
+        quantidade: quantity,
+        casela_id: casela ?? null,
+      });
+
+      await loadStock(page);
+      await loadAllStock();
+
+      const messages = actionMessages.transfer(row);
+      toast({ title: messages.success, variant: "success", duration: 3000 });
+    } catch (err: any) {
+      const errorMessage =
+        err?.message || "Ocorreu um erro ao transferir o item.";
+
+      const messages = actionMessages.transfer(row);
+      toast({
+        title: messages.error,
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
+
+      await loadStock(page);
+    } finally {
+      setActionLoading(false);
+      setTransferModalOpen(false);
       setPendingAction({ type: null, row: null });
     }
   };
@@ -319,6 +369,7 @@ export default function Stock() {
           >
             Gerar Relatório
           </button>
+
         </div>
 
         <div className="pt-12">
@@ -361,6 +412,28 @@ export default function Stock() {
         confirmLabel="Confirmar"
         onConfirm={handleConfirmAction}
         onCancel={() => setConfirmOpen(false)}
+      />
+
+      <TransferQuantityModal
+        open={transferModalOpen}
+        item={
+          pendingAction.row && pendingAction.type === "transfer"
+            ? {
+                name: pendingAction.row.name,
+                quantity: pendingAction.row.quantity,
+                sector: pendingAction.row.sector,
+                itemType: pendingAction.row.itemType,
+                isGeneralMedicine: pendingAction.row.tipo === ItemStockType.GERAL,
+              }
+            : null
+        }
+        residents={residents}
+        onConfirm={handleTransferConfirm}
+        onCancel={() => {
+          setTransferModalOpen(false);
+          setPendingAction({ type: null, row: null });
+        }}
+        loading={actionLoading}
       />
 
       <Suspense fallback={null}>

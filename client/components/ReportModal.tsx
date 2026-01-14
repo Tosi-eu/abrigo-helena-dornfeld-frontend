@@ -16,10 +16,12 @@ import {
   User,
   Syringe,
   Users,
+  ArrowRightLeft,
 } from "lucide-react";
 import { pdf } from "@react-pdf/renderer";
-import { getReport, getResidents } from "@/api/requests";
+import { getReport, getResidents, getTransferReport } from "@/api/requests";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
+import { TransferReport } from "./StockReporter";
 
 type StatusType = "idle" | "loading" | "success" | "error";
 
@@ -54,6 +56,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       value: "residente_consumo",
       label: "Consumo por Residente",
       icon: Users,
+    },
+    {
+      value: "transferencias",
+      label: "Transferências (Farmácia → Enfermaria)",
+      icon: ArrowRightLeft,
     },
   ];
 
@@ -94,9 +101,26 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
     try {
       const tipo = selectedReports[0];
-      const casela = tipo === "residente_consumo" ? selectedResident : undefined;
+      let data;
+      
+      if (tipo === "transferencias") {
+        const transfers = await getTransferReport();
+        console.log(transfers)
+        data = transfers.map((item: TransferReport) => ({
+          nome: item.nome,
+          principio_ativo: item?.principio_ativo || "-",
+          quantidade: item.quantidade,
+          usuario: item.usuario,
+          data: item.data,
+          armario: item.armario,
+          casela: item.casela,
+          residente: item.residente,
+        }));
+      } else {
+        const casela = tipo === "residente_consumo" ? selectedResident : undefined;
+        data = await getReport(tipo, casela || undefined);
+      }
 
-      const data = await getReport(tipo, casela || undefined);
       const { createStockPDF } = await import("./StockReporter");
       const doc = createStockPDF(tipo, data);
 
@@ -105,6 +129,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
       const link = document.createElement("a");
       link.href = url;
+      const casela = tipo === "residente_consumo" ? selectedResident : undefined;
       link.download = `relatorio-${tipo}${casela ? `-casela-${casela}` : ''}.pdf`;
       link.click();
       URL.revokeObjectURL(url);

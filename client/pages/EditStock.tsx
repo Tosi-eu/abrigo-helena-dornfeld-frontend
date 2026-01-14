@@ -166,12 +166,13 @@ export default function EditStock() {
           setDrawers(cached.drawers);
           setResidents(cached.residents);
 
+          const isMedicineItem = item.itemType === "medicamento";
           reset({
             quantidade: item.quantity || 0,
             armario_id: typeof item.cabinet === "number" ? item.cabinet : null,
             gaveta_id: typeof item.drawer === "number" ? item.drawer : null,
             validade: validadeDate,
-            origem: (item.origin as OriginType) || null,
+            origem: isMedicineItem ? ((item.origin as OriginType) || null) : undefined,
             setor: (item.sector as SectorType) || SectorType.FARMACIA,
             lote: item.lot || null,
             casela_id: typeof item.casela === "number" ? item.casela : null,
@@ -234,25 +235,30 @@ export default function EditStock() {
     try {
       const formData = watch();
 
+      const updatePayload: any = {
+        quantidade: formData.quantidade,
+        armario_id: formData.armario_id,
+        gaveta_id: formData.gaveta_id,
+        validade: formData.validade
+          ? formData.validade.toISOString().split("T")[0]
+          : null,
+        setor: formData.setor,
+        lote: formData.lote || null,
+        casela_id: formData.casela_id,
+        tipo: formData.tipo,
+        preco: formData.preco && formData.preco.trim() !== ""
+          ? parseFloat(formData.preco.replace(",", "."))
+          : null,
+      };
+
+      if (isMedicine) {
+        updatePayload.origem = formData.origem || undefined;
+      }
+
       await updateStockItem(
         stockItem.id,
         stockItem.itemType === "medicamento" ? "medicamento" : "insumo",
-        {
-          quantidade: formData.quantidade,
-          armario_id: formData.armario_id,
-          gaveta_id: formData.gaveta_id,
-          validade: formData.validade
-            ? formData.validade.toISOString().split("T")[0]
-            : null,
-          origem: formData.origem || undefined,
-          setor: formData.setor,
-          lote: formData.lote || null,
-          casela_id: formData.casela_id,
-          tipo: formData.tipo,
-          preco: formData.preco && formData.preco.trim() !== ""
-            ? parseFloat(formData.preco.replace(",", "."))
-            : null,
-        },
+        updatePayload,
       );
 
       toast({
@@ -495,43 +501,45 @@ export default function EditStock() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="origem">Origem</Label>
-                <Controller
-                  name="origem"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Select
-                        value={field.value || "none"}
-                        onValueChange={(v) => {
-                          field.onChange(
-                            v === "none" ? null : (v as OriginType),
-                          );
-                        }}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger className="bg-white" id="origem">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Nenhuma</SelectItem>
-                          {Object.values(OriginType).map((origin) => (
-                            <SelectItem key={origin} value={origin}>
-                              {origin}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.origem && (
-                        <p className="text-sm text-red-600 mt-1">
-                          {errors.origem.message}
-                        </p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
+              {isMedicine && (
+                <div className="space-y-1">
+                  <Label htmlFor="origem">Origem</Label>
+                  <Controller
+                    name="origem"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Select
+                          value={field.value || "none"}
+                          onValueChange={(v) => {
+                            field.onChange(
+                              v === "none" ? null : (v as OriginType),
+                            );
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger className="bg-white" id="origem">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhuma</SelectItem>
+                            {Object.values(OriginType).map((origin) => (
+                              <SelectItem key={origin} value={origin}>
+                                {origin}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.origem && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.origem.message}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  />
+                </div>
+              )}
 
               <div className="space-y-1">
                 <Label htmlFor="tipo">Tipo</Label>

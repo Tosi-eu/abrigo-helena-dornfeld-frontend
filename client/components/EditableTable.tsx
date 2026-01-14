@@ -187,8 +187,11 @@ export default function EditableTable({
     if (route) navigate(route);
   };
 
-  const canTransfer = (row: Record<string, unknown>): boolean =>
-    row?.casela && row.casela !== "-";
+  const canTransfer = (row: Record<string, unknown>): boolean => {
+    // Permitir transferência para todos os itens em estoque (com ou sem casela)
+    // A transferência de setor está disponível para medicamentos e insumos em estoque geral
+    return entityType === "stock" && row?.itemType !== undefined;
+  };
 
   const handleEditClick = (row: any) => {
     if (row.status === "suspended") {

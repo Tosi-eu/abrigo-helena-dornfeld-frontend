@@ -31,6 +31,7 @@ export enum TransactionType {
 export enum MovementType {
   IN = "entrada",
   OUT = "saida",
+  TRANSFER = "transferencia",
 }
 
 export enum StockTypeLabels {
