@@ -85,6 +85,10 @@ export const getTransferReport = () => {
   return api.get('/relatorios?type=transferencias');
 };
 
+export const getDailyMovementsReport = () => {
+  return api.get('/relatorios?type=movimentos_dia');
+};
+
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
 

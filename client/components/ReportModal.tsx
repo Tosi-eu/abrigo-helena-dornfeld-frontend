@@ -17,9 +17,10 @@ import {
   Syringe,
   Users,
   ArrowRightLeft,
+  Activity,
 } from "lucide-react";
 import { pdf } from "@react-pdf/renderer";
-import { getReport, getResidents, getTransferReport } from "@/api/requests";
+import { getReport, getResidents, getTransferReport, getDailyMovementsReport } from "@/api/requests";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
 import { TransferReport } from "./StockReporter";
 
@@ -61,6 +62,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       value: "transferencias",
       label: "Transferências (Farmácia → Enfermaria)",
       icon: ArrowRightLeft,
+    },
+    {
+      value: "movimentos_dia",
+      label: "Movimentações do Dia",
+      icon: Activity,
     },
   ];
 
@@ -116,6 +122,8 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
           casela: item.casela,
           residente: item.residente,
         }));
+      } else if (tipo === "movimentos_dia") {
+        data = await getDailyMovementsReport();
       } else {
         const casela = tipo === "residente_consumo" ? selectedResident : undefined;
         data = await getReport(tipo, casela || undefined);
