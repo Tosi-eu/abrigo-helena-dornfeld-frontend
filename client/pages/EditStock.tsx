@@ -156,7 +156,8 @@ export default function EditStock() {
           if (
             rawTipo === ItemStockType.GERAL ||
             rawTipo === ItemStockType.INDIVIDUAL ||
-            rawTipo === ItemStockType.CARRINHO
+            rawTipo === ItemStockType.CARRINHO ||
+            rawTipo === ItemStockType.CARRINHO_PSICOTROPICOS
           ) {
             validTipo = rawTipo as ItemStockType;
           }
@@ -226,7 +227,7 @@ export default function EditStock() {
   }, [watchedArmarioId, setValue]);
 
   useEffect(() => {
-    if (watchedTipo === ItemStockType.CARRINHO) {
+    if (watchedTipo === ItemStockType.CARRINHO || watchedTipo === ItemStockType.CARRINHO_PSICOTROPICOS) {
       setValue("setor", SectorType.ENFERMAGEM);
     }
   }, [watchedTipo, setValue]);
@@ -590,17 +591,17 @@ export default function EditStock() {
                   name="setor"
                   control={control}
                   render={({ field }) => {
-                    const isEmergencyCart = watchedTipo === ItemStockType.CARRINHO;
+                    const isCart = watchedTipo === ItemStockType.CARRINHO || watchedTipo === ItemStockType.CARRINHO_PSICOTROPICOS;
                     return (
                       <>
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
-                          disabled={isSubmitting || isEmergencyCart}
+                          disabled={isSubmitting || isCart}
                           required
                         >
                           <SelectTrigger 
-                            className={`bg-white ${isEmergencyCart ? "bg-slate-100 text-slate-500 cursor-not-allowed" : ""}`} 
+                            className={`bg-white ${isCart ? "bg-slate-100 text-slate-500 cursor-not-allowed" : ""}`} 
                             id="setor"
                           >
                             <SelectValue placeholder="Selecione" />

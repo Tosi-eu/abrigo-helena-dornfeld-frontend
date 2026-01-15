@@ -5,7 +5,7 @@ export enum OperationType {
 
 export enum OriginType {
   FAMILIA = "Família",
-  AUTOCUSTO = "Autocusto",
+  ALTOCUSTO = "Altocusto",
   UBS = "UBS",
   FARMACIA_POPULAR = "Farmácia Popular",
   COMPRA_DOACAO = "Compra/Doação",
@@ -20,6 +20,7 @@ export enum ItemStockType {
   GERAL = "geral",
   INDIVIDUAL = "individual",
   CARRINHO = "carrinho_emergencia",
+  CARRINHO_PSICOTROPICOS = "carrinho_psicotropicos",
 }
 
 export enum TransactionType {
@@ -38,6 +39,7 @@ export enum StockTypeLabels {
   geral = "Estoque geral",
   individual = "Estoque individual",
   carrinho_emergencia = "Carrinho de emergência",
+  carrinho_psicotropicos = "Carrinho de psicotrópicos",
 }
 
 export enum StockWizardSteps {

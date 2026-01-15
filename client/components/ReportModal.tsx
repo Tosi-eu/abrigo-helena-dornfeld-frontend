@@ -184,14 +184,14 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="w-full flex flex-col gap-3">
+              <div className="w-full flex flex-col gap-3 items-center">
                 {reportOptions.map(({ value, label, icon: Icon }) => {
                   const isSelected = selectedReports.includes(value);
                   return (
                     <motion.div
                       key={value}
                       whileHover={{ scale: 1.01 }}
-                      className={`border-2 rounded-xl px-5 py-4 flex items-center gap-4 cursor-pointer transition-all
+                      className={`border-2 rounded-xl px-5 py-4 flex items-center justify-center gap-4 cursor-pointer transition-all w-full max-w-md
                         ${
                           isSelected
                             ? "border-sky-600 bg-sky-50 shadow-sm"
@@ -221,9 +221,9 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 w-full max-w-md flex flex-col items-center"
                   >
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
                       Selecione o Residente:
                     </label>
                     {loadingResidents ? (
@@ -241,7 +241,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                             e.target.value ? parseInt(e.target.value) : null
                           )
                         }
-                        className="w-full px-3 py-2 border bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                        className="w-full px-3 py-2 border bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 text-center"
                       >
                         <option value="">Selecione um residente</option>
                         {residents.map((resident) => (
