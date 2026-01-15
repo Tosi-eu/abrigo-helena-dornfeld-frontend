@@ -52,6 +52,25 @@ function sanitizeErrorMessage(message: string): string {
     return "Ocorreu um erro. Por favor, tente novamente.";
   }
 
+  const safeBusinessMessages = [
+    /lote.*já existe/i,
+    /lote.*único/i,
+    /lotes devem ser únicos entre medicamentos e insumos/i,
+    /já existe.*medicamento/i,
+    /já existe.*insumo/i,
+    /combinação.*nome.*princípio/i,
+    /campos obrigatórios/i,
+    /quantidade.*inválida/i,
+    /casela.*obrigatória/i,
+    /usuário não autenticado/i,
+    /não encontrado/i,
+    /credenciais inválidas/i,
+  ];
+
+  if (safeBusinessMessages.some((pattern) => pattern.test(message))) {
+    return message.trim();
+  }
+
   const sensitivePatterns = [
     /database/i,
     /sql/i,
@@ -67,7 +86,6 @@ function sanitizeErrorMessage(message: string): string {
     /token/i,
     /secret/i,
     /api[_-]?key/i,
-    /auth/i,
     /credential/i,
     /bearer/i,
     /jwt/i,

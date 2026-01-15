@@ -68,10 +68,15 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       label: "Movimentações do Dia",
       icon: Activity,
     },
+    {
+      value: "medicamentos_residente",
+      label: "Medicamentos por Residente",
+      icon: User,
+    },
   ];
 
   useEffect(() => {
-    if (open && selectedReports[0] === "residente_consumo") {
+    if (open && (selectedReports[0] === "residente_consumo" || selectedReports[0] === "medicamentos_residente")) {
       loadResidents();
     }
   }, [open, selectedReports]);
@@ -91,7 +96,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
   const handleSelectReport = (value: string) => {
     setSelectedReports([value]);
-    if (value !== "residente_consumo") {
+    if (value !== "residente_consumo" && value !== "medicamentos_residente") {
       setSelectedResident(null);
     }
   };
@@ -99,7 +104,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
   const handleGenerate = async () => {
     if (!selectedReports.length) return;
     
-    if (selectedReports[0] === "residente_consumo" && !selectedResident) {
+    if ((selectedReports[0] === "residente_consumo" || selectedReports[0] === "medicamentos_residente") && !selectedResident) {
       return;
     }
 
@@ -116,7 +121,6 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
           nome: item.nome,
           principio_ativo: item?.principio_ativo || "-",
           quantidade: item.quantidade,
-          usuario: item.usuario,
           data: item.data,
           armario: item.armario,
           casela: item.casela,
@@ -125,7 +129,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       } else if (tipo === "movimentos_dia") {
         data = await getDailyMovementsReport();
       } else {
-        const casela = tipo === "residente_consumo" ? selectedResident : undefined;
+        const casela = (tipo === "residente_consumo" || tipo === "medicamentos_residente") ? selectedResident : undefined;
         data = await getReport(tipo, casela || undefined);
       }
 
@@ -137,7 +141,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
       const link = document.createElement("a");
       link.href = url;
-      const casela = tipo === "residente_consumo" ? selectedResident : undefined;
+      const casela = (tipo === "residente_consumo" || tipo === "medicamentos_residente") ? selectedResident : undefined;
       link.download = `relatorio-${tipo}${casela ? `-casela-${casela}` : ''}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
@@ -157,7 +161,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
     onClose();
   };
 
-  const showResidentSelector = selectedReports[0] === "residente_consumo";
+  const showResidentSelector = selectedReports[0] === "residente_consumo" || selectedReports[0] === "medicamentos_residente";
 
   const iconSize = 100;
 
@@ -237,9 +241,9 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                             e.target.value ? parseInt(e.target.value) : null
                           )
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                        className="w-full px-3 py-2 border bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
                       >
-                        <option value="">Selecione um residente...</option>
+                        <option value="">Selecione um residente</option>
                         {residents.map((resident) => (
                           <option key={resident.casela} value={resident.casela}>
                             Casela {resident.casela} - {resident.name}

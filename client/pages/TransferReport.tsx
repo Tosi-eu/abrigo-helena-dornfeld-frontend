@@ -77,7 +77,7 @@ export default function TransferReport() {
   }));
 
   return (
-    <Layout title="Relatório de Transferências - Farmácia para Enfermaria">
+    <Layout title="Transferências - Farmácia para Enfermaria">
       <div className="w-full flex justify-center p-10">
         <Card className="w-full max-w-[95%] xl:max-w-7xl bg-white border shadow-md p-8 space-y-6">
           <div className="space-y-4">

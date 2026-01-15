@@ -188,9 +188,7 @@ export default function EditableTable({
   };
 
   const canTransfer = (row: Record<string, unknown>): boolean => {
-    // Permitir transferência para todos os itens em estoque (com ou sem casela)
-    // A transferência de setor está disponível para medicamentos e insumos em estoque geral
-    return entityType === "stock" && row?.itemType !== undefined;
+    return entityType === "stock" && row?.itemType != null;
   };
 
   const handleEditClick = (row: any) => {
