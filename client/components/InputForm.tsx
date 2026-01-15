@@ -69,14 +69,16 @@ export const InputForm = memo(function InputForm({
 
   const selectedInput = inputs.find((i) => i.id === selectedInputId);
   const isEmergencyCart = stockType === ItemStockType.CARRINHO;
+  const isPsychotropicCart = stockType === ItemStockType.CARRINHO_PSICOTROPICOS;
+  const isCart = isEmergencyCart || isPsychotropicCart;
   const isIndividual = stockType === ItemStockType.INDIVIDUAL;
   const selectedCasela = caselas.find((c) => c.casela === casela);
 
   useEffect(() => {
-    if (isEmergencyCart) {
+    if (isCart) {
       setValue("sector", SectorType.ENFERMAGEM);
     }
-  }, [isEmergencyCart, setValue]);
+  }, [isCart, setValue]);
 
   useEffect(() => {
     setValue("cabinetId", null);
@@ -100,7 +102,7 @@ export const InputForm = memo(function InputForm({
       onSubmit({
         inputId: data.inputId,
         quantity: data.quantity,
-        isEmergencyCart,
+        isEmergencyCart: isCart,
         drawerId: data.drawerId ?? undefined,
         cabinetId: data.cabinetId ?? undefined,
         casela: data.casela ?? undefined,
@@ -122,7 +124,7 @@ export const InputForm = memo(function InputForm({
     }
   };
 
-  const storageOptions = isEmergencyCart ? drawers : cabinets;
+  const storageOptions = isCart ? drawers : cabinets;
 
   return (
     <form
@@ -316,10 +318,10 @@ export const InputForm = memo(function InputForm({
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-700">
-          {isEmergencyCart ? "Gaveta" : "Armário"}{" "}
+          {isCart ? "Gaveta" : "Armário"}{" "}
           <span className="text-red-500">*</span>
         </label>
-        {isEmergencyCart ? (
+        {isCart ? (
           <>
             <select
               {...register("drawerId", { valueAsNumber: true })}
@@ -372,11 +374,11 @@ export const InputForm = memo(function InputForm({
         </label>
         <select
           {...register("sector")}
-          disabled={isEmergencyCart}
+          disabled={isCart}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
             errors.sector ? "border-red-500" : "border-slate-300",
-            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
+            isCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
           )}
         >
           <option value="" disabled hidden>

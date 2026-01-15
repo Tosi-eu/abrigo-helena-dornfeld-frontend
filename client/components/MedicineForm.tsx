@@ -76,13 +76,15 @@ export const MedicineForm = memo(function MedicineForm({
 
   const selectedMedicine = medicines.find((m) => m.id === selectedMedicineId);
   const isEmergencyCart = stockType === ItemStockType.CARRINHO;
+  const isPsychotropicCart = stockType === ItemStockType.CARRINHO_PSICOTROPICOS;
+  const isCart = isEmergencyCart || isPsychotropicCart;
   const isIndividual = stockType === ItemStockType.INDIVIDUAL;
 
   useEffect(() => {
-    if (isEmergencyCart) {
+    if (isCart) {
       setValue("sector", SectorType.ENFERMAGEM);
     }
-  }, [isEmergencyCart, setValue]);
+  }, [isCart, setValue]);
 
   useEffect(() => {
     setValue("cabinetId", null);
@@ -122,7 +124,7 @@ export const MedicineForm = memo(function MedicineForm({
         sector: data.sector,
         lot: data.lot ?? undefined,
         observacao: data.observacao ?? undefined,
-        isEmergencyCart,
+        isEmergencyCart: isCart,
         preco: data.preco && data.preco.trim() !== "" ? data.preco : undefined,
       });
     } catch (err: unknown) {
@@ -138,7 +140,7 @@ export const MedicineForm = memo(function MedicineForm({
     }
   };
 
-  const storageOptions = isEmergencyCart ? drawers : cabinets;
+  const storageOptions = isCart ? drawers : cabinets;
   const selectedCasela = caselas.find((c) => c.casela === casela);
 
   return (
@@ -335,10 +337,10 @@ export const MedicineForm = memo(function MedicineForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-slate-700">
-            {isEmergencyCart ? "Gaveta" : "Armário"}{" "}
+            {isCart ? "Gaveta" : "Armário"}{" "}
             <span className="text-red-500">*</span>
           </label>
-          {isEmergencyCart ? (
+          {isCart ? (
             <>
               <select
                 {...register("drawerId", { valueAsNumber: true })}
@@ -407,11 +409,11 @@ export const MedicineForm = memo(function MedicineForm({
         </label>
         <select
           {...register("sector")}
-          disabled={isEmergencyCart}
+          disabled={isCart}
           className={cn(
             "w-full border rounded-lg px-3 py-2 text-sm bg-white",
             errors.sector ? "border-red-500" : "border-slate-300",
-            isEmergencyCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
+            isCart && "bg-slate-100 text-slate-500 cursor-not-allowed",
           )}
         >
           <option value="" disabled hidden>

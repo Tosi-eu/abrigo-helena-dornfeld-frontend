@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --host",
     "build": "npm run build:client",
     "build:client": "vite build",
     "db:up": "docker compose up -d",

@@ -48,7 +48,7 @@ export default function StockOut() {
   const [filters, setFilters] = useState({
     nome: "",
     armario: "",
-    origem: "",
+    setor: "",
   });
 
   const [step, setStep] = useState<StockWizardSteps>(StockWizardSteps.TIPO);
@@ -110,12 +110,12 @@ export default function StockOut() {
     [items],
   );
 
-  const originOptions = useMemo(
-    () =>
-      Array.from(new Set(items.map((i) => i.origem).filter(Boolean))).map(
-        (o) => ({ label: o, value: o }),
-      ),
-    [items],
+  const sectorOptions = useMemo(
+    () => [
+      { label: "Enfermagem", value: "enfermagem" },
+      { label: "Farmácia", value: "farmacia" },
+    ],
+    [],
   );
 
   const filteredItems = useMemo(() => {
@@ -123,7 +123,7 @@ export default function StockOut() {
       if (filters.nome && item.nome !== filters.nome) return false;
       if (filters.armario && String(item.armario_id ?? "") !== filters.armario)
         return false;
-      if (filters.origem && item.origem !== filters.origem) return false;
+      if (filters.setor && item.setor !== filters.setor) return false;
       return true;
     });
   }, [items, filters]);
@@ -291,34 +291,34 @@ export default function StockOut() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-700 mb-1">Origem</label>
+            <label className="block text-xs text-gray-700 mb-1">Setor</label>
             <Popover>
               <PopoverTrigger asChild>
                 <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
-                  {filters.origem || "Selecione"}
+                  {filters.setor ? (filters.setor === "enfermagem" ? "Enfermagem" : "Farmácia") : "Selecione"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Buscar origem..." />
+                  <CommandInput placeholder="Buscar setor..." />
                   <CommandEmpty>Nenhum item encontrado</CommandEmpty>
                   <CommandGroup>
-                    {originOptions.map((o) => (
+                    {sectorOptions.map((o) => (
                       <CommandItem
                         key={o.value}
                         value={o.value}
                         onSelect={() =>
                           setFilters((prev) => ({
                             ...prev,
-                            origem: prev.origem === o.value ? "" : o.value,
+                            setor: prev.setor === o.value ? "" : o.value,
                           }))
                         }
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            filters.origem === o.value
+                            filters.setor === o.value
                               ? "opacity-100"
                               : "opacity-0",
                           )}
