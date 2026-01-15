@@ -49,6 +49,17 @@ export interface ResidentMedicinesReport {
   validade: string;
 }
 
+export interface ExpiredMedicineReport {
+  medicamento: string;
+  principio_ativo: string;
+  quantidade: number;
+  validade: string;
+  residente: string | null;
+  dias_vencido: number;
+  lote: string | null;
+  setor: string;
+}
+
 interface ResidentConsumptionReport {
   residente: string;
   casela: number;
@@ -217,16 +228,18 @@ function renderTable(headers: string[], rows: RowData[]) {
 
 export function createStockPDF(
   tipo: string,
-  data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[] | ResidentMedicinesReport[],
+  data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[] | ResidentMedicinesReport[] | ExpiredMedicineReport[],
 ) {
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
   const isDailyMovementsReport = tipo === "movimentos_dia";
   const isResidentMedicines = tipo === "medicamentos_residente";
+  const isExpiredMedicines = tipo === "medicamentos_vencidos";
   const consumptionData = isResidentConsumption ? (data as ResidentConsumptionReport) : null;
   const transferData = isTransferReport ? (data as TransferReport[]) : null;
   const dailyMovementsData = isDailyMovementsReport ? (data as DailyMovementReport[]) : null;
   const residentMedicinesData = isResidentMedicines ? (data as ResidentMedicinesReport[]) : null;
+  const expiredMedicinesData = isExpiredMedicines ? (data as ExpiredMedicineReport[]) : null;
 
   return (
     <Document>
@@ -251,6 +264,8 @@ export function createStockPDF(
               ? "MOVIMENTAÇÕES DO DIA"
               : isResidentMedicines
               ? "MEDICAMENTOS POR RESIDENTE"
+              : isExpiredMedicines
+              ? "MEDICAMENTOS VENCIDOS"
               : "ESTOQUE ATUAL"}
           </Text>
         </View>
@@ -679,6 +694,68 @@ export function createStockPDF(
           ) : (
             <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
               Nenhum medicamento encontrado para este residente.
+            </Text>
+          )}
+        </>
+      )}
+
+      {isExpiredMedicines && expiredMedicinesData && (
+        <>
+          <Text style={styles.sectionTitle}>
+            Medicamentos Vencidos
+          </Text>
+
+          {expiredMedicinesData.length > 0 ? (
+            <>
+              <View style={[styles.tableHeader, { fontSize: 8 }]}>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Medicamento</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Princípio Ativo</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Quantidade</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Validade</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Dias Vencido</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Lote</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Setor</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Residente</Text>
+              </View>
+
+              {expiredMedicinesData.map((item, idx) => (
+                <View
+                  key={idx}
+                  style={[
+                    styles.tableRow,
+                    idx % 2 === 0 ? styles.striped : undefined,
+                  ]}
+                >
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.medicamento || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.principio_ativo || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.quantidade ?? "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.validade || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.dias_vencido ?? "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.lote || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.setor || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
+                    {item.residente || "-"}
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+              Nenhum medicamento vencido encontrado.
             </Text>
           )}
         </>

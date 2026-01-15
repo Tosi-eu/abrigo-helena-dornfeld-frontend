@@ -18,6 +18,7 @@ import {
   Users,
   ArrowRightLeft,
   Activity,
+  AlertTriangle,
 } from "lucide-react";
 import { pdf } from "@react-pdf/renderer";
 import { getReport, getResidents, getTransferReport, getDailyMovementsReport } from "@/api/requests";
@@ -72,6 +73,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       value: "medicamentos_residente",
       label: "Medicamentos por Residente",
       icon: User,
+    },
+    {
+      value: "medicamentos_vencidos",
+      label: "Medicamentos Vencidos",
+      icon: AlertTriangle,
     },
   ];
 
