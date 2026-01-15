@@ -23,7 +23,6 @@ export interface TransferReport {
   armario: number,
   setor: string,
   lote: string | null,
-  usuario: string 
 }
 
 export interface DailyMovementReport {
@@ -39,7 +38,15 @@ export interface DailyMovementReport {
   gaveta: number | null;
   setor: string;
   lote: string | null;
-  usuario: string;
+}
+
+export interface ResidentMedicinesReport {
+  residente: string;
+  casela: number;
+  medicamento: string;
+  principio_ativo: string | null;
+  quantidade: number;
+  validade: string;
 }
 
 interface ResidentConsumptionReport {
@@ -210,14 +217,16 @@ function renderTable(headers: string[], rows: RowData[]) {
 
 export function createStockPDF(
   tipo: string,
-  data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[],
+  data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[] | ResidentMedicinesReport[],
 ) {
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
   const isDailyMovementsReport = tipo === "movimentos_dia";
+  const isResidentMedicines = tipo === "medicamentos_residente";
   const consumptionData = isResidentConsumption ? (data as ResidentConsumptionReport) : null;
   const transferData = isTransferReport ? (data as TransferReport[]) : null;
   const dailyMovementsData = isDailyMovementsReport ? (data as DailyMovementReport[]) : null;
+  const residentMedicinesData = isResidentMedicines ? (data as ResidentMedicinesReport[]) : null;
 
   return (
     <Document>
@@ -235,11 +244,13 @@ export function createStockPDF(
           />
           <Text style={styles.title}>
             {isResidentConsumption 
-              ? "RELATÓRIO DE CONSUMO" 
+              ? "CONSUMO DO RESIDENTE" 
               : isTransferReport 
-              ? "RELATÓRIO DE TRANSFERÊNCIAS"
+              ? "TRANSFERÊNCIAS DE SETOR"
               : isDailyMovementsReport
-              ? "RELATÓRIO DE MOVIMENTAÇÕES DO DIA"
+              ? "MOVIMENTAÇÕES DO DIA"
+              : isResidentMedicines
+              ? "MEDICAMENTOS POR RESIDENTE"
               : "ESTOQUE ATUAL"}
           </Text>
         </View>
@@ -528,10 +539,6 @@ export function createStockPDF(
                   </Text>
 
                   <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.usuario || "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
                     {transfer.data || "-"}
                   </Text>
 
@@ -566,14 +573,13 @@ export function createStockPDF(
           {dailyMovementsData.length > 0 ? (
             <>
               <View style={[styles.tableHeader, { fontSize: 8 }]}>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Data/Hora</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Tipo</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Item</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>P. Ativo</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Usuário</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Setor</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Casela</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Data</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Tipo</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Item</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Principio Ativo</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Quantidade</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Setor</Text>
+                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Casela</Text>
               </View>
 
               {dailyMovementsData.map((movement, idx) => {
@@ -590,28 +596,25 @@ export function createStockPDF(
                       idx % 2 === 0 ? styles.striped : undefined,
                     ]}
                   >
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {movement.data || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {tipoLabel}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {movement.nome || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {movement.principio_ativo || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {movement.quantidade ?? "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {movement.usuario || "-"}
-                    </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {movement.setor || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
                       {movement.casela ?? "-"}
                     </Text>
                   </View>
@@ -621,6 +624,61 @@ export function createStockPDF(
           ) : (
             <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
               Nenhuma movimentação encontrada no dia atual.
+            </Text>
+          )}
+        </>
+      )}
+
+      {isResidentMedicines && residentMedicinesData && (
+        <>
+          <Text style={styles.sectionTitle}>
+            Medicamentos do Residente
+          </Text>
+
+          {residentMedicinesData.length > 0 ? (
+            <>
+              <View style={{ marginBottom: 15 }}>
+                <Text style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}>
+                  Residente: {residentMedicinesData[0]?.residente || ""}
+                </Text>
+                <Text style={{ fontSize: 12, color: "#666" }}>
+                  Casela: {residentMedicinesData[0]?.casela || ""}
+                </Text>
+              </View>
+
+              <View style={[styles.tableHeader, { fontSize: 8 }]}>
+                <Text style={[styles.cell, { fontSize: 8 }]}>Medicamento</Text>
+                <Text style={[styles.cell, { fontSize: 8 }]}>Princípio Ativo</Text>
+                <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
+                <Text style={[styles.cell, { fontSize: 8 }]}>Validade</Text>
+              </View>
+
+              {residentMedicinesData.map((item, idx) => (
+                <View
+                  key={idx}
+                  style={[
+                    styles.tableRow,
+                    idx % 2 === 0 ? styles.striped : undefined,
+                  ]}
+                >
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {item.medicamento || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {item.principio_ativo || "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {item.quantidade ?? "-"}
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    {item.validade || "-"}
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+              Nenhum medicamento encontrado para este residente.
             </Text>
           )}
         </>

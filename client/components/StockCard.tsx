@@ -71,7 +71,7 @@ export function StockCard({
         if (!isDisabled) onSelect();
       }}
       className={`
-        relative w-full rounded-xl p-5 border shadow-sm transition-all
+        relative w-full h-[200px] rounded-xl p-5 border shadow-sm transition-all flex flex-col
         ${
           selected
             ? "bg-sky-50 border-sky-600 shadow-md"

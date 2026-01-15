@@ -225,6 +225,11 @@ export default function EditStock() {
     }
   }, [watchedArmarioId, setValue]);
 
+  useEffect(() => {
+    if (watchedTipo === ItemStockType.CARRINHO) {
+      setValue("setor", SectorType.ENFERMAGEM);
+    }
+  }, [watchedTipo, setValue]);
   const onSubmit = async (data: EditStockFormData) => {
     setConfirmOpen(true);
   };
@@ -584,34 +589,40 @@ export default function EditStock() {
                 <Controller
                   name="setor"
                   control={control}
-                  render={({ field }) => (
-                    <>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={isSubmitting}
-                        required
-                      >
-                        <SelectTrigger className="bg-white" id="setor">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(SectorType).map((sector) => (
-                            <SelectItem key={sector} value={sector}>
-                              {sector === SectorType.FARMACIA
-                                ? "Farmácia"
-                                : "Enfermagem"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.setor && (
-                        <p className="text-sm text-red-600 mt-1">
-                          {errors.setor.message}
-                        </p>
-                      )}
-                    </>
-                  )}
+                  render={({ field }) => {
+                    const isEmergencyCart = watchedTipo === ItemStockType.CARRINHO;
+                    return (
+                      <>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={isSubmitting || isEmergencyCart}
+                          required
+                        >
+                          <SelectTrigger 
+                            className={`bg-white ${isEmergencyCart ? "bg-slate-100 text-slate-500 cursor-not-allowed" : ""}`} 
+                            id="setor"
+                          >
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(SectorType).map((sector) => (
+                              <SelectItem key={sector} value={sector}>
+                                {sector === SectorType.FARMACIA
+                                  ? "Farmácia"
+                                  : "Enfermagem"}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.setor && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {errors.setor.message}
+                          </p>
+                        )}
+                      </>
+                    );
+                  }}
                 />
               </div>
 

@@ -339,7 +339,7 @@ export default function Stock() {
   return (
     <Layout title="Estoque de Medicamentos e Insumos">
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 justify-end mt-8">
           <button
             onClick={() =>
               navigate("/stock/out", {
