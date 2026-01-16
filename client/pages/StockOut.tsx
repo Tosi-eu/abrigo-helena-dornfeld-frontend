@@ -47,8 +47,7 @@ export default function StockOut() {
 
   const [filters, setFilters] = useState({
     nome: "",
-    armario: "",
-    setor: "",
+    casela: "",
   });
 
   const [step, setStep] = useState<StockWizardSteps>(StockWizardSteps.TIPO);
@@ -102,28 +101,19 @@ export default function StockOut() {
     [items],
   );
 
-  const cabinetOptions = useMemo(
+  const caselaOptions = useMemo(
     () =>
-      Array.from(new Set(items.map((i) => i.armario_id).filter(Boolean))).map(
-        (id) => ({ label: `Armário ${id}`, value: String(id) }),
-      ),
+      Array.from(new Set(items.map((i) => i.casela_id).filter((id): id is number => id !== null && id !== undefined)))
+        .sort((a, b) => a - b)
+        .map((id) => ({ label: `Casela ${id}`, value: String(id) })),
     [items],
-  );
-
-  const sectorOptions = useMemo(
-    () => [
-      { label: "Enfermagem", value: "enfermagem" },
-      { label: "Farmácia", value: "farmacia" },
-    ],
-    [],
   );
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       if (filters.nome && item.nome !== filters.nome) return false;
-      if (filters.armario && String(item.armario_id ?? "") !== filters.armario)
+      if (filters.casela && String(item.casela_id ?? "") !== filters.casela)
         return false;
-      if (filters.setor && item.setor !== filters.setor) return false;
       return true;
     });
   }, [items, filters]);
@@ -205,7 +195,7 @@ export default function StockOut() {
   return (
     <Layout title="Saída de Estoque">
       <div className="bg-white p-6 rounded-lg border border-gray-300 max-w-7xl mx-auto mt-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-gray-700 mb-1">Nome</label>
             <Popover>
@@ -249,76 +239,51 @@ export default function StockOut() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-700 mb-1">Armário</label>
+            <label className="block text-xs text-gray-700 mb-1">Casela</label>
             <Popover>
               <PopoverTrigger asChild>
                 <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
-                  {filters.armario || "Selecione"}
+                  {filters.casela ? `Casela ${filters.casela}` : "Selecione"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Buscar armário..." />
+                  <CommandInput placeholder="Buscar casela..." />
                   <CommandEmpty>Nenhum item encontrado</CommandEmpty>
                   <CommandGroup>
-                    {cabinetOptions.map((o) => (
+                    <CommandItem
+                      value=""
+                      onSelect={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          casela: "",
+                        }))
+                      }
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          !filters.casela ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                      Todas
+                    </CommandItem>
+                    {caselaOptions.map((o) => (
                       <CommandItem
                         key={o.value}
                         value={o.value}
                         onSelect={() =>
                           setFilters((prev) => ({
                             ...prev,
-                            armario: prev.armario === o.value ? "" : o.value,
+                            casela: prev.casela === o.value ? "" : o.value,
                           }))
                         }
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            filters.armario === o.value
-                              ? "opacity-100"
-                              : "opacity-0",
-                          )}
-                        />
-                        {o.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-700 mb-1">Setor</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
-                  {filters.setor ? (filters.setor === "enfermagem" ? "Enfermagem" : "Farmácia") : "Selecione"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Buscar setor..." />
-                  <CommandEmpty>Nenhum item encontrado</CommandEmpty>
-                  <CommandGroup>
-                    {sectorOptions.map((o) => (
-                      <CommandItem
-                        key={o.value}
-                        value={o.value}
-                        onSelect={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            setor: prev.setor === o.value ? "" : o.value,
-                          }))
-                        }
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            filters.setor === o.value
+                            filters.casela === o.value
                               ? "opacity-100"
                               : "opacity-0",
                           )}

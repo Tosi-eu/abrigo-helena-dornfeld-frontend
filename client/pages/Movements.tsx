@@ -30,7 +30,7 @@ export default function InputMovements() {
     { key: "additionalData", label: "Princípio Ativo", editable: false },
     { key: "quantity", label: "Quantidade", editable: false },
     { key: "operator", label: "Operador", editable: false },
-    { key: "movementDate", label: "Data da Transação", editable: false },
+    { key: "movementDate", label: "Data", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
     { key: "drawer", label: "Gaveta", editable: false },
     { key: "resident", label: "Casela", editable: false },

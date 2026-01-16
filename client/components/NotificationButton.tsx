@@ -9,7 +9,7 @@ export function NotificationButton() {
   return (
     <motion.button
       onClick={() => setOpen(true)}
-      className="fixed bottom-6 right-6 bg-sky-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-sky-700 transition-colors"
+      className="fixed bottom-6 right-6 bg-sky-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-sky-700 transition-colors z-50"
       animate={hasNotifications ? { 
         scale: [1, 1.03, 1]
       } : {}}

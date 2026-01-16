@@ -173,7 +173,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="p-0 bg-white rounded-2xl shadow-xl max-w-3xl w-full flex flex-col items-center">
+      <DialogContent className="p-0 bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto flex flex-col items-center">
         <AnimatePresence mode="wait">
           {status === "idle" && (
             <motion.div
@@ -182,7 +182,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="p-8 w-full flex flex-col items-center"
+              className="p-6 w-full flex flex-col items-center"
             >
               <DialogHeader className="w-full mb-6 text-center">
                 <DialogTitle className="text-2xl font-bold text-gray-800">
