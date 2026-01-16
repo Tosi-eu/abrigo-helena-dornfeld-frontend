@@ -113,8 +113,8 @@ export default function Dashboard() {
 
           getStockProportions("enfermagem"),
           getStockProportions("farmacia"),
-          getStock(1, 10, "armarios"),
-          getStock(1, 20, "gavetas"),
+          getStock(1, 10, { type: "armarios" }),
+          getStock(1, 20, { type: "gavetas" }),
         ]);
 
         const [medMoreRes, medLessRes, nonMovementRes] = await Promise.all([
@@ -173,8 +173,9 @@ export default function Dashboard() {
         setBelowMinData(itemsInStockWarning);
         setExpiredData(expiredItems);
         setExpiringSoonData(expiringSoonItems);
-        setRecentMovements(recentMovements);
-        setNonMovementProducts(nonMovementRes);
+        
+        setRecentMovements(recentMovements.slice(0, DEFAULT_PAGE_SIZE));
+        setNonMovementProducts(Array.isArray(nonMovementRes) ? nonMovementRes.slice(0, DEFAULT_PAGE_SIZE) : []);
 
         setMostMovData(
           medMoreRes.data.map((item) => ({

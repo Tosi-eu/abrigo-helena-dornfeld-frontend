@@ -22,9 +22,9 @@ export const checkCabinetStock = (number: number) =>
 export const deleteCabinet = (number: number, destiny?: any) =>
   api.delete(`/armarios/${number}`, destiny);
 
-export const getMedicines = (page = 1, limit = 10) =>
+export const getMedicines = (page = 1, limit = 10, name?: string) =>
   api.get("/medicamentos", {
-    params: { page, limit },
+    params: { page, limit, ...(name ? { name } : {}) },
   });
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
@@ -62,8 +62,14 @@ export const getMedicineMovements = ({
     params: { page, limit, days, type },
   });
 
-export const getInputs = (page = 1, limit = 10) =>
-  api.get(`/insumos?page=${page}&limit=${limit}`);
+export const getInputs = (page = 1, limit = 10, name?: string) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (name) params.append('name', name);
+  return api.get(`/insumos?${params.toString()}`);
+};
 
 export const deleteInput = (id: number) => api.delete(`/insumos/${id}`);
 
@@ -238,8 +244,28 @@ export const patchNotificationEvent = (
 
 export const getTodayNotifications = () => api.get("/notificacao/retirar-hoje");
 
-export const getStock = (page = 1, limit = 6, type?: string) =>
-  api.get(`/estoque?page=${page}&limit=${limit}${type ? `&type=${type}` : ""}`);
+export const getStock = (page = 1, limit = 6, filters?: Record<string, any>) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  
+  if (filters) {
+    if (filters.type) params.append('type', filters.type);
+    if (filters.name) params.append('name', filters.name);
+    if (filters.activeSubstance) params.append('activeSubstance', filters.activeSubstance);
+    if (filters.cabinet) params.append('cabinet', filters.cabinet);
+    if (filters.drawer) params.append('drawer', filters.drawer);
+    if (filters.casela) params.append('casela', filters.casela);
+    if (filters.origin) params.append('origin', filters.origin);
+    if (filters.sector) params.append('sector', filters.sector);
+    if (filters.lot) params.append('lot', filters.lot);
+    if (filters.itemType) params.append('itemType', filters.itemType);
+    if (filters.stockType) params.append('stockType', filters.stockType);
+  }
+  
+  return api.get(`/estoque?${params.toString()}`);
+};
 
 export const getCabinetCategories = (page = 1, limit = 5) =>
   api.get("/categoria-armario", {

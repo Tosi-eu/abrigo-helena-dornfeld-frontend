@@ -5,6 +5,7 @@ import { SkeletonTable } from "@/components/SkeletonTable";
 import { TableFilter } from "@/components/TableFilter";
 import { useToast } from "@/hooks/use-toast.hook";
 import { getInputs } from "@/api/requests";
+import { DEFAULT_PAGE_SIZE } from "@/helpers/paginacao.helper";
 
 const columns = [
   { key: "nome", label: "Nome", editable: true },
@@ -13,22 +14,21 @@ const columns = [
 ];
 
 export default function Inputs() {
-  const [data, setData] = useState<Record<string, unknown>[]>([]);
+  const [inputs, setInputs] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
+  const [hasNext, setHasNext] = useState(false);
+  const [total, setTotal] = useState(0);
   const { toast } = useToast();
 
-  async function fetchInputs(pageNumber: number) {
+  async function fetchInputs() {
     setLoading(true);
     try {
-      const res = await getInputs(pageNumber, 10);
-
-      const inputData = Array.isArray(res.data) ? res.data : [];
-      setData(inputData);
-      setPage(res.page ?? pageNumber);
-      setHasNextPage(Boolean(res.hasNext));
+      const res = await getInputs(page, DEFAULT_PAGE_SIZE, searchFilter || undefined);
+      setInputs(res.data);
+      setHasNext(res.hasNext);
+      setTotal(res.total);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Erro inesperado";
@@ -43,21 +43,21 @@ export default function Inputs() {
     }
   }
 
-  const filteredInputs = useMemo(() => {
-    if (!searchFilter.trim()) {
-      return data;
-    }
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE));
+  }, [total]);
 
-    const filterLower = searchFilter.toLowerCase();
-    return data.filter((input) => {
-      const nome = String(input.nome || "").toLowerCase();
-      return nome.includes(filterLower);
-    });
-  }, [data, searchFilter]);
+  const hasNextPage = useMemo(() => {
+    return hasNext;
+  }, [hasNext]);
 
   useEffect(() => {
-    fetchInputs(1);
-  }, []);
+    fetchInputs();
+  }, [page, searchFilter]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchFilter]);
 
   return (
     <Layout title="Insumos">
@@ -73,19 +73,19 @@ export default function Inputs() {
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (
             <EditableTable
-              data={filteredInputs}
+              data={inputs}
               columns={columns}
               entityType="inputs"
               currentPage={page}
               hasNextPage={hasNextPage}
               onNextPage={() => {
                 if (hasNextPage) {
-                  fetchInputs(page + 1);
+                  setPage(page + 1);
                 }
               }}
               onPrevPage={() => {
                 if (page > 1) {
-                  fetchInputs(page - 1);
+                  setPage(page - 1);
                 }
               }}
             />

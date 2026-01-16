@@ -18,19 +18,18 @@ const columns = [
 export default function Medicines() {
   const [medicines, setMedicines] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
+  const [hasNext, setHasNext] = useState(false);
+  const [total, setTotal] = useState(0);
 
-  async function fetchMedicines(pageNumber: number) {
+  async function fetchMedicines() {
     setLoading(true);
     try {
-      const res = await getMedicines(pageNumber, DEFAULT_PAGE_SIZE);
-
-      const data = Array.isArray(res.data) ? res.data : [];
-      setMedicines(data);
-      setPage(res.page ?? pageNumber);
-      setHasNextPage(res.hasNext);
+      const res = await getMedicines(page, DEFAULT_PAGE_SIZE, searchFilter || undefined);
+      setMedicines(res.data);
+      setHasNext(res.hasNext);
+      setTotal(res.total);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Erro inesperado";
@@ -45,21 +44,21 @@ export default function Medicines() {
     }
   }
 
-  const filteredMedicines = useMemo(() => {
-    if (!searchFilter.trim()) {
-      return medicines;
-    }
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE));
+  }, [total]);
 
-    const filterLower = searchFilter.toLowerCase();
-    return medicines.filter((medicine) => {
-      const nome = String(medicine.nome || "").toLowerCase();
-      return nome.includes(filterLower);
-    });
-  }, [medicines, searchFilter]);
+  const hasNextPage = useMemo(() => {
+    return hasNext;
+  }, [hasNext]);
 
   useEffect(() => {
-    fetchMedicines(1);
-  }, []);
+    fetchMedicines();
+  }, [page, searchFilter]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchFilter]);
 
   return (
     <Layout title="Medicamentos">
@@ -75,19 +74,19 @@ export default function Medicines() {
             <SkeletonTable rows={5} cols={columns.length} />
           ) : (
             <EditableTable
-              data={filteredMedicines}
+              data={medicines}
               columns={columns}
               entityType="medicines"
               currentPage={page}
               hasNextPage={hasNextPage}
               onNextPage={() => {
                 if (hasNextPage) {
-                  fetchMedicines(page + 1);
+                  setPage(page + 1);
                 }
               }}
               onPrevPage={() => {
                 if (page > 1) {
-                  fetchMedicines(page - 1);
+                  setPage(page - 1);
                 }
               }}
             />
