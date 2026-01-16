@@ -10,7 +10,6 @@ import { lazy, Suspense, useEffect } from "react";
 import React from "react";
 
 import { AuthProvider } from "./context/auth-context";
-import { DataProvider } from "./context/data-context";
 import PrivateRoute from "./pages/PrivateRoute";
 import { NotificationProvider } from "./context/notification.context";
 import { InvalidSessionProvider, useInvalidSession } from "./context/invalid-session.context";
@@ -416,7 +415,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <DataProvider>
           <NotificationProvider>
             <InvalidSessionProvider>
               <BrowserRouter>
@@ -424,7 +422,6 @@ const App = () => (
               </BrowserRouter>
             </InvalidSessionProvider>
           </NotificationProvider>
-        </DataProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
