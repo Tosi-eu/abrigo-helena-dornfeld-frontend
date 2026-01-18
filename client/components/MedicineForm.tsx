@@ -87,9 +87,12 @@ export const MedicineForm = memo(function MedicineForm({
   }, [isCart, setValue]);
 
   useEffect(() => {
-    setValue("cabinetId", null);
-    setValue("drawerId", null);
-  }, [stockType, setValue]);
+    if (isCart) {
+      setValue("cabinetId", null);
+    } else {
+      setValue("drawerId", null);
+    }
+  }, [stockType, setValue, isCart]);
 
   useEffect(() => {
     if (!isIndividual) {
@@ -188,7 +191,7 @@ export const MedicineForm = memo(function MedicineForm({
                   className="w-full p-0"
                 >
                   <Command>
-                    <CommandInput placeholder="Buscar medicamento..." />
+                    <CommandInput placeholder="Buscar medicamento" />
                     <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>
                     <CommandGroup>
                       {medicines.map((m) => (

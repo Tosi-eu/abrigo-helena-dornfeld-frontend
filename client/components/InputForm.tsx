@@ -81,9 +81,12 @@ export const InputForm = memo(function InputForm({
   }, [isCart, setValue]);
 
   useEffect(() => {
-    setValue("cabinetId", null);
-    setValue("drawerId", null);
-  }, [stockType, setValue]);
+    if (isCart) {
+      setValue("cabinetId", null);
+    } else {
+      setValue("drawerId", null);
+    }
+  }, [stockType, setValue, isCart]);
 
   useEffect(() => {
     if (!isIndividual) {
