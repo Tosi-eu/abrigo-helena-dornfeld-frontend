@@ -48,7 +48,8 @@ import { TableFilter } from "@/components/TableFilter";
 export default function Stock() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data } = location.state || {};
+  const params = new URLSearchParams(location.search);
+  const filter = params.get("filter"); // "noStock" | "belowMin" | "expired" | "expiringSoon"
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
@@ -131,42 +132,39 @@ export default function Stock() {
     }));
   };
 
-  async function loadStock(pageToLoad: number, currentFilters = filters) {
-    setLoading(true);
-    try {
-      const filterParams: Record<string, any> = {};
-      if (currentFilters.nome && currentFilters.nome.trim()) {
-        filterParams.name = currentFilters.nome.trim();
-      }
-      if (currentFilters.casela && currentFilters.casela.trim()) {
-        filterParams.casela = currentFilters.casela.trim();
-      }
-      if (currentFilters.armario && currentFilters.armario.trim()) {
-        filterParams.cabinet = currentFilters.armario.trim();
-      }
-      if (currentFilters.setor && currentFilters.setor.trim()) {
-        filterParams.sector = currentFilters.setor.trim();
-      }
+async function loadStock(pageToLoad: number, currentFilters = filters) {
+  setLoading(true);
+  try {
+    const filterParams: Record<string, any> = {};
 
-      const res = await getStock(pageToLoad, limit, filterParams);
+    if (currentFilters.nome?.trim()) filterParams.name = currentFilters.nome.trim();
+    if (currentFilters.casela?.trim()) filterParams.casela = currentFilters.casela.trim();
+    if (currentFilters.armario?.trim()) filterParams.cabinet = currentFilters.armario.trim();
+    if (currentFilters.setor?.trim()) filterParams.sector = currentFilters.setor.trim();
 
-      setItems(formatStockItems(res.data));
-      setHasNext(res.hasNext);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Não foi possível carregar os itens do estoque.";
-      toast({
-        title: "Erro ao carregar estoque",
-        description: errorMessage,
-        variant: "error",
-        duration: 3000,
-      });
-    } finally {
-      setLoading(false);
+    if (filter) {
+      filterParams.filter = filter; 
     }
+
+    const res = await getStock(pageToLoad, limit, filterParams, filter);
+    setItems(formatStockItems(res.data));
+    setHasNext(res.hasNext);
+  } catch (err: unknown) {
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Não foi possível carregar os itens do estoque.";
+    toast({
+      title: "Erro ao carregar estoque",
+      description: errorMessage,
+      variant: "error",
+      duration: 3000,
+    });
+  } finally {
+    setLoading(false);
   }
+}
+
 
   async function loadAllStock() {
     try {
@@ -215,23 +213,6 @@ export default function Stock() {
   useEffect(() => {
     async function init() {
       setLoading(true);
-
-      if (data && Array.isArray(data)) {
-        if (data.length > 0) {
-          setItems(formatStockItems(data));
-        } else {
-          setItems([]);
-        }
-        setHasNext(false);
-        setLoading(false);
-        try {
-          await loadAllStock();
-        } catch (err) {
-          console.error("Error loading all stock:", err);
-        }
-        return;
-      }
-
       await loadStock(1);
       await loadAllStock();
       await loadResidents();
@@ -256,17 +237,15 @@ export default function Stock() {
       prevFiltersRef.current.armario !== effectiveFilters.armario ||
       prevFiltersRef.current.setor !== effectiveFilters.setor;
 
-    if (filtersChanged && (!data || !Array.isArray(data))) {
+    if (filtersChanged) {
       setPage(1);
       prevFiltersRef.current = effectiveFilters;
     }
-  }, [effectiveFilters, data]);
+  }, [effectiveFilters]);
 
   useEffect(() => {
-    if (!data || !Array.isArray(data)) {
       loadStock(page, effectiveFilters);
-    }
-  }, [page, effectiveFilters, data]);
+  }, [page, effectiveFilters]);
 
   const filterOptions = {
     sectors: [
@@ -758,10 +737,8 @@ export default function Stock() {
               onSuspend={requestSuspend}
               onResume={requestResume}
               onDeleteSuccess={() => {
-                if (!data) {
                   loadStock(page);
                   loadAllStock();
-                }
               }}
               entityType="stock"
             />

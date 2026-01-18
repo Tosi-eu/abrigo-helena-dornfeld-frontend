@@ -58,12 +58,6 @@ export default function Dashboard() {
     [],
   );
   const [drawerStockData, setDrawerStockData] = useState<DrawerStockItem[]>([]);
-  const [noStockData, setNoStockData] = useState<StockStatusItem[]>([]);
-  const [belowMinData, setBelowMinData] = useState<StockStatusItem[]>([]);
-  const [expiredData, setExpiredData] = useState<StockStatusItem[]>([]);
-  const [expiringSoonData, setExpiringSoonData] = useState<StockStatusItem[]>(
-    [],
-  );
   const [nonMovementPage, setNonMovementPage] = useState(1);
   const [recentMovementsPage, setRecentMovementsPage] = useState(1);
 
@@ -169,10 +163,6 @@ export default function Dashboard() {
         setBelowMin(itemsInStockWarning.length);
         setExpired(expiredItems.length);
         setExpiringSoon(expiringSoonItems);
-        setNoStockData(noStockItems);
-        setBelowMinData(itemsInStockWarning);
-        setExpiredData(expiredItems);
-        setExpiringSoonData(expiringSoonItems);
 
         setRecentMovements(recentMovements.slice(0, DEFAULT_PAGE_SIZE));
         setNonMovementProducts(
@@ -279,33 +269,25 @@ export default function Dashboard() {
         label: "Itens Abaixo do Estoque Mínimo",
         value: noStock,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "noStock", data: noStockData },
-          }),
+          navigate("/stock?filter=noStock"),
       },
       {
         label: "Itens Próximos do Estoque Mínimo",
         value: belowMin,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "belowMin", data: belowMinData },
-          }),
+          navigate("/stock?filter=belowMin"),
       },
       {
         label: "Itens Vencidos",
         value: expired,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "expired", data: expiredData },
-          }),
+          navigate("/stock?filter=expired"),
       },
       {
         label: "Itens com Vencimento Próximo",
         value: expiringSoon.length,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "expiringSoon", data: expiringSoonData },
-          }),
+          navigate("/stock?filter=expiringSoon"),
       },
     ],
     [
@@ -313,10 +295,6 @@ export default function Dashboard() {
       belowMin,
       expired,
       expiringSoon,
-      noStockData,
-      belowMinData,
-      expiredData,
-      expiringSoonData,
       navigate,
     ],
   );

@@ -269,6 +269,7 @@ export const getStock = (
   page = 1,
   limit = 6,
   filters?: Record<string, any>,
+  extraFilter?: string | null
 ) => {
   const params = new URLSearchParams({
     page: String(page),
@@ -288,6 +289,10 @@ export const getStock = (
     if (filters.lot) params.append("lot", filters.lot);
     if (filters.itemType) params.append("itemType", filters.itemType);
     if (filters.stockType) params.append("stockType", filters.stockType);
+  }
+
+  if (extraFilter) {
+    params.append("filter", extraFilter);
   }
 
   return api.get(`/estoque?${params.toString()}`);
