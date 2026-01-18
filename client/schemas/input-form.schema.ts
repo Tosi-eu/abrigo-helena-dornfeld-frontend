@@ -45,37 +45,35 @@ export const inputFormSchema = z
   .refine(
     (data) =>
       ![ItemStockType.CARRINHO, ItemStockType.CARRINHO_PSICOTROPICOS].includes(
-        data.stockType
+        data.stockType,
       ) || data.drawerId !== null,
     {
       message: "Carrinho requer uma gaveta",
       path: ["drawerId"],
-    }
+    },
   )
   .refine(
     (data) =>
       [ItemStockType.CARRINHO, ItemStockType.CARRINHO_PSICOTROPICOS].includes(
-        data.stockType
+        data.stockType,
       ) || data.cabinetId !== null,
     {
       message: "Selecione um armário",
       path: ["cabinetId"],
-    }
+    },
   )
-  .refine(
-    (data) => !(data.cabinetId !== null && data.drawerId !== null),
-    {
-      message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
-      path: ["drawerId"],
-    }
-  )
+  .refine((data) => !(data.cabinetId !== null && data.drawerId !== null), {
+    message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
+    path: ["drawerId"],
+  })
 
   .refine(
-    (data) => !(data.casela !== null && data.stockType !== ItemStockType.INDIVIDUAL),
+    (data) =>
+      !(data.casela !== null && data.stockType !== ItemStockType.INDIVIDUAL),
     {
       message: "A casela só pode ser preenchida para tipo individual",
       path: ["casela"],
-    }
+    },
   );
 
 export type InputFormData = z.infer<typeof inputFormSchema>;

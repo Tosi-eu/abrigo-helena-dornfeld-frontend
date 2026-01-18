@@ -6,9 +6,15 @@ interface InvalidSessionContextValue {
   triggerInvalidSession: () => void;
 }
 
-const InvalidSessionContext = createContext<InvalidSessionContextValue | null>(null);
+const InvalidSessionContext = createContext<InvalidSessionContextValue | null>(
+  null,
+);
 
-export const InvalidSessionProvider = ({ children }: { children: ReactNode }) => {
+export const InvalidSessionProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [showModal, setShowModal] = useState(false);
 
   const triggerInvalidSession = () => {
@@ -16,7 +22,9 @@ export const InvalidSessionProvider = ({ children }: { children: ReactNode }) =>
   };
 
   return (
-    <InvalidSessionContext.Provider value={{ showModal, setShowModal, triggerInvalidSession }}>
+    <InvalidSessionContext.Provider
+      value={{ showModal, setShowModal, triggerInvalidSession }}
+    >
       {children}
     </InvalidSessionContext.Provider>
   );
@@ -25,9 +33,9 @@ export const InvalidSessionProvider = ({ children }: { children: ReactNode }) =>
 export const useInvalidSession = () => {
   const context = useContext(InvalidSessionContext);
   if (!context) {
-    throw new Error("useInvalidSession deve ser usado dentro de InvalidSessionProvider");
+    throw new Error(
+      "useInvalidSession deve ser usado dentro de InvalidSessionProvider",
+    );
   }
   return context;
 };
-
-

@@ -62,32 +62,35 @@ export default function Stock() {
     armario: "",
     setor: "",
   });
-  
+
   const [debouncedNome, setDebouncedNome] = useState("");
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [armarioSearch, setArmarioSearch] = useState("");
   const [caselaSearch, setCaselaSearch] = useState("");
-  
+
   useEffect(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     debounceTimerRef.current = setTimeout(() => {
       setDebouncedNome(filters.nome);
-    }, 500); 
-    
+    }, 500);
+
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
   }, [filters.nome]);
-  
-  const effectiveFilters = useMemo(() => ({
-    ...filters,
-    nome: debouncedNome,
-  }), [debouncedNome, filters.casela, filters.armario, filters.setor]);
+
+  const effectiveFilters = useMemo(
+    () => ({
+      ...filters,
+      nome: debouncedNome,
+    }),
+    [debouncedNome, filters.casela, filters.armario, filters.setor],
+  );
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
@@ -96,7 +99,9 @@ export default function Stock() {
   }>({ type: null, row: null });
   const [actionLoading, setActionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [residents, setResidents] = useState<Array<{ casela: number; name: string }>>([]);
+  const [residents, setResidents] = useState<
+    Array<{ casela: number; name: string }>
+  >([]);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
@@ -190,7 +195,9 @@ export default function Stock() {
         (page, limit) => getResidents(page, limit),
         100,
       );
-      setResidents(allResidents.map((r: any) => ({ casela: r.casela, name: r.name })));
+      setResidents(
+        allResidents.map((r: any) => ({ casela: r.casela, name: r.name })),
+      );
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -235,26 +242,26 @@ export default function Stock() {
 
   const isInitialMount = useRef(true);
   const prevFiltersRef = useRef(effectiveFilters);
-  
+
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       prevFiltersRef.current = effectiveFilters;
       return;
     }
-    
-    const filtersChanged = 
+
+    const filtersChanged =
       prevFiltersRef.current.nome !== effectiveFilters.nome ||
       prevFiltersRef.current.casela !== effectiveFilters.casela ||
       prevFiltersRef.current.armario !== effectiveFilters.armario ||
       prevFiltersRef.current.setor !== effectiveFilters.setor;
-    
+
     if (filtersChanged && (!data || !Array.isArray(data))) {
       setPage(1);
       prevFiltersRef.current = effectiveFilters;
     }
   }, [effectiveFilters, data]);
-  
+
   useEffect(() => {
     if (!data || !Array.isArray(data)) {
       loadStock(page, effectiveFilters);
@@ -288,17 +295,17 @@ export default function Stock() {
 
   const filteredCabinets = useMemo(() => {
     if (!armarioSearch) return filterOptions.cabinets;
-  
+
     return filterOptions.cabinets.filter((c) =>
-      c.value.startsWith(armarioSearch.trim())
+      c.value.startsWith(armarioSearch.trim()),
     );
   }, [armarioSearch, filterOptions.cabinets]);
-  
+
   const filteredCaselas = useMemo(() => {
     if (!caselaSearch) return filterOptions.caselas;
-  
+
     return filterOptions.caselas.filter((c) =>
-      c.value.startsWith(caselaSearch.trim())
+      c.value.startsWith(caselaSearch.trim()),
     );
   }, [caselaSearch, filterOptions.caselas]);
 
@@ -382,7 +389,6 @@ export default function Stock() {
         }
       }
 
-
       await loadStock(page);
       await loadAllStock();
 
@@ -420,7 +426,10 @@ export default function Stock() {
     }
   };
 
-  const handleTransferConfirm = async (quantity: number, casela?: number | null) => {
+  const handleTransferConfirm = async (
+    quantity: number,
+    casela?: number | null,
+  ) => {
     if (!pendingAction.row || pendingAction.type !== "transfer") return;
 
     const { row } = pendingAction;
@@ -493,7 +502,6 @@ export default function Stock() {
           >
             Gerar Relatório
           </button>
-
         </div>
 
         {allRawData.length > 0 && (
@@ -510,7 +518,9 @@ export default function Stock() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-700 mb-1">Setor</label>
+                <label className="block text-xs text-gray-700 mb-1">
+                  Setor
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
@@ -523,12 +533,12 @@ export default function Stock() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
-                      side="bottom"
-                      align="start"
-                      sideOffset={4}
-                      avoidCollisions={false}
-                      className="w-full p-0"
-                    >
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
                     <Command>
                       <CommandInput placeholder="Buscar setor" />
                       <CommandEmpty>Nenhum item encontrado</CommandEmpty>
@@ -555,7 +565,9 @@ export default function Stock() {
                               setFilters((prev) => ({
                                 ...prev,
                                 setor:
-                                  prev.setor === sector.value ? "" : sector.value,
+                                  prev.setor === sector.value
+                                    ? ""
+                                    : sector.value,
                               }))
                             }
                           >
@@ -577,7 +589,9 @@ export default function Stock() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-700 mb-1">Armário</label>
+                <label className="block text-xs text-gray-700 mb-1">
+                  Armário
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
@@ -588,12 +602,12 @@ export default function Stock() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
-                      side="bottom"
-                      align="start"
-                      sideOffset={4}
-                      avoidCollisions={false}
-                      className="w-full p-0"
-                    >
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
                     <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Buscar armário"
@@ -628,9 +642,9 @@ export default function Stock() {
                                     ? ""
                                     : cabinet.value,
                               }));
-                            
+
                               setArmarioSearch("");
-                            }}                            
+                            }}
                           >
                             <Check
                               className={cn(
@@ -650,7 +664,9 @@ export default function Stock() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-700 mb-1">Casela</label>
+                <label className="block text-xs text-gray-700 mb-1">
+                  Casela
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
@@ -661,12 +677,12 @@ export default function Stock() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
-                      side="bottom"
-                      align="start"
-                      sideOffset={4}
-                      avoidCollisions={false}
-                      className="w-full p-0"
-                    >
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
                     <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Buscar casela"
@@ -696,11 +712,14 @@ export default function Stock() {
                             onSelect={() => {
                               setFilters((prev) => ({
                                 ...prev,
-                                casela: prev.casela === casela.value ? "" : casela.value,
+                                casela:
+                                  prev.casela === casela.value
+                                    ? ""
+                                    : casela.value,
                               }));
-                            
+
                               setCaselaSearch("");
-                            }}                            
+                            }}
                           >
                             <Check
                               className={cn(
@@ -773,7 +792,8 @@ export default function Stock() {
                 quantity: pendingAction.row.quantity,
                 sector: pendingAction.row.sector,
                 itemType: pendingAction.row.itemType,
-                isGeneralMedicine: pendingAction.row.tipo === ItemStockType.GERAL,
+                isGeneralMedicine:
+                  pendingAction.row.tipo === ItemStockType.GERAL,
               }
             : null
         }

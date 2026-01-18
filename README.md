@@ -93,13 +93,13 @@ npm run test:watch
 
 ## 🔧 Scripts Disponíveis
 
-| Script | Descrição |
-|--------|-----------|
-| `npm run dev` | Inicia servidor de desenvolvimento |
-| `npm run build` | Compila para produção |
-| `npm test` | Executa testes |
-| `npm run format.fix` | Formata código com Prettier |
-| `npm run typecheck` | Verifica tipos TypeScript |
+| Script               | Descrição                          |
+| -------------------- | ---------------------------------- |
+| `npm run dev`        | Inicia servidor de desenvolvimento |
+| `npm run build`      | Compila para produção              |
+| `npm test`           | Executa testes                     |
+| `npm run format.fix` | Formata código com Prettier        |
+| `npm run typecheck`  | Verifica tipos TypeScript          |
 
 ## 🎨 Tecnologias Utilizadas
 

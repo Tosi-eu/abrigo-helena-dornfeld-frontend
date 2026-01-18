@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const unitsOfMeasurement = ["mg", "ml", "g", "mcg", "mg/ml", "UI", "gts"];
+export const unitsOfMeasurement = [
+  "mg",
+  "ml",
+  "g",
+  "mcg",
+  "mg/ml",
+  "UI",
+  "gts",
+];
 
 export const medicineSchema = z.object({
   name: z

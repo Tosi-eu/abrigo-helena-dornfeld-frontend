@@ -173,9 +173,13 @@ export default function Dashboard() {
         setBelowMinData(itemsInStockWarning);
         setExpiredData(expiredItems);
         setExpiringSoonData(expiringSoonItems);
-        
+
         setRecentMovements(recentMovements.slice(0, DEFAULT_PAGE_SIZE));
-        setNonMovementProducts(Array.isArray(nonMovementRes) ? nonMovementRes.slice(0, DEFAULT_PAGE_SIZE) : []);
+        setNonMovementProducts(
+          Array.isArray(nonMovementRes)
+            ? nonMovementRes.slice(0, DEFAULT_PAGE_SIZE)
+            : [],
+        );
 
         setMostMovData(
           medMoreRes.data.map((item) => ({

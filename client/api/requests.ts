@@ -68,7 +68,7 @@ export const getInputs = (page = 1, limit = 10, name?: string) => {
     page: String(page),
     limit: String(limit),
   });
-  if (name) params.append('name', name);
+  if (name) params.append("name", name);
   return api.get(`/insumos?${params.toString()}`);
 };
 
@@ -101,21 +101,30 @@ export const getReport = (
 };
 
 export const getTransferReport = () => {
-  return api.get('/relatorios?type=transferencias');
+  return api.get("/relatorios?type=transferencias");
 };
 
 export const getDailyMovementsReport = () => {
-  return api.get('/relatorios?type=movimentos_dia');
+  return api.get("/relatorios?type=movimentos_dia");
 };
 
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
 
-export const getCurrentUser = () =>
-  api.get("/login/usuario-logado");
+export const getCurrentUser = () => api.get("/login/usuario-logado");
 
-export const register = (login: string, password: string, firstName: string, lastName: string) =>
-  api.post("/login", { login, password, first_name: firstName, last_name: lastName });
+export const register = (
+  login: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+) =>
+  api.post("/login", {
+    login,
+    password,
+    first_name: firstName,
+    last_name: lastName,
+  });
 
 export const updateInput = (id: number, data: any) =>
   api.put(`/insumos/${id}`, data);
@@ -133,7 +142,7 @@ export const updateResident = (casela: string | number, data: any) =>
   api.put(`/residentes/${casela}`, data);
 
 export const updateUser = (payload: UpdateUserPayload) =>
-  api.put('/login', payload);
+  api.put("/login", payload);
 
 export const createCabinet = (numero: number, categoria_id: number) =>
   api.post("/armarios", { numero, categoria_id });
@@ -256,26 +265,31 @@ export const patchNotificationEvent = (
 
 export const getTodayNotifications = () => api.get("/notificacao/retirar-hoje");
 
-export const getStock = (page = 1, limit = 6, filters?: Record<string, any>) => {
+export const getStock = (
+  page = 1,
+  limit = 6,
+  filters?: Record<string, any>,
+) => {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
-  
+
   if (filters) {
-    if (filters.type) params.append('type', filters.type);
-    if (filters.name) params.append('name', filters.name);
-    if (filters.activeSubstance) params.append('activeSubstance', filters.activeSubstance);
-    if (filters.cabinet) params.append('cabinet', filters.cabinet);
-    if (filters.drawer) params.append('drawer', filters.drawer);
-    if (filters.casela) params.append('casela', filters.casela);
-    if (filters.origin) params.append('origin', filters.origin);
-    if (filters.sector) params.append('sector', filters.sector);
-    if (filters.lot) params.append('lot', filters.lot);
-    if (filters.itemType) params.append('itemType', filters.itemType);
-    if (filters.stockType) params.append('stockType', filters.stockType);
+    if (filters.type) params.append("type", filters.type);
+    if (filters.name) params.append("name", filters.name);
+    if (filters.activeSubstance)
+      params.append("activeSubstance", filters.activeSubstance);
+    if (filters.cabinet) params.append("cabinet", filters.cabinet);
+    if (filters.drawer) params.append("drawer", filters.drawer);
+    if (filters.casela) params.append("casela", filters.casela);
+    if (filters.origin) params.append("origin", filters.origin);
+    if (filters.sector) params.append("sector", filters.sector);
+    if (filters.lot) params.append("lot", filters.lot);
+    if (filters.itemType) params.append("itemType", filters.itemType);
+    if (filters.stockType) params.append("stockType", filters.stockType);
   }
-  
+
   return api.get(`/estoque?${params.toString()}`);
 };
 
@@ -386,7 +400,7 @@ export const updateStockItem = (
   },
 ) => {
   const { tipo: stockTipo, ...restData } = data;
-  return api.put(`/estoque/${estoqueId}`, { 
+  return api.put(`/estoque/${estoqueId}`, {
     tipo: itemTipo,
     stockTipo: stockTipo,
     ...restData,

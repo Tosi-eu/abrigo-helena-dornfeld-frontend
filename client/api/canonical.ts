@@ -135,7 +135,7 @@ function sanitizeErrorMessage(message: string): string {
 
 async function request(path: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: 'include',
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
@@ -148,9 +148,9 @@ async function request(path: string, options: RequestInit = {}) {
   if (!res.ok) {
     const rawMsg = data?.error || data?.message || "Erro inesperado";
     const messageStr = String(rawMsg).toLowerCase();
-    
+
     if (res.status === 401) {
-      const isAuthError = 
+      const isAuthError =
         messageStr.includes("invalidation") ||
         messageStr.includes("invalid session") ||
         messageStr.includes("sessão inválida") ||
@@ -160,14 +160,14 @@ async function request(path: string, options: RequestInit = {}) {
         messageStr.includes("não autorizado") ||
         messageStr.includes("authentication") ||
         messageStr.includes("autenticação");
-      
+
       if (isAuthError) {
         window.dispatchEvent(new CustomEvent("invalid-session"));
         sessionStorage.removeItem("user");
         throw new InvalidSessionError("Sessão inválida");
       }
     }
-    
+
     const sanitizedMsg = sanitizeErrorMessage(String(rawMsg));
     throw new Error(sanitizedMsg);
   }

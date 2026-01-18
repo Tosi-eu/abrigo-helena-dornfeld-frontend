@@ -164,12 +164,12 @@ export const InputForm = memo(function InputForm({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                    side="bottom"
-                    align="start"
-                    sideOffset={4}
-                    avoidCollisions={false}
-                    className="w-full p-0"
-                  >
+                  side="bottom"
+                  align="start"
+                  sideOffset={4}
+                  avoidCollisions={false}
+                  className="w-full p-0"
+                >
                   <Command>
                     <CommandInput placeholder="Buscar insumo" />
                     <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
@@ -434,9 +434,7 @@ export const InputForm = memo(function InputForm({
           disabled={isLoading}
           className={cn(
             "px-5 py-2 bg-sky-600 text-white rounded-lg text-sm transition-colors",
-            isLoading
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-sky-700"
+            isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-sky-700",
           )}
         >
           {isLoading ? "Processando..." : "Confirmar"}

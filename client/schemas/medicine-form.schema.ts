@@ -51,36 +51,33 @@ export const medicineFormSchema = z
   .refine(
     (data) =>
       ![ItemStockType.CARRINHO, ItemStockType.CARRINHO_PSICOTROPICOS].includes(
-        data.stockType
+        data.stockType,
       ) || data.drawerId !== null,
     {
       message: "Carrinho requer uma gaveta",
       path: ["drawerId"],
-    }
+    },
   )
   .refine(
     (data) =>
       [ItemStockType.CARRINHO, ItemStockType.CARRINHO_PSICOTROPICOS].includes(
-        data.stockType
+        data.stockType,
       ) || data.cabinetId !== null,
     {
       message: "Selecione um armário",
       path: ["cabinetId"],
-    }
+    },
   )
   .refine(
     (data) => !(data.stockType === ItemStockType.GERAL && data.casela !== null),
     {
       message: "Estoque geral não pode ter casela",
       path: ["casela"],
-    }
+    },
   )
-  .refine(
-    (data) => !(data.cabinetId !== null && data.drawerId !== null),
-    {
-      message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
-      path: ["drawerId"],
-    }
-  );
+  .refine((data) => !(data.cabinetId !== null && data.drawerId !== null), {
+    message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
+    path: ["drawerId"],
+  });
 
 export type MedicineFormData = z.infer<typeof medicineFormSchema>;

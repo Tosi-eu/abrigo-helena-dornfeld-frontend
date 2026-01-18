@@ -48,7 +48,7 @@ export default function Profile() {
     const loadUser = async () => {
       try {
         const data = await getCurrentUser();
-  
+
         reset({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -61,31 +61,31 @@ export default function Profile() {
         console.error("Erro ao carregar usuário logado", error);
       }
     };
-  
+
     loadUser();
-  }, [reset]);  
+  }, [reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
       const payload: any = {
         currentPassword: data.currentPassword,
       };
-  
+
       if (data.firstName) payload.firstName = data.firstName;
       if (data.lastName) payload.lastName = data.lastName;
-  
+
       if (data.login && data.login !== data.currentLogin) {
         payload.login = data.login.trim();
       }
-  
+
       if (data.password) {
         payload.password = data.password;
       }
-  
+
       await updateUser(payload);
-  
+
       const user = await getCurrentUser();
-  
+
       reset({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
@@ -94,7 +94,7 @@ export default function Profile() {
         login: user.login || "",
         password: "",
       });
-  
+
       toast({
         title: "Perfil atualizado",
         variant: "success",
@@ -103,14 +103,12 @@ export default function Profile() {
     } catch (err: unknown) {
       toast({
         title: "Erro",
-        description:
-          err instanceof Error ? err.message : "Erro inesperado",
+        description: err instanceof Error ? err.message : "Erro inesperado",
         variant: "error",
         duration: 3000,
       });
     }
   };
-  
 
   const handleLogout = () => {
     authStorage.clearAll();

@@ -16,11 +16,11 @@ export enum MovementPeriod {
 export type MovementsParams =
   | {
       periodo: MovementPeriod.DIARIO;
-      data: string; 
+      data: string;
     }
   | {
       periodo: MovementPeriod.MENSAL;
-      mes: string; 
+      mes: string;
     }
   | {
       periodo: MovementPeriod.INTERVALO;
@@ -34,16 +34,16 @@ interface ResidentesResponse {
 }
 
 export interface TransferReport {
-  data: string,
-  tipo_item: "medicamento" | "insumo",
-  nome: string,
-  principio_ativo: string | null,
-  quantidade: number,
-  casela: number,
-  residente: string,
-  armario: number,
-  setor: string,
-  lote: string | null,
+  data: string;
+  tipo_item: "medicamento" | "insumo";
+  nome: string;
+  principio_ativo: string | null;
+  quantidade: number;
+  casela: number;
+  residente: string;
+  armario: number;
+  setor: string;
+  lote: string | null;
 }
 
 export interface DailyMovementReport {
@@ -249,19 +249,33 @@ function renderTable(headers: string[], rows: RowData[]) {
 
 export function createStockPDF(
   tipo: string,
-  data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[] | ResidentMedicinesReport[] | ExpiredMedicineReport[],
+  data:
+    | RowData[]
+    | ResidentesResponse
+    | ResidentConsumptionReport
+    | TransferReport[]
+    | DailyMovementReport[]
+    | ResidentMedicinesReport[]
+    | ExpiredMedicineReport[],
 ) {
-
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
   const isDailyMovementsReport = tipo === "movimentacoes";
   const isResidentMedicines = tipo === "medicamentos_residente";
   const isExpiredMedicines = tipo === "medicamentos_vencidos";
-  const consumptionData = isResidentConsumption ? (data as ResidentConsumptionReport) : null;
+  const consumptionData = isResidentConsumption
+    ? (data as ResidentConsumptionReport)
+    : null;
   const transferData = isTransferReport ? (data as TransferReport[]) : null;
-  const dailyMovementsData = isDailyMovementsReport ? (data as DailyMovementReport[]) : null;
-  const residentMedicinesData = isResidentMedicines ? (data as ResidentMedicinesReport[]) : null;
-  const expiredMedicinesData = isExpiredMedicines ? (data as ExpiredMedicineReport[]) : null;
+  const dailyMovementsData = isDailyMovementsReport
+    ? (data as DailyMovementReport[])
+    : null;
+  const residentMedicinesData = isResidentMedicines
+    ? (data as ResidentMedicinesReport[])
+    : null;
+  const expiredMedicinesData = isExpiredMedicines
+    ? (data as ExpiredMedicineReport[])
+    : null;
 
   return (
     <Document>
@@ -278,24 +292,26 @@ export function createStockPDF(
             style={styles.logo}
           />
           <Text style={styles.title}>
-            {isResidentConsumption 
-              ? "CONSUMO DO RESIDENTE" 
-              : isTransferReport 
-              ? "TRANSFERÊNCIAS DE SETOR"
-              : isDailyMovementsReport
-              ? "MOVIMENTAÇÕES DO DIA"
-              : isResidentMedicines
-              ? "MEDICAMENTOS POR RESIDENTE"
-              : isExpiredMedicines
-              ? "MEDICAMENTOS VENCIDOS"
-              : "ESTOQUE ATUAL"}
+            {isResidentConsumption
+              ? "CONSUMO DO RESIDENTE"
+              : isTransferReport
+                ? "TRANSFERÊNCIAS DE SETOR"
+                : isDailyMovementsReport
+                  ? "MOVIMENTAÇÕES DO DIA"
+                  : isResidentMedicines
+                    ? "MEDICAMENTOS POR RESIDENTE"
+                    : isExpiredMedicines
+                      ? "MEDICAMENTOS VENCIDOS"
+                      : "ESTOQUE ATUAL"}
           </Text>
         </View>
 
         {isResidentConsumption && consumptionData && (
           <>
             <View style={{ marginBottom: 15 }}>
-              <Text style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}>
+              <Text
+                style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}
+              >
                 Residente: {consumptionData.residente}
               </Text>
               <Text style={{ fontSize: 12, color: "#666" }}>
@@ -315,17 +331,20 @@ export function createStockPDF(
                 {consumptionData.medicamentos.map((med, idx) => (
                   <View
                     key={idx}
-                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 0 ? styles.striped : undefined,
+                    ]}
                   >
                     <Text style={styles.cell}>{med.nome || "-"}</Text>
                     <Text style={styles.cell}>
-                      {med.dosagem && med.unidade_medida 
-                        ? `${med.dosagem} ${med.unidade_medida}` 
+                      {med.dosagem && med.unidade_medida
+                        ? `${med.dosagem} ${med.unidade_medida}`
                         : med.dosagem || med.unidade_medida || "-"}
                     </Text>
                     <Text style={styles.cell}>
-                      {med.preco !== null && med.preco !== undefined 
-                        ? `R$ ${Number(med.preco).toFixed(2)}` 
+                      {med.preco !== null && med.preco !== undefined
+                        ? `R$ ${Number(med.preco).toFixed(2)}`
                         : "-"}
                     </Text>
                     <Text style={styles.cell}>{med.observacao || "-"}</Text>
@@ -349,11 +368,16 @@ export function createStockPDF(
                 {consumptionData.insumos.map((input, idx) => (
                   <View
                     key={idx}
-                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 0 ? styles.striped : undefined,
+                    ]}
                   >
                     <Text style={styles.cell}>{input.nome || "-"}</Text>
                     <Text style={styles.cell}>{input.descricao || "-"}</Text>
-                    <Text style={styles.cell}>{input.preco ? `R$ ${input.preco.toFixed(2)}` : "-"}</Text>
+                    <Text style={styles.cell}>
+                      {input.preco ? `R$ ${input.preco.toFixed(2)}` : "-"}
+                    </Text>
                   </View>
                 ))}
               </>
@@ -363,7 +387,9 @@ export function createStockPDF(
               </Text>
             )}
 
-            <Text style={styles.sectionTitle}>Custos Estimados - Medicamentos</Text>
+            <Text style={styles.sectionTitle}>
+              Custos Estimados - Medicamentos
+            </Text>
             {consumptionData.custos_medicamentos.length > 0 ? (
               <>
                 <View style={styles.tableHeader}>
@@ -375,12 +401,19 @@ export function createStockPDF(
                 {consumptionData.custos_medicamentos.map((custo, idx) => (
                   <View
                     key={idx}
-                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 0 ? styles.striped : undefined,
+                    ]}
                   >
                     <Text style={styles.cell}>{custo.item || "-"}</Text>
                     <Text style={styles.cell}>{custo.nome || "-"}</Text>
-                    <Text style={styles.cell}>R$ {custo.custo_mensal.toFixed(2)}</Text>
-                    <Text style={styles.cell}>R$ {custo.custo_anual.toFixed(2)}</Text>
+                    <Text style={styles.cell}>
+                      R$ {custo.custo_mensal.toFixed(2)}
+                    </Text>
+                    <Text style={styles.cell}>
+                      R$ {custo.custo_anual.toFixed(2)}
+                    </Text>
                   </View>
                 ))}
               </>
@@ -402,12 +435,19 @@ export function createStockPDF(
                 {consumptionData.custos_insumos.map((custo, idx) => (
                   <View
                     key={idx}
-                    style={[styles.tableRow, idx % 2 === 0 ? styles.striped : undefined]}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 0 ? styles.striped : undefined,
+                    ]}
                   >
                     <Text style={styles.cell}>{custo.item || "-"}</Text>
                     <Text style={styles.cell}>{custo.nome || "-"}</Text>
-                    <Text style={styles.cell}>R$ {custo.custo_mensal.toFixed(2)}</Text>
-                    <Text style={styles.cell}>R$ {custo.custo_anual.toFixed(2)}</Text>
+                    <Text style={styles.cell}>
+                      R$ {custo.custo_mensal.toFixed(2)}
+                    </Text>
+                    <Text style={styles.cell}>
+                      R$ {custo.custo_anual.toFixed(2)}
+                    </Text>
                   </View>
                 ))}
               </>
@@ -434,7 +474,8 @@ export function createStockPDF(
                   textAlign: "center",
                 }}
               >
-                Total Estimado Anual: R$ {consumptionData.total_estimado.toFixed(2)}
+                Total Estimado Anual: R${" "}
+                {consumptionData.total_estimado.toFixed(2)}
               </Text>
             </View>
           </>
@@ -536,96 +577,28 @@ export function createStockPDF(
           </>
         )}
 
-{isTransferReport && transferData && (
-  <>
-    <Text style={styles.sectionTitle}>
-      Transferências de Farmácia para Enfermaria
-    </Text>
-
-    {transferData.length > 0 ? (
-      <>
-        <View style={[styles.tableHeader, { fontSize: 8 }]}>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Item</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Princípio Ativo</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Usuário</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Data</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Armário</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Casela</Text>
-          <Text style={[styles.cell, { fontSize: 8 }]}>Residente</Text>
-        </View>
-
-        {transferData.map((transfer, idx) => (
-              <View
-                  key={idx}
-                  style={[
-                    styles.tableRow,
-                    idx % 2 === 0 ? styles.striped : undefined,
-                  ]}
-                >
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.nome || "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.principio_ativo || "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.quantidade ?? "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.data || "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.armario ?? "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.casela ?? "-"}
-                  </Text>
-
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {transfer.residente || "-"}
-                  </Text>
-                </View>
-              ))}
-            </>
-          ) : (
-            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
-              Nenhuma transferência encontrada no período selecionado.
+        {isTransferReport && transferData && (
+          <>
+            <Text style={styles.sectionTitle}>
+              Transferências de Farmácia para Enfermaria
             </Text>
-          )}
-        </>
-      )}
 
-      {isDailyMovementsReport && dailyMovementsData && (
-        <>
-          <Text style={styles.sectionTitle}>
-            Movimentações do Dia Atual
-          </Text>
+            {transferData.length > 0 ? (
+              <>
+                <View style={[styles.tableHeader, { fontSize: 8 }]}>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Item</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    Princípio Ativo
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Usuário</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Data</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Armário</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Casela</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Residente</Text>
+                </View>
 
-          {dailyMovementsData.length > 0 ? (
-            <>
-              <View style={[styles.tableHeader, { fontSize: 8 }]}>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Data</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Tipo</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Item</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Principio Ativo</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Quantidade</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Setor</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Casela</Text>
-              </View>
-
-              {dailyMovementsData.map((movement, idx) => {
-                const tipoLabel = 
-                  movement.tipo_movimentacao === "entrada" ? "Entrada" :
-                  movement.tipo_movimentacao === "saida" ? "Saída" :
-                  "Transferência";
-                
-                return (
+                {transferData.map((transfer, idx) => (
                   <View
                     key={idx}
                     style={[
@@ -633,155 +606,366 @@ export function createStockPDF(
                       idx % 2 === 0 ? styles.striped : undefined,
                     ]}
                   >
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {movement.data || "-"}
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.nome || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {tipoLabel}
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.principio_ativo || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {movement.nome || "-"}
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.quantidade ?? "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {movement.principio_ativo || "-"}
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.data || "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {movement.quantidade ?? "-"}
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.armario ?? "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {movement.setor || "-"}
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.casela ?? "-"}
                     </Text>
-                    <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                      {movement.casela ?? "-"}
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.residente || "-"}
                     </Text>
                   </View>
-                );
-              })}
-            </>
-          ) : (
-            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
-              Nenhuma movimentação encontrada no dia atual.
-            </Text>
-          )}
-        </>
-      )}
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhuma transferência encontrada no período selecionado.
+              </Text>
+            )}
+          </>
+        )}
 
-      {isResidentMedicines && residentMedicinesData && (
-        <>
-          <Text style={styles.sectionTitle}>
-            Medicamentos do Residente
-          </Text>
+        {isDailyMovementsReport && dailyMovementsData && (
+          <>
+            <Text style={styles.sectionTitle}>Movimentações do Dia Atual</Text>
 
-          {residentMedicinesData.length > 0 ? (
-            <>
-              <View style={{ marginBottom: 15 }}>
-                <Text style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}>
-                  Residente: {residentMedicinesData[0]?.residente || ""}
-                </Text>
-                <Text style={{ fontSize: 12, color: "#666" }}>
-                  Casela: {residentMedicinesData[0]?.casela || ""}
-                </Text>
-              </View>
-
-              <View style={[styles.tableHeader, { fontSize: 8 }]}>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Medicamento</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Princípio Ativo</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
-                <Text style={[styles.cell, { fontSize: 8 }]}>Validade</Text>
-              </View>
-
-              {residentMedicinesData.map((item, idx) => (
-                <View
-                  key={idx}
-                  style={[
-                    styles.tableRow,
-                    idx % 2 === 0 ? styles.striped : undefined,
-                  ]}
-                >
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {item.medicamento || "-"}
+            {dailyMovementsData.length > 0 ? (
+              <>
+                <View style={[styles.tableHeader, { fontSize: 8 }]}>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Data
                   </Text>
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {item.principio_ativo || "-"}
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Tipo
                   </Text>
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {item.quantidade ?? "-"}
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Item
                   </Text>
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    {item.validade || "-"}
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Principio Ativo
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Quantidade
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Setor
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Casela
                   </Text>
                 </View>
-              ))}
-            </>
-          ) : (
-            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
-              Nenhum medicamento encontrado para este residente.
-            </Text>
-          )}
-        </>
-      )}
 
-      {isExpiredMedicines && expiredMedicinesData && (
-        <>
-          <Text style={styles.sectionTitle}>
-            Medicamentos Vencidos
-          </Text>
+                {dailyMovementsData.map((movement, idx) => {
+                  const tipoLabel =
+                    movement.tipo_movimentacao === "entrada"
+                      ? "Entrada"
+                      : movement.tipo_movimentacao === "saida"
+                        ? "Saída"
+                        : "Transferência";
 
-          {expiredMedicinesData.length > 0 ? (
-            <>
-              <View style={[styles.tableHeader, { fontSize: 8 }]}>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Medicamento</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Princípio Ativo</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Quantidade</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Validade</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Dias Vencido</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Lote</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Setor</Text>
-                <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>Residente</Text>
-              </View>
+                  return (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.tableRow,
+                        idx % 2 === 0 ? styles.striped : undefined,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.data || "-"}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {tipoLabel}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.nome || "-"}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.principio_ativo || "-"}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.quantidade ?? "-"}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.setor || "-"}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.casela ?? "-"}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhuma movimentação encontrada no dia atual.
+              </Text>
+            )}
+          </>
+        )}
 
-              {expiredMedicinesData.map((item, idx) => (
-                <View
-                  key={idx}
-                  style={[
-                    styles.tableRow,
-                    idx % 2 === 0 ? styles.striped : undefined,
-                  ]}
-                >
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.medicamento || "-"}
+        {isResidentMedicines && residentMedicinesData && (
+          <>
+            <Text style={styles.sectionTitle}>Medicamentos do Residente</Text>
+
+            {residentMedicinesData.length > 0 ? (
+              <>
+                <View style={{ marginBottom: 15 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "bold",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Residente: {residentMedicinesData[0]?.residente || ""}
                   </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.principio_ativo || "-"}
-                  </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.quantidade ?? "-"}
-                  </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.validade || "-"}
-                  </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.dias_vencido ?? "-"}
-                  </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.lote || "-"}
-                  </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.setor || "-"}
-                  </Text>
-                  <Text style={[styles.cell, { fontSize: 8, textAlign: "center" }]}>
-                    {item.residente || "-"}
+                  <Text style={{ fontSize: 12, color: "#666" }}>
+                    Casela: {residentMedicinesData[0]?.casela || ""}
                   </Text>
                 </View>
-              ))}
-            </>
-          ) : (
-            <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
-              Nenhum medicamento vencido encontrado.
-            </Text>
-          )}
-        </>
-      )}
+
+                <View style={[styles.tableHeader, { fontSize: 8 }]}>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    Medicamento
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    Princípio Ativo
+                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Validade</Text>
+                </View>
+
+                {residentMedicinesData.map((item, idx) => (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 0 ? styles.striped : undefined,
+                    ]}
+                  >
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {item.medicamento || "-"}
+                    </Text>
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {item.principio_ativo || "-"}
+                    </Text>
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {item.quantidade ?? "-"}
+                    </Text>
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {item.validade || "-"}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhum medicamento encontrado para este residente.
+              </Text>
+            )}
+          </>
+        )}
+
+        {isExpiredMedicines && expiredMedicinesData && (
+          <>
+            <Text style={styles.sectionTitle}>Medicamentos Vencidos</Text>
+
+            {expiredMedicinesData.length > 0 ? (
+              <>
+                <View style={[styles.tableHeader, { fontSize: 8 }]}>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Medicamento
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Princípio Ativo
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Quantidade
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Validade
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Dias Vencido
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Lote
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Setor
+                  </Text>
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Residente
+                  </Text>
+                </View>
+
+                {expiredMedicinesData.map((item, idx) => (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.tableRow,
+                      idx % 2 === 0 ? styles.striped : undefined,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.medicamento || "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.principio_ativo || "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.quantidade ?? "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.validade || "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.dias_vencido ?? "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.lote || "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.setor || "-"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cell,
+                        { fontSize: 8, textAlign: "center" },
+                      ]}
+                    >
+                      {item.residente || "-"}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+                Nenhum medicamento vencido encontrado.
+              </Text>
+            )}
+          </>
+        )}
 
         <Text style={styles.footer}>
           Gerado em: {new Date().toLocaleDateString("pt-BR")} às{" "}

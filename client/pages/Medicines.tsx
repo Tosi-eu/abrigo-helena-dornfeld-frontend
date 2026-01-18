@@ -26,7 +26,11 @@ export default function Medicines() {
   async function fetchMedicines() {
     setLoading(true);
     try {
-      const res = await getMedicines(page, DEFAULT_PAGE_SIZE, searchFilter || undefined);
+      const res = await getMedicines(
+        page,
+        DEFAULT_PAGE_SIZE,
+        searchFilter || undefined,
+      );
       setMedicines(res.data);
       setHasNext(res.hasNext);
       setTotal(res.total);

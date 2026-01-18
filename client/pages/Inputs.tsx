@@ -25,7 +25,11 @@ export default function Inputs() {
   async function fetchInputs() {
     setLoading(true);
     try {
-      const res = await getInputs(page, DEFAULT_PAGE_SIZE, searchFilter || undefined);
+      const res = await getInputs(
+        page,
+        DEFAULT_PAGE_SIZE,
+        searchFilter || undefined,
+      );
       setInputs(res.data);
       setHasNext(res.hasNext);
       setTotal(res.total);

@@ -37,12 +37,11 @@ export const profileSchema = z
       .optional()
       .transform((val) => (val === "" ? undefined : val))
       .pipe(strongPasswordSchema.optional()),
-    
-      
   })
   .superRefine((data, ctx) => {
     const wantsToChangeLogin = !!data.login && data.login.trim() !== "";
-    const wantsToChangePassword = !!data.password && data.password.trim() !== "";
+    const wantsToChangePassword =
+      !!data.password && data.password.trim() !== "";
 
     if (wantsToChangeLogin) {
       if (!data.currentLogin) {

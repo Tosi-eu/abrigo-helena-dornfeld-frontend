@@ -111,42 +111,42 @@ export default function Auth() {
           duration: 3000,
         });
       } else {
-          const firstNameValidation = validateTextInput(firstName, {
-            required: true,
-            minLength: 2,
-            maxLength: 100,
-            fieldName: "Nome",
+        const firstNameValidation = validateTextInput(firstName, {
+          required: true,
+          minLength: 2,
+          maxLength: 100,
+          fieldName: "Nome",
+        });
+
+        if (!firstNameValidation.valid) {
+          toast({
+            title: "Nome inválido",
+            description: firstNameValidation.error,
+            variant: "error",
+            duration: 3000,
           });
-        
-          if (!firstNameValidation.valid) {
-            toast({
-              title: "Nome inválido",
-              description: firstNameValidation.error,
-              variant: "error",
-              duration: 3000,
-            });
-            setLoading(false);
-            return;
-          }
-        
-          const lastNameValidation = validateTextInput(lastName, {
-            required: true,
-            minLength: 2,
-            maxLength: 100,
-            fieldName: "Sobrenome",
+          setLoading(false);
+          return;
+        }
+
+        const lastNameValidation = validateTextInput(lastName, {
+          required: true,
+          minLength: 2,
+          maxLength: 100,
+          fieldName: "Sobrenome",
+        });
+
+        if (!lastNameValidation.valid) {
+          toast({
+            title: "Sobrenome inválido",
+            description: lastNameValidation.error,
+            variant: "error",
+            duration: 3000,
           });
-        
-          if (!lastNameValidation.valid) {
-            toast({
-              title: "Sobrenome inválido",
-              description: lastNameValidation.error,
-              variant: "error",
-              duration: 3000,
-            });
-            setLoading(false);
-            return;
-          }
-        
+          setLoading(false);
+          return;
+        }
+
         await register(sanitizedLogin, sanitizedPassword, firstName, lastName);
         await authLogin(sanitizedLogin, sanitizedPassword);
         toast({
@@ -230,7 +230,7 @@ export default function Auth() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-sky-100 flex flex-col"
       style={{
         opacity: isVisible ? 1 : 0,
@@ -255,40 +255,43 @@ export default function Auth() {
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                {!isLogin && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Nome
+                      </label>
+                      <input
+                        type="text"
+                        value={firstName}
+                        onChange={(e) =>
+                          setFirstName(sanitizeInput(e.target.value))
+                        }
+                        maxLength={100}
+                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
+                        placeholder="Fulano"
+                        required
+                      />
+                    </div>
 
-              {!isLogin && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Nome
-                    </label>
-                    <input
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(sanitizeInput(e.target.value))}
-                      maxLength={100}
-                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
-                      placeholder="Fulano"
-                      required
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Sobrenome
+                      </label>
+                      <input
+                        type="text"
+                        value={lastName}
+                        onChange={(e) =>
+                          setLastName(sanitizeInput(e.target.value))
+                        }
+                        maxLength={100}
+                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
+                        placeholder="Silva"
+                        required
+                      />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Sobrenome
-                    </label>
-                    <input
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(sanitizeInput(e.target.value))}
-                      maxLength={100}
-                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-400"
-                      placeholder="Silva"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
+                )}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     E-mail

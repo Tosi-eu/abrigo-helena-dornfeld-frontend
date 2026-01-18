@@ -1,4 +1,10 @@
-import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
 import { AuthContextType, LoggedUser } from "@/interfaces/interfaces";
 import { login as apiLogin, logoutRequest } from "@/api/requests";
 import {
@@ -34,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-        
+
         initSessionTimeout(
           () => {
             handleLogout();

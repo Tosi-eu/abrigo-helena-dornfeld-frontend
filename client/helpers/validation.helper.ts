@@ -185,7 +185,7 @@ export function getErrorMessage(
   if (error instanceof Error && error.name === "InvalidSessionError") {
     return "";
   }
-  
+
   if (error instanceof Error) {
     return error.message || defaultMessage;
   }
