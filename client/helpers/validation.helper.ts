@@ -1,3 +1,5 @@
+import { VALIDATION_LIMITS } from "@/constants/app.constants";
+
 export function sanitizeInput(input: string): string {
   if (typeof input !== "string") {
     return "";
@@ -44,14 +46,14 @@ export function validatePassword(password: string): {
     return { valid: false, error: "Senha é obrigatória" };
   }
 
-  if (password.length < 8) {
+  if (password.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH) {
     return {
       valid: false,
       error: "Senha deve ter no mínimo 8 caracteres",
     };
   }
 
-  if (password.length > 128) {
+  if (password.length > VALIDATION_LIMITS.PASSWORD_MAX_LENGTH) {
     return {
       valid: false,
       error: "Senha muito longa (máximo 128 caracteres)",
@@ -101,6 +103,13 @@ export function validateTextInput(
     required = false,
     fieldName = "Campo",
   } = options;
+
+  if (maxLength > VALIDATION_LIMITS.TEXT_MAX_LENGTH) {
+    return {
+      valid: false,
+      error: `${fieldName} deve ter no máximo ${VALIDATION_LIMITS.TEXT_MAX_LENGTH} caracteres`,
+    };
+  }
 
   if (required && (!input || input.trim().length === 0)) {
     return { valid: false, error: `${fieldName} é obrigatório` };

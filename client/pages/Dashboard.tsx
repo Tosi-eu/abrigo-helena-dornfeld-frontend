@@ -365,11 +365,10 @@ export default function Dashboard() {
                 columns={[
                   { key: "nome", label: "Nome" },
                   { key: "detalhe", label: "Detalhe" },
-                  { key: "tipo_item", label: "Tipo" },
                   { key: "dias_parados", label: "Dias Parados" },
                   {
                     key: "ultima_movimentacao",
-                    label: "Última Movimentação",
+                    label: "Data",
                   },
                 ]}
                 data={paginatedNonMovement}
@@ -450,7 +449,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
-                Top 10 Mais Movimentados
+                Top 10 Medicações Mais Movimentadas
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -471,7 +470,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
-                Top 10 Menos Movimentados
+                Top 10 Medicações Menos Movimentadas
               </CardTitle>
             </CardHeader>
             <CardContent>

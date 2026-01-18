@@ -180,7 +180,13 @@ export const MedicineForm = memo(function MedicineForm({
                     <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
+                <PopoverContent
+                  side="bottom"
+                  align="start"
+                  sideOffset={4}
+                  avoidCollisions={false}
+                  className="w-full p-0"
+                >
                   <Command>
                     <CommandInput placeholder="Buscar medicamento..." />
                     <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>

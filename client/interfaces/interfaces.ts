@@ -63,6 +63,8 @@ export interface User {
 export interface LoggedUser {
   id: number;
   login: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface AuthContextType {

@@ -4,9 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast.hook";
 import Layout from "@/components/Layout";
-import { updateUser } from "@/api/requests";
-import { getErrorMessage } from "@/helpers/validation.helper";
-import { authStorage } from "@/helpers/auth.helper";
+import { getCurrentUser, updateUser } from "@/api/requests";
 import { profileSchema, type ProfileFormData } from "@/schemas/profile.schema";
 
 import {
@@ -21,6 +19,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
+import { VALIDATION_LIMITS } from "@/constants/app.constants";
+import { authStorage } from "@/helpers/auth.helper";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -35,6 +35,8 @@ export default function Profile() {
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       currentLogin: "",
       currentPassword: "",
       login: "",
@@ -43,49 +45,72 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    try {
-      const user = authStorage.getUser();
-      if (user) {
+    const loadUser = async () => {
+      try {
+        const data = await getCurrentUser();
+  
         reset({
-          currentLogin: user.login || "",
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          currentLogin: data.login || "",
           currentPassword: "",
-          login: user.login || "",
+          login: data.login || "",
           password: "",
         });
+      } catch (error) {
+        console.error("Erro ao carregar usuário logado", error);
       }
-    } catch (e) {}
-  }, [reset]);
+    };
+  
+    loadUser();
+  }, [reset]);  
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      const response = await updateUser({
-        login: data.login.trim(),
-        password: data.password,
-        currentLogin: data.currentLogin.trim(),
+      const payload: any = {
         currentPassword: data.currentPassword,
-      });
-
-      authStorage.setUser(response);
-
-      toast({ title: "Perfil atualizado", variant: "success", duration: 3000 });
-
+      };
+  
+      if (data.firstName) payload.firstName = data.firstName;
+      if (data.lastName) payload.lastName = data.lastName;
+  
+      if (data.login && data.login !== data.currentLogin) {
+        payload.login = data.login.trim();
+      }
+  
+      if (data.password) {
+        payload.password = data.password;
+      }
+  
+      await updateUser(payload);
+  
+      const user = await getCurrentUser();
+  
       reset({
-        currentLogin: response.login || "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        currentLogin: user.login || "",
         currentPassword: "",
-        login: response.login || "",
+        login: user.login || "",
         password: "",
       });
+  
+      toast({
+        title: "Perfil atualizado",
+        variant: "success",
+        duration: 3000,
+      });
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Erro inesperado";
       toast({
         title: "Erro",
-        description: errorMessage,
+        description:
+          err instanceof Error ? err.message : "Erro inesperado",
         variant: "error",
         duration: 3000,
       });
     }
   };
+  
 
   const handleLogout = () => {
     authStorage.clearAll();
@@ -106,12 +131,42 @@ export default function Profile() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-3">
                 <div>
+                  <Label htmlFor="firstName">Nome</Label>
+                  <Input
+                    id="firstName"
+                    {...register("firstName")}
+                    disabled={isSubmitting}
+                    aria-invalid={errors.firstName ? "true" : "false"}
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.firstName.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="lastName">Sobrenome</Label>
+                  <Input
+                    id="lastName"
+                    {...register("lastName")}
+                    disabled={isSubmitting}
+                    aria-invalid={errors.lastName ? "true" : "false"}
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.lastName.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
                   <Label htmlFor="currentLogin">E-mail atual</Label>
                   <Input
                     id="currentLogin"
                     type="email"
                     {...register("currentLogin")}
-                    maxLength={255}
+                    maxLength={VALIDATION_LIMITS.EMAIL_MAX_LENGTH}
                     disabled={isSubmitting}
                     aria-invalid={errors.currentLogin ? "true" : "false"}
                   />
@@ -128,7 +183,7 @@ export default function Profile() {
                     id="currentPassword"
                     type="password"
                     {...register("currentPassword")}
-                    maxLength={128}
+                    maxLength={VALIDATION_LIMITS.PASSWORD_MAX_LENGTH}
                     disabled={isSubmitting}
                     aria-invalid={errors.currentPassword ? "true" : "false"}
                   />

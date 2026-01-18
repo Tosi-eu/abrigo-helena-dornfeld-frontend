@@ -19,11 +19,13 @@ import {
   ArrowRightLeft,
   Activity,
   AlertTriangle,
+  ChevronsUpDown,
 } from "lucide-react";
 import { pdf } from "@react-pdf/renderer";
-import { getReport, getResidents, getTransferReport, getDailyMovementsReport } from "@/api/requests";
+import { getReport, getResidents } from "@/api/requests";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
-import { TransferReport } from "./StockReporter";
+import { CommandEmpty, CommandInput, CommandGroup, CommandItem, Command } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 type StatusType = "idle" | "loading" | "success" | "error";
 
@@ -37,12 +39,24 @@ interface Resident {
   name: string;
 }
 
+enum MovementPeriod {
+  DIARIO = "diario",
+  MENSAL = "mensal",
+  INTERVALO = "intervalo",
+}
+
 export default function ReportModal({ open, onClose }: ReportModalProps) {
   const [status, setStatus] = useState<StatusType>("idle");
   const [selectedReports, setSelectedReports] = useState<string[]>([]);
   const [selectedResident, setSelectedResident] = useState<number | null>(null);
   const [residents, setResidents] = useState<Resident[]>([]);
   const [loadingResidents, setLoadingResidents] = useState(false);
+  const [movementPeriod, setMovementPeriod] = useState<MovementPeriod>(MovementPeriod.DIARIO);
+  const [movementDate, setMovementDate] = useState("");
+  const [movementMonth, setMovementMonth] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [residentSearch, setResidentSearch] = useState("");
 
   const reportOptions = [
     { value: "insumos", label: "Insumos", icon: Package },
@@ -65,8 +79,8 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
       icon: ArrowRightLeft,
     },
     {
-      value: "movimentos_dia",
-      label: "Movimentações do Dia",
+      value: "movimentacoes",
+      label: "Movimentações",
       icon: Activity,
     },
     {
@@ -82,7 +96,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
   ];
 
   useEffect(() => {
-    if (open && (selectedReports[0] === "residente_consumo" || selectedReports[0] === "medicamentos_residente")) {
+    if (
+      open &&
+      (selectedReports[0] === "residente_consumo" ||
+        selectedReports[0] === "medicamentos_residente")
+    ) {
       loadResidents();
     }
   }, [open, selectedReports]);
@@ -102,60 +120,76 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
   const handleSelectReport = (value: string) => {
     setSelectedReports([value]);
-    if (value !== "residente_consumo" && value !== "medicamentos_residente") {
+    if (
+      value !== "residente_consumo" &&
+      value !== "medicamentos_residente"
+    ) {
       setSelectedResident(null);
     }
   };
 
   const handleGenerate = async () => {
     if (!selectedReports.length) return;
-    
-    if ((selectedReports[0] === "residente_consumo" || selectedReports[0] === "medicamentos_residente") && !selectedResident) {
-      return;
-    }
 
+    const tipo = selectedReports[0];
     setStatus("loading");
 
     try {
-      const tipo = selectedReports[0];
-      let data;
-      
-      if (tipo === "transferencias") {
-        const transfers = await getTransferReport();
-        console.log(transfers)
-        data = transfers.map((item: TransferReport) => ({
-          nome: item.nome,
-          principio_ativo: item?.principio_ativo || "-",
-          quantidade: item.quantidade,
-          data: item.data,
-          armario: item.armario,
-          casela: item.casela,
-          residente: item.residente,
-        }));
-      } else if (tipo === "movimentos_dia") {
-        data = await getDailyMovementsReport();
+      let response;
+
+      if (tipo === "movimentacoes") {
+        let params: any;
+
+        if (movementPeriod === MovementPeriod.DIARIO) {
+          params = {
+            periodo: MovementPeriod.DIARIO,
+            data: movementDate,
+          };
+        }
+
+        if (movementPeriod === MovementPeriod.MENSAL) {
+          params = {
+            periodo: MovementPeriod.MENSAL,
+            mes: movementMonth,
+          };
+        }
+
+        if (movementPeriod === MovementPeriod.INTERVALO) {
+          params = {
+            periodo: MovementPeriod.INTERVALO,
+            data_inicial: startDate,
+            data_final: endDate,
+          };
+        }
+
+        response = await getReport("movimentacoes", undefined, params);
+      } else if (tipo === "transferencias") {
+        response = await getReport("transferencias");
       } else {
-        const casela = (tipo === "residente_consumo" || tipo === "medicamentos_residente") ? selectedResident : undefined;
-        data = await getReport(tipo, casela || undefined);
+        const casela =
+          tipo === "residente_consumo" ||
+          tipo === "medicamentos_residente"
+            ? selectedResident
+            : undefined;
+
+        response = await getReport(tipo, casela);
       }
 
       const { createStockPDF } = await import("./StockReporter");
-      const doc = createStockPDF(tipo, data);
+      const doc = createStockPDF(tipo, response);
 
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = url;
-      const casela = (tipo === "residente_consumo" || tipo === "medicamentos_residente") ? selectedResident : undefined;
-      link.download = `relatorio-${tipo}${casela ? `-casela-${casela}` : ''}.pdf`;
+      link.download = `relatorio-${tipo}.pdf`;
       link.click();
-      URL.revokeObjectURL(url);
 
+      URL.revokeObjectURL(url);
       setStatus("success");
-      setTimeout(() => handleClose(), 2000);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       setStatus("error");
     }
   };
@@ -164,186 +198,243 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
     setStatus("idle");
     setSelectedReports([]);
     setSelectedResident(null);
+    setResidentSearch("");
     onClose();
   };
 
-  const showResidentSelector = selectedReports[0] === "residente_consumo" || selectedReports[0] === "medicamentos_residente";
+  const showResidentSelector =
+    selectedReports[0] === "residente_consumo" ||
+    selectedReports[0] === "medicamentos_residente";
+
+  const showMovementFilters = selectedReports[0] === "movimentacoes";
 
   const iconSize = 100;
 
+  const filteredResidents = residents.filter((r) => {
+    if (!residentSearch) return true;
+
+    return r.casela
+      .toString()
+      .startsWith(residentSearch.trim());
+  });
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="p-0 bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto flex flex-col items-center">
-        <AnimatePresence mode="wait">
-          {status === "idle" && (
-            <motion.div
-              key="idle"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-              className="p-6 w-full flex flex-col items-center"
-            >
-              <DialogHeader className="w-full mb-6 text-center">
-                <DialogTitle className="text-2xl font-bold text-gray-800">
-                  Gerar Relatório
-                </DialogTitle>
-              </DialogHeader>
+<DialogContent className="p-0 bg-white rounded-2xl shadow-xl max-w-2xl w-full overflow-hidden">
+  <AnimatePresence mode="wait">
+    {status === "idle" && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
+          className="p-6 w-full flex flex-col items-center"
+        >
+        <DialogHeader className="w-full mb-4 text-center">
+          <DialogTitle className="text-xl font-bold text-gray-800">
+            Gerar Relatório
+          </DialogTitle>
+        </DialogHeader>
 
-              <div className="w-full flex flex-col gap-3 items-center">
-                {reportOptions.map(({ value, label, icon: Icon }) => {
-                  const isSelected = selectedReports.includes(value);
-                  return (
-                    <motion.div
-                      key={value}
-                      whileHover={{ scale: 1.01 }}
-                      className={`border-2 rounded-xl px-5 py-4 flex items-center justify-center gap-4 cursor-pointer transition-all w-full max-w-md
-                        ${
-                          isSelected
-                            ? "border-sky-600 bg-sky-50 shadow-sm"
-                            : "border-gray-200 hover:bg-gray-50"
-                        }
-                      `}
-                      onClick={() => handleSelectReport(value)}
-                    >
-                      <Icon
-                        className={`w-6 h-6 ${
-                          isSelected ? "text-sky-600" : "text-gray-500"
-                        }`}
-                      />
-                      <p
-                        className={`text-sm font-medium ${
-                          isSelected ? "text-sky-700" : "text-gray-700"
-                        }`}
-                      >
-                        {label}
-                      </p>
-                    </motion.div>
-                  );
-                })}
+        <div className="w-full flex flex-col gap-2 items-center">
+          {reportOptions.map(({ value, label, icon: Icon }) => {
+            const isSelected = selectedReports[0] === value;
 
-                {showResidentSelector && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 w-full max-w-md flex flex-col items-center"
-                  >
-                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
-                      Selecione o Residente:
-                    </label>
-                    {loadingResidents ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="w-5 h-5 animate-spin text-sky-600" />
-                        <span className="ml-2 text-sm text-gray-600">
-                          Carregando residentes...
-                        </span>
-                      </div>
-                    ) : (
+            return (
+              <div key={value} className="w-full max-w-md">
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  onClick={() => handleSelectReport(value)}
+                  className={`border rounded-lg px-4 py-2 flex items-center gap-3 cursor-pointer transition-all
+                    ${
+                      isSelected
+                        ? "border-sky-600 bg-sky-50"
+                        : "border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  <Icon
+                    className={`w-5 h-5 ${
+                      isSelected ? "text-sky-600" : "text-gray-500"
+                    }`}
+                  />
+                  <span className="text-sm font-medium">{label}</span>
+                </motion.div>
+
+                {isSelected && showMovementFilters && (
+                  <div className="mt-2 p-3 border rounded-lg grid grid-cols-2 gap-3 text-sm">
+                    <div className="col-span-2">
+                      <label className="block mb-1 text-gray-600">
+                        Período
+                      </label>
                       <select
-                        value={selectedResident || ""}
+                        value={movementPeriod}
                         onChange={(e) =>
-                          setSelectedResident(
-                            e.target.value ? parseInt(e.target.value) : null
-                          )
+                          setMovementPeriod(e.target.value as MovementPeriod)
                         }
-                        className="w-full px-3 py-2 border bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 text-center"
+                        className="w-full border rounded px-2 py-1"
                       >
-                        <option value="">Selecione um residente</option>
-                        {residents.map((resident) => (
-                          <option key={resident.casela} value={resident.casela}>
-                            Casela {resident.casela} - {resident.name}
-                          </option>
-                        ))}
+                        <option value={MovementPeriod.DIARIO}>Diário</option>
+                        <option value={MovementPeriod.MENSAL}>Mensal</option>
+                        <option value={MovementPeriod.INTERVALO}>
+                          Intervalo
+                        </option>
                       </select>
+                    </div>
+
+                    {movementPeriod === MovementPeriod.DIARIO && (
+                      <div className="col-span-2">
+                        <label className="block mb-1 text-gray-600">
+                          Data
+                        </label>
+                        <input
+                          type="date"
+                          value={movementDate}
+                          onChange={(e) => setMovementDate(e.target.value)}
+                          className="w-full border rounded px-2 py-1"
+                        />
+                      </div>
                     )}
-                  </motion.div>
+
+                    {movementPeriod === MovementPeriod.MENSAL && (
+                      <div className="col-span-2">
+                        <label className="block mb-1 text-gray-600">
+                          Mês
+                        </label>
+                        <input
+                          type="month"
+                          value={movementMonth}
+                          onChange={(e) => setMovementMonth(e.target.value)}
+                          className="w-full border rounded px-2 py-1"
+                        />
+                      </div>
+                    )}
+
+                    {movementPeriod === MovementPeriod.INTERVALO && (
+                      <>
+                        <div>
+                          <label className="block mb-1 text-gray-600">
+                            Data inicial
+                          </label>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="w-full border rounded px-2 py-1"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block mb-1 text-gray-600">
+                            Data final
+                          </label>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="w-full border rounded px-2 py-1"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
 
-                <div className="mt-6 flex justify-center">
-                  <Button
-                    className="
-                      px-8 py-2 
-                      bg-sky-600 
-                      text-white 
-                      rounded-lg 
-                      hover:bg-sky-700 
-                      transition
-                      disabled:opacity-50
-                    "
-                    disabled={
-                      selectedReports.length === 0 ||
-                      (showResidentSelector && !selectedResident)
-                    }
-                    onClick={handleGenerate}
-                  >
-                    Gerar
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+                {isSelected && showResidentSelector && (
+                  <div className="mt-2 p-3 border rounded-lg">
+                    <label className="block mb-1 text-gray-600 text-sm">
+                      Residente
+                    </label>
 
+                    {loadingResidents ? (
+                      <div className="flex justify-center py-2">
+                        <Loader2 className="animate-spin text-sky-600" />
+                      </div>
+                    ) : (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className="w-full justify-between text-sm"
+                          >
+                            {selectedResident
+                              ? residents.find((r) => r.casela === selectedResident)?.name
+                              : "Selecionar residente"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent
+                          side="bottom"
+                          align="start"
+                          sideOffset={4}
+                          avoidCollisions={false}
+                          className="w-full p-0"
+                        >
+                          <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="Buscar residente"
+                            value={residentSearch}
+                            onValueChange={setResidentSearch}
+                          />
+                            <CommandEmpty>Nenhum residente encontrado.</CommandEmpty>
+                            <CommandGroup>
+                              {filteredResidents.map((r) => (
+                                <CommandItem
+                                  key={r.casela}
+                                  value={r.casela?.toString() + " - " + r.name}
+                                  onSelect={() => {
+                                    setSelectedResident(r.casela);
+                                    setResidentSearch(""); 
+                                  }}
+                                >
+                                  Casela {r.casela?.toString()}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <Button
+            className="mt-4 w-full max-w-md bg-sky-600 hover:bg-sky-700 text-white"
+            disabled={
+              !selectedReports.length ||
+              (showResidentSelector && !selectedResident)
+            }
+            onClick={handleGenerate}
+          >
+            Gerar relatório
+          </Button>
+        </div>
+      </motion.div>
+    )}
           {status === "loading" && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="p-12 flex flex-col items-center justify-center gap-4 h-64"
-            >
+            <div className="p-12 flex flex-col items-center gap-4">
               <Loader2 className="w-12 h-12 animate-spin text-sky-600" />
-              <p className="text-gray-600 font-medium text-center">
-                Gerando...
-              </p>
-            </motion.div>
+              <p>Gerando relatório…</p>
+            </div>
           )}
 
           {status === "success" && (
-            <motion.div
-              key="success"
-              className="flex flex-col items-center justify-center h-72 w-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <Check
-                className="text-green-600"
-                style={{ width: iconSize, height: iconSize }}
-              />
-              <p className="font-bold text-xl text-center mt-4">
-                Relatório gerado com sucesso!
-              </p>
-              <Button
-                className="mt-6 px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white"
-                onClick={handleClose}
-              >
-                OK
-              </Button>
-            </motion.div>
+            <div className="flex flex-col items-center h-72 justify-center">
+              <Check className="text-green-600" style={{ width: iconSize }} />
+              <p className="mt-4 font-bold">Relatório gerado com sucesso!</p>
+            </div>
           )}
 
           {status === "error" && (
-            <motion.div
-              key="error"
-              className="flex flex-col items-center justify-center h-72 w-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <X
-                className="text-red-600"
-                style={{ width: iconSize, height: iconSize }}
-              />
-              <p className="font-bold text-xl text-center mt-4">
-                Falha ao gerar relatório!
-              </p>
-              <Button
-                className="mt-6 px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white"
-                onClick={handleClose}
-              >
-                OK
-              </Button>
-            </motion.div>
+            <div className="flex flex-col items-center h-72 justify-center">
+              <X className="text-red-600" style={{ width: iconSize }} />
+              <p className="mt-4 font-bold">Erro ao gerar relatório</p>
+            </div>
           )}
         </AnimatePresence>
       </DialogContent>

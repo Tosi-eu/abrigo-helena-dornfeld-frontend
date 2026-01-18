@@ -27,9 +27,9 @@ export default function InputMovements() {
 
   const columnsBase = [
     { key: "name", label: "Produto", editable: false },
-    { key: "additionalData", label: "Princípio Ativo", editable: false },
+    { key: "additionalData", label: "Complemento", editable: false },
     { key: "quantity", label: "Quantidade", editable: false },
-    { key: "operator", label: "Operador", editable: false },
+    { key: "operator", label: "Usuário", editable: false },
     { key: "movementDate", label: "Data", editable: false },
     { key: "cabinet", label: "Armário", editable: false },
     { key: "drawer", label: "Gaveta", editable: false },
@@ -48,7 +48,7 @@ export default function InputMovements() {
         ? item.MedicineModel?.principio_ativo
         : (item.InputModel?.descricao ?? "-"),
       quantity: item.quantidade,
-      operator: item.LoginModel?.login,
+      operator: item.LoginModel?.first_name,
       movementDate: item.data,
       cabinet: item.armario_id ?? "-",
       drawer: item.gaveta_id ?? "-",

@@ -25,7 +25,7 @@ export const medicineFormSchema = z
     }),
     lot: z
       .string()
-      .max(100, "Lote não pode ter mais de 100 caracteres")
+      .max(50, "Lote não pode ter mais de 50 caracteres")
       .optional()
       .nullable(),
     observacao: z

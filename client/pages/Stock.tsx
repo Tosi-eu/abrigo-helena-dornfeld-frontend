@@ -48,7 +48,7 @@ import { TableFilter } from "@/components/TableFilter";
 export default function Stock() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data, filter } = location.state || {};
+  const { data } = location.state || {};
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
@@ -65,6 +65,8 @@ export default function Stock() {
   
   const [debouncedNome, setDebouncedNome] = useState("");
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [armarioSearch, setArmarioSearch] = useState("");
+  const [caselaSearch, setCaselaSearch] = useState("");
   
   useEffect(() => {
     if (debounceTimerRef.current) {
@@ -284,6 +286,22 @@ export default function Stock() {
       .map((id) => ({ value: String(id), label: `Casela ${id}` })),
   };
 
+  const filteredCabinets = useMemo(() => {
+    if (!armarioSearch) return filterOptions.cabinets;
+  
+    return filterOptions.cabinets.filter((c) =>
+      c.value.startsWith(armarioSearch.trim())
+    );
+  }, [armarioSearch, filterOptions.cabinets]);
+  
+  const filteredCaselas = useMemo(() => {
+    if (!caselaSearch) return filterOptions.caselas;
+  
+    return filterOptions.caselas.filter((c) =>
+      c.value.startsWith(caselaSearch.trim())
+    );
+  }, [caselaSearch, filterOptions.caselas]);
+
   const columns = [
     { key: "stockType", label: "Tipo", editable: false },
     { key: "name", label: "Nome", editable: true },
@@ -484,7 +502,7 @@ export default function Stock() {
               <div>
                 <label className="block text-xs text-gray-700 mb-1">Nome</label>
                 <TableFilter
-                  placeholder="Buscar por nome..."
+                  placeholder="Buscar por nome"
                   onFilterChange={(value) =>
                     setFilters((prev) => ({ ...prev, nome: value }))
                   }
@@ -504,9 +522,15 @@ export default function Stock() {
                       <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent
+                      side="bottom"
+                      align="start"
+                      sideOffset={4}
+                      avoidCollisions={false}
+                      className="w-full p-0"
+                    >
                     <Command>
-                      <CommandInput placeholder="Buscar setor..." />
+                      <CommandInput placeholder="Buscar setor" />
                       <CommandEmpty>Nenhum item encontrado</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
@@ -563,9 +587,19 @@ export default function Stock() {
                       <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar armário..." />
+                  <PopoverContent
+                      side="bottom"
+                      align="start"
+                      sideOffset={4}
+                      avoidCollisions={false}
+                      className="w-full p-0"
+                    >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Buscar armário"
+                        value={armarioSearch}
+                        onValueChange={setArmarioSearch}
+                      />
                       <CommandEmpty>Nenhum item encontrado</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
@@ -582,19 +616,21 @@ export default function Stock() {
                           />
                           Todos
                         </CommandItem>
-                        {filterOptions.cabinets.map((cabinet) => (
+                        {filteredCabinets.map((cabinet) => (
                           <CommandItem
                             key={cabinet.value}
                             value={cabinet.value}
-                            onSelect={() =>
+                            onSelect={() => {
                               setFilters((prev) => ({
                                 ...prev,
                                 armario:
                                   prev.armario === cabinet.value
                                     ? ""
                                     : cabinet.value,
-                              }))
-                            }
+                              }));
+                            
+                              setArmarioSearch("");
+                            }}                            
                           >
                             <Check
                               className={cn(
@@ -624,9 +660,19 @@ export default function Stock() {
                       <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar casela..." />
+                  <PopoverContent
+                      side="bottom"
+                      align="start"
+                      sideOffset={4}
+                      avoidCollisions={false}
+                      className="w-full p-0"
+                    >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Buscar casela"
+                        value={caselaSearch}
+                        onValueChange={setCaselaSearch}
+                      />
                       <CommandEmpty>Nenhum item encontrado</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
@@ -643,17 +689,18 @@ export default function Stock() {
                           />
                           Todos
                         </CommandItem>
-                        {filterOptions.caselas.map((casela) => (
+                        {filteredCaselas.map((casela) => (
                           <CommandItem
                             key={casela.value}
                             value={casela.value}
-                            onSelect={() =>
+                            onSelect={() => {
                               setFilters((prev) => ({
                                 ...prev,
-                                casela:
-                                  prev.casela === casela.value ? "" : casela.value,
-                              }))
-                            }
+                                casela: prev.casela === casela.value ? "" : casela.value,
+                              }));
+                            
+                              setCaselaSearch("");
+                            }}                            
                           >
                             <Check
                               className={cn(

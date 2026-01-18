@@ -6,7 +6,8 @@ import {
   SectorType,
 } from "@/utils/enums";
 import { api } from "./canonical";
-import { StockItemType } from "@/interfaces/types";
+import { StockItemType, UpdateUserPayload } from "@/interfaces/types";
+import { MovementsParams } from "@/components/StockReporter";
 
 export const getCabinets = (page = 1, limit = 10) =>
   api.get("/armarios", {
@@ -79,12 +80,24 @@ export const getResidents = (page = 1, limit = 20) =>
 export const deleteResident = (casela: string | number) =>
   api.delete(`/residentes/${casela}`);
 
-export const getReport = (type: string, casela?: number) => {
-  const params = new URLSearchParams({ type });
-  if (casela !== undefined) {
-    params.append('casela', casela.toString());
+export const getReport = (
+  type: string,
+  casela?: number,
+  params?: MovementsParams,
+) => {
+  const search = new URLSearchParams({ type });
+
+  if (casela != null) {
+    search.append("casela", casela.toString());
   }
-  return api.get(`/relatorios?${params.toString()}`);
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      search.append(key, value);
+    });
+  }
+
+  return api.get(`/relatorios?${search.toString()}`);
 };
 
 export const getTransferReport = () => {
@@ -98,8 +111,11 @@ export const getDailyMovementsReport = () => {
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
 
-export const register = (login: string, password: string) =>
-  api.post("/login", { login, password });
+export const getCurrentUser = () =>
+  api.get("/login/usuario-logado");
+
+export const register = (login: string, password: string, firstName: string, lastName: string) =>
+  api.post("/login", { login, password, first_name: firstName, last_name: lastName });
 
 export const updateInput = (id: number, data: any) =>
   api.put(`/insumos/${id}`, data);
@@ -116,12 +132,8 @@ export const resetPassword = (login: string, newPassword: string) =>
 export const updateResident = (casela: string | number, data: any) =>
   api.put(`/residentes/${casela}`, data);
 
-export const updateUser = (payload: {
-  login: string;
-  password: string;
-  currentLogin: string;
-  currentPassword: string;
-}) => api.put(`/login`, payload);
+export const updateUser = (payload: UpdateUserPayload) =>
+  api.put('/login', payload);
 
 export const createCabinet = (numero: number, categoria_id: number) =>
   api.post("/armarios", { numero, categoria_id });

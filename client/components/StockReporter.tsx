@@ -7,6 +7,27 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
+export enum MovementPeriod {
+  DIARIO = "diario",
+  MENSAL = "mensal",
+  INTERVALO = "intervalo",
+}
+
+export type MovementsParams =
+  | {
+      periodo: MovementPeriod.DIARIO;
+      data: string; 
+    }
+  | {
+      periodo: MovementPeriod.MENSAL;
+      mes: string; 
+    }
+  | {
+      periodo: MovementPeriod.INTERVALO;
+      data_inicial: string;
+      data_final: string;
+    };
+
 interface ResidentesResponse {
   detalhes: RowData[];
   consumo_mensal: RowData[];
@@ -230,9 +251,11 @@ export function createStockPDF(
   tipo: string,
   data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[] | ResidentMedicinesReport[] | ExpiredMedicineReport[],
 ) {
+
+  console.log('x', data);
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
-  const isDailyMovementsReport = tipo === "movimentos_dia";
+  const isDailyMovementsReport = tipo === "movimentacoes";
   const isResidentMedicines = tipo === "medicamentos_residente";
   const isExpiredMedicines = tipo === "medicamentos_vencidos";
   const consumptionData = isResidentConsumption ? (data as ResidentConsumptionReport) : null;

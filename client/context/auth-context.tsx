@@ -18,20 +18,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleLogout = useCallback(async () => {
     try {
       await logoutRequest();
-      // O backend limpa o cookie HttpOnly automaticamente
     } catch (err) {
       console.error(err);
     } finally {
       setUser(null);
       sessionStorage.removeItem("user");
-      // Token não está mais em sessionStorage (está em cookie HttpOnly)
       cleanupSessionTimeout();
     }
   }, []);
 
   useEffect(() => {
-    // Verificar se há usuário armazenado
-    // O token agora está em cookie HttpOnly (não acessível via JavaScript)
     const storedUser = sessionStorage.getItem("user");
 
     if (storedUser) {
@@ -70,9 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setUser(loggedUser);
 
-    // Armazenar apenas user (token agora está em cookie HttpOnly)
     sessionStorage.setItem("user", JSON.stringify(loggedUser));
-    // Token não é mais armazenado em sessionStorage (segurança)
 
     initSessionTimeout(
       () => {

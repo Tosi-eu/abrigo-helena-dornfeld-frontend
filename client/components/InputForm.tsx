@@ -160,9 +160,15 @@ export const InputForm = memo(function InputForm({
                     <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
+                <PopoverContent
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
                   <Command>
-                    <CommandInput placeholder="Buscar insumo..." />
+                    <CommandInput placeholder="Buscar insumo" />
                     <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
                     <CommandGroup>
                       {inputs.map((i) => (
