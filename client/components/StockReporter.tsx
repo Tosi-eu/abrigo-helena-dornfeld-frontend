@@ -252,7 +252,6 @@ export function createStockPDF(
   data: RowData[] | ResidentesResponse | ResidentConsumptionReport | TransferReport[] | DailyMovementReport[] | ResidentMedicinesReport[] | ExpiredMedicineReport[],
 ) {
 
-  console.log('x', data);
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
   const isDailyMovementsReport = tipo === "movimentacoes";
