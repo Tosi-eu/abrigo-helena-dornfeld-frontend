@@ -269,7 +269,7 @@ export default function Dashboard() {
         label: "Itens Abaixo do Estoque Mínimo",
         value: noStock,
         onClick: () =>
-          navigate("/stock?filter=noStock"),
+          navigate("/stock?filter=belowMin"),
       },
       {
         label: "Itens Próximos do Estoque Mínimo",
