@@ -171,6 +171,10 @@ export interface StockItem {
   origin?: string;
   lot?: string | null;
   preco?: number | null;
+  expirationStatus: string;
+  quantityStatus: string;
+  expirationMsg: string;
+  quantityMsg: string;
 }
 
 export interface InputFormProps {

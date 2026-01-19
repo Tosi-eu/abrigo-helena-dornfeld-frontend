@@ -18,3 +18,5 @@ export type UpdateUserPayload = {
   password?: string;
   currentPassword: string;
 };
+
+export type StockFilter = "nearMin" | "belowMin" | "expired" | "expiringSoon";

@@ -103,13 +103,7 @@ export default function StockOut() {
 
   const caselaOptions = useMemo(
     () =>
-      Array.from(
-        new Set(
-          items
-            .map((i) => i.casela_id)
-            .filter((id): id is number => id !== null && id !== undefined),
-        ),
-      )
+      Array.from(new Set(items.map((i) => i.casela_id).filter((id): id is number => id !== null && id !== undefined)))
         .sort((a, b) => a - b)
         .map((id) => ({ label: `Casela ${id}`, value: String(id) })),
     [items],

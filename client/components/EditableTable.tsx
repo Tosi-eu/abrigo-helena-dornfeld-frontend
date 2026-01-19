@@ -330,10 +330,7 @@ export default function EditableTable({
           <thead>
             <tr className="bg-sky-100 border-b">
               {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className="px-4 py-3 text-xs font-semibold text-center whitespace-nowrap"
-                >
+                <th key={col.key} className="px-4 py-3 text-xs font-semibold text-center whitespace-nowrap">
                   {col.label}
                 </th>
               ))}

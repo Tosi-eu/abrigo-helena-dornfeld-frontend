@@ -22,3 +22,8 @@ export function formatDateToPtBr(
 
   return str;
 }
+
+export const parseYearMonthToDate = (yearMonth: string) => {
+  const [year, month] = yearMonth.split("-").map(Number);
+  return new Date(year, month - 1, 1); 
+};
