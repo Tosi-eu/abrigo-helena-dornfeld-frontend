@@ -415,13 +415,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <NotificationProvider>
-          <InvalidSessionProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </InvalidSessionProvider>
-        </NotificationProvider>
+          <NotificationProvider>
+            <InvalidSessionProvider>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </InvalidSessionProvider>
+          </NotificationProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

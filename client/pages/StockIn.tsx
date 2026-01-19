@@ -80,7 +80,7 @@ export default function StockIn() {
             "Não foi possível carregar os dados.",
           ),
           variant: "error",
-        duration: 3000,
+          duration: 3000,
         });
         setMedicines([]);
         setInputs([]);
@@ -94,7 +94,7 @@ export default function StockIn() {
 
   const handleMedicineSubmit = async (data) => {
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -140,8 +140,8 @@ export default function StockIn() {
   };
 
   const handleInputSubmit = async (data) => {
-    if (isSubmitting) return; 
-    
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     try {
       const payload = {

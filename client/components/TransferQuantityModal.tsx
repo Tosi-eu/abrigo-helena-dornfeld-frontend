@@ -51,16 +51,13 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
 
     if (qty > 0 && qty <= (item?.quantity || 0)) {
       const casela =
-        needsCasela && selectedCasela
-          ? parseInt(selectedCasela, 10)
-          : null;
+        needsCasela && selectedCasela ? parseInt(selectedCasela, 10) : null;
 
       onConfirm(qty, casela);
     }
   };
 
-  const nextSector =
-    item?.sector === "farmacia" ? "enfermagem" : "farmacia";
+  const nextSector = item?.sector === "farmacia" ? "enfermagem" : "farmacia";
 
   const maxQuantity = item?.quantity || 0;
   const quantityNum = parseInt(quantity, 10);
@@ -148,13 +145,9 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
 
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li>
-                  <span className="font-semibold">
-                    {quantityNum || 0}
-                  </span>{" "}
+                  <span className="font-semibold">{quantityNum || 0}</span>{" "}
                   unidades em{" "}
-                  {nextSector === "farmacia"
-                    ? "Farmácia"
-                    : "Enfermaria"}
+                  {nextSector === "farmacia" ? "Farmácia" : "Enfermaria"}
                   {needsCasela &&
                     selectedCasela &&
                     ` (Casela ${selectedCasela})`}
@@ -166,9 +159,7 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                       {maxQuantity - (quantityNum || 0)}
                     </span>{" "}
                     unidades permanecerão em{" "}
-                    {item.sector === "farmacia"
-                      ? "Farmácia"
-                      : "Enfermaria"}
+                    {item.sector === "farmacia" ? "Farmácia" : "Enfermaria"}
                   </li>
                 )}
               </ul>

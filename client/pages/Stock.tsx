@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import EditableTable from "@/components/EditableTable";
 import { SkeletonTable } from "@/components/SkeletonTable";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { StockItem } from "@/interfaces/interfaces";
 import { lazy, Suspense } from "react";
@@ -29,11 +29,27 @@ import {
 } from "@/helpers/toaster.helper";
 import { toast } from "@/hooks/use-toast.hook";
 import { fetchAllPaginated } from "@/helpers/paginacao.helper";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { TableFilter } from "@/components/TableFilter";
 
 export default function Stock() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data, filter } = location.state || {};
+  const params = new URLSearchParams(location.search);
+  const filter = params.get("filter"); // "noStock" | "belowMin" | "expired" | "expiringSoon"
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [items, setItems] = useState<StockItem[]>([]);
@@ -41,6 +57,41 @@ export default function Stock() {
   const [page, setPage] = useState(1);
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
+  const [filters, setFilters] = useState({
+    nome: "",
+    casela: "",
+    armario: "",
+    setor: "",
+  });
+
+  const [debouncedNome, setDebouncedNome] = useState("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [armarioSearch, setArmarioSearch] = useState("");
+  const [caselaSearch, setCaselaSearch] = useState("");
+
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedNome(filters.nome);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [filters.nome]);
+
+  const effectiveFilters = useMemo(
+    () => ({
+      ...filters,
+      nome: debouncedNome,
+    }),
+    [debouncedNome, filters.casela, filters.armario, filters.setor],
+  );
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
@@ -49,7 +100,9 @@ export default function Stock() {
   }>({ type: null, row: null });
   const [actionLoading, setActionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [residents, setResidents] = useState<Array<{ casela: number; name: string }>>([]);
+  const [residents, setResidents] = useState<
+    Array<{ casela: number; name: string }>
+  >([]);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
     return raw.map((item) => ({
@@ -79,28 +132,39 @@ export default function Stock() {
     }));
   };
 
-  async function loadStock(pageToLoad: number) {
-    setLoading(true);
-    try {
-      const res = await getStock(pageToLoad, limit);
+async function loadStock(pageToLoad: number, currentFilters = filters) {
+  setLoading(true);
+  try {
+    const filterParams: Record<string, any> = {};
 
-      setItems(formatStockItems(res.data));
-      setHasNext(res.hasNext);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Não foi possível carregar os itens do estoque.";
-      toast({
-        title: "Erro ao carregar estoque",
-        description: errorMessage,
-        variant: "error",
-        duration: 3000,
-      });
-    } finally {
-      setLoading(false);
+    if (currentFilters.nome?.trim()) filterParams.name = currentFilters.nome.trim();
+    if (currentFilters.casela?.trim()) filterParams.casela = currentFilters.casela.trim();
+    if (currentFilters.armario?.trim()) filterParams.cabinet = currentFilters.armario.trim();
+    if (currentFilters.setor?.trim()) filterParams.sector = currentFilters.setor.trim();
+
+    if (filter) {
+      filterParams.filter = filter; 
     }
+
+    const res = await getStock(pageToLoad, limit, filterParams, filter);
+    setItems(formatStockItems(res.data));
+    setHasNext(res.hasNext);
+  } catch (err: unknown) {
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Não foi possível carregar os itens do estoque.";
+    toast({
+      title: "Erro ao carregar estoque",
+      description: errorMessage,
+      variant: "error",
+      duration: 3000,
+    });
+  } finally {
+    setLoading(false);
   }
+}
+
 
   async function loadAllStock() {
     try {
@@ -129,7 +193,9 @@ export default function Stock() {
         (page, limit) => getResidents(page, limit),
         100,
       );
-      setResidents(allResidents.map((r: any) => ({ casela: r.casela, name: r.name })));
+      setResidents(
+        allResidents.map((r: any) => ({ casela: r.casela, name: r.name })),
+      );
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -147,23 +213,6 @@ export default function Stock() {
   useEffect(() => {
     async function init() {
       setLoading(true);
-
-      if (data && Array.isArray(data)) {
-        if (data.length > 0) {
-          setItems(formatStockItems(data));
-        } else {
-          setItems([]);
-        }
-        setHasNext(false);
-        setLoading(false);
-        try {
-          await loadAllStock();
-        } catch (err) {
-          console.error("Error loading all stock:", err);
-        }
-        return;
-      }
-
       await loadStock(1);
       await loadAllStock();
       await loadResidents();
@@ -172,11 +221,72 @@ export default function Stock() {
     init();
   }, []);
 
+  const isInitialMount = useRef(true);
+  const prevFiltersRef = useRef(effectiveFilters);
+
   useEffect(() => {
-    if ((!data || !Array.isArray(data)) && page > 1) {
-      loadStock(page);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevFiltersRef.current = effectiveFilters;
+      return;
     }
-  }, [page]);
+
+    const filtersChanged =
+      prevFiltersRef.current.nome !== effectiveFilters.nome ||
+      prevFiltersRef.current.casela !== effectiveFilters.casela ||
+      prevFiltersRef.current.armario !== effectiveFilters.armario ||
+      prevFiltersRef.current.setor !== effectiveFilters.setor;
+
+    if (filtersChanged) {
+      setPage(1);
+      prevFiltersRef.current = effectiveFilters;
+    }
+  }, [effectiveFilters]);
+
+  useEffect(() => {
+      loadStock(page, effectiveFilters);
+  }, [page, effectiveFilters]);
+
+  const filterOptions = {
+    sectors: [
+      { value: "enfermagem", label: "Enfermagem" },
+      { value: "farmacia", label: "Farmácia" },
+    ],
+    cabinets: Array.from(
+      new Set(
+        allRawData
+          .map((i: any) => i.armario_id)
+          .filter((id): id is number => id !== null && id !== undefined),
+      ),
+    )
+      .sort((a, b) => a - b)
+      .map((id) => ({ value: String(id), label: `Armário ${id}` })),
+    caselas: Array.from(
+      new Set(
+        allRawData
+          .map((i: any) => i.casela_id)
+          .filter((id): id is number => id !== null && id !== undefined),
+      ),
+    )
+      .sort((a, b) => a - b)
+      .map((id) => ({ value: String(id), label: `Casela ${id}` })),
+  };
+
+  const filteredCabinets = useMemo(() => {
+    if (!armarioSearch) return filterOptions.cabinets;
+
+    return filterOptions.cabinets.filter((c) =>
+      c.value.startsWith(armarioSearch.trim()),
+    );
+  }, [armarioSearch, filterOptions.cabinets]);
+
+  const filteredCaselas = useMemo(() => {
+    if (!caselaSearch) return filterOptions.caselas;
+
+    return filterOptions.caselas.filter((c) =>
+      c.value.startsWith(caselaSearch.trim()),
+    );
+  }, [caselaSearch, filterOptions.caselas]);
 
   const columns = [
     { key: "stockType", label: "Tipo", editable: false },
@@ -258,7 +368,6 @@ export default function Stock() {
         }
       }
 
-
       await loadStock(page);
       await loadAllStock();
 
@@ -296,7 +405,10 @@ export default function Stock() {
     }
   };
 
-  const handleTransferConfirm = async (quantity: number, casela?: number | null) => {
+  const handleTransferConfirm = async (
+    quantity: number,
+    casela?: number | null,
+  ) => {
     if (!pendingAction.row || pendingAction.type !== "transfer") return;
 
     const { row } = pendingAction;
@@ -338,7 +450,7 @@ export default function Stock() {
 
   return (
     <Layout title="Estoque de Medicamentos e Insumos">
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl mx-auto">
         <div className="flex flex-wrap gap-3 justify-end mt-8">
           <button
             onClick={() =>
@@ -369,10 +481,246 @@ export default function Stock() {
           >
             Gerar Relatório
           </button>
-
         </div>
 
-        <div className="pt-12">
+        {allRawData.length > 0 && (
+          <div className="bg-white p-6 rounded-lg border border-gray-300 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs text-gray-700 mb-1">Nome</label>
+                <TableFilter
+                  placeholder="Buscar por nome"
+                  onFilterChange={(value) =>
+                    setFilters((prev) => ({ ...prev, nome: value }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-700 mb-1">
+                  Setor
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
+                      {filters.setor
+                        ? filterOptions.sectors.find(
+                            (s) => s.value === filters.setor,
+                          )?.label || filters.setor
+                        : "Selecione"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
+                    <Command>
+                      <CommandInput placeholder="Buscar setor" />
+                      <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value=""
+                          onSelect={() =>
+                            setFilters((prev) => ({ ...prev, setor: "" }))
+                          }
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              !filters.setor ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          Todos
+                        </CommandItem>
+                        {filterOptions.sectors.map((sector) => (
+                          <CommandItem
+                            key={sector.value}
+                            value={sector.value}
+                            onSelect={() =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                setor:
+                                  prev.setor === sector.value
+                                    ? ""
+                                    : sector.value,
+                              }))
+                            }
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                filters.setor === sector.value
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {sector.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-700 mb-1">
+                  Armário
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
+                      {filters.armario
+                        ? `Armário ${filters.armario}`
+                        : "Selecione"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Buscar armário"
+                        value={armarioSearch}
+                        onValueChange={setArmarioSearch}
+                      />
+                      <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value=""
+                          onSelect={() =>
+                            setFilters((prev) => ({ ...prev, armario: "" }))
+                          }
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              !filters.armario ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          Todos
+                        </CommandItem>
+                        {filteredCabinets.map((cabinet) => (
+                          <CommandItem
+                            key={cabinet.value}
+                            value={cabinet.value}
+                            onSelect={() => {
+                              setFilters((prev) => ({
+                                ...prev,
+                                armario:
+                                  prev.armario === cabinet.value
+                                    ? ""
+                                    : cabinet.value,
+                              }));
+
+                              setArmarioSearch("");
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                filters.armario === cabinet.value
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {cabinet.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-700 mb-1">
+                  Casela
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="w-full border border-gray-300 p-2 rounded-lg flex justify-between items-center bg-white">
+                      {filters.casela
+                        ? `Casela ${filters.casela}`
+                        : "Selecione"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                    className="w-full p-0"
+                  >
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Buscar casela"
+                        value={caselaSearch}
+                        onValueChange={setCaselaSearch}
+                      />
+                      <CommandEmpty>Nenhum item encontrado</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value=""
+                          onSelect={() =>
+                            setFilters((prev) => ({ ...prev, casela: "" }))
+                          }
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              !filters.casela ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          Todos
+                        </CommandItem>
+                        {filteredCaselas.map((casela) => (
+                          <CommandItem
+                            key={casela.value}
+                            value={casela.value}
+                            onSelect={() => {
+                              setFilters((prev) => ({
+                                ...prev,
+                                casela:
+                                  prev.casela === casela.value
+                                    ? ""
+                                    : casela.value,
+                              }));
+
+                              setCaselaSearch("");
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                filters.casela === casela.value
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {casela.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div>
           {loading ? (
             <SkeletonTable rows={8} cols={columns.length} />
           ) : (
@@ -389,10 +737,8 @@ export default function Stock() {
               onSuspend={requestSuspend}
               onResume={requestResume}
               onDeleteSuccess={() => {
-                if (!data) {
                   loadStock(page);
                   loadAllStock();
-                }
               }}
               entityType="stock"
             />
@@ -423,7 +769,8 @@ export default function Stock() {
                 quantity: pendingAction.row.quantity,
                 sector: pendingAction.row.sector,
                 itemType: pendingAction.row.itemType,
-                isGeneralMedicine: pendingAction.row.tipo === ItemStockType.GERAL,
+                isGeneralMedicine:
+                  pendingAction.row.tipo === ItemStockType.GERAL,
               }
             : null
         }

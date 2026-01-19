@@ -15,7 +15,10 @@ interface InvalidSessionModalProps {
   onClose: () => void;
 }
 
-export function InvalidSessionModal({ open, onClose }: InvalidSessionModalProps) {
+export function InvalidSessionModal({
+  open,
+  onClose,
+}: InvalidSessionModalProps) {
   const navigate = useNavigate();
 
   const handleGoToLogin = () => {
@@ -39,14 +42,14 @@ export function InvalidSessionModal({ open, onClose }: InvalidSessionModalProps)
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <motion.div
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.2, 1],
-                      rotate: [0, -10, 10, 0]
+                      rotate: [0, -10, 10, 0],
                     }}
-                    transition={{ 
+                    transition={{
                       duration: 0.5,
                       repeat: Infinity,
-                      repeatDelay: 2
+                      repeatDelay: 2,
                     }}
                   >
                     <AlertCircle className="w-6 h-6 text-amber-500" />
@@ -54,7 +57,8 @@ export function InvalidSessionModal({ open, onClose }: InvalidSessionModalProps)
                   <DialogTitle className="text-xl">Sessão Inválida</DialogTitle>
                 </div>
                 <DialogDescription className="text-base pt-2">
-                  Sua sessão expirou ou foi invalidada. Por favor, faça login novamente para continuar.
+                  Sua sessão expirou ou foi invalidada. Por favor, faça login
+                  novamente para continuar.
                 </DialogDescription>
               </DialogHeader>
 
@@ -73,4 +77,3 @@ export function InvalidSessionModal({ open, onClose }: InvalidSessionModalProps)
     </AnimatePresence>
   );
 }
-

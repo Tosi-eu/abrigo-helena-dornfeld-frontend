@@ -81,9 +81,12 @@ export const InputForm = memo(function InputForm({
   }, [isCart, setValue]);
 
   useEffect(() => {
-    setValue("cabinetId", null);
-    setValue("drawerId", null);
-  }, [stockType, setValue]);
+    if (isCart) {
+      setValue("cabinetId", null);
+    } else {
+      setValue("drawerId", null);
+    }
+  }, [stockType, setValue, isCart]);
 
   useEffect(() => {
     if (!isIndividual) {
@@ -160,9 +163,15 @@ export const InputForm = memo(function InputForm({
                     <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
+                <PopoverContent
+                  side="bottom"
+                  align="start"
+                  sideOffset={4}
+                  avoidCollisions={false}
+                  className="w-full p-0"
+                >
                   <Command>
-                    <CommandInput placeholder="Buscar insumo..." />
+                    <CommandInput placeholder="Buscar insumo" />
                     <CommandEmpty>Nenhum insumo encontrado.</CommandEmpty>
                     <CommandGroup>
                       {inputs.map((i) => (
@@ -425,9 +434,7 @@ export const InputForm = memo(function InputForm({
           disabled={isLoading}
           className={cn(
             "px-5 py-2 bg-sky-600 text-white rounded-lg text-sm transition-colors",
-            isLoading
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-sky-700"
+            isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-sky-700",
           )}
         >
           {isLoading ? "Processando..." : "Confirmar"}

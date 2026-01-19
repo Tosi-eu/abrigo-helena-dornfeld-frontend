@@ -45,9 +45,7 @@ export default function RegisterDrawer() {
   };
 
   const findCategoryByName = (name: string) =>
-    categories.find(
-      (c) => c.nome.toLowerCase() === name.trim().toLowerCase(),
-    );
+    categories.find((c) => c.nome.toLowerCase() === name.trim().toLowerCase());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,9 +128,7 @@ export default function RegisterDrawer() {
                 placeholder="Ex: 4"
                 value={numero || ""}
                 onChange={(e) =>
-                  setNumero(
-                    e.target.value === "" ? 0 : Number(e.target.value),
-                  )
+                  setNumero(e.target.value === "" ? 0 : Number(e.target.value))
                 }
                 disabled={saving}
               />

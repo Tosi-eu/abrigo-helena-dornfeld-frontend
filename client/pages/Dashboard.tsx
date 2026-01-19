@@ -58,12 +58,6 @@ export default function Dashboard() {
     [],
   );
   const [drawerStockData, setDrawerStockData] = useState<DrawerStockItem[]>([]);
-  const [noStockData, setNoStockData] = useState<StockStatusItem[]>([]);
-  const [belowMinData, setBelowMinData] = useState<StockStatusItem[]>([]);
-  const [expiredData, setExpiredData] = useState<StockStatusItem[]>([]);
-  const [expiringSoonData, setExpiringSoonData] = useState<StockStatusItem[]>(
-    [],
-  );
   const [nonMovementPage, setNonMovementPage] = useState(1);
   const [recentMovementsPage, setRecentMovementsPage] = useState(1);
 
@@ -113,8 +107,8 @@ export default function Dashboard() {
 
           getStockProportions("enfermagem"),
           getStockProportions("farmacia"),
-          getStock(1, 10, "armarios"),
-          getStock(1, 20, "gavetas"),
+          getStock(1, 10, { type: "armarios" }),
+          getStock(1, 20, { type: "gavetas" }),
         ]);
 
         const [medMoreRes, medLessRes, nonMovementRes] = await Promise.all([
@@ -169,12 +163,13 @@ export default function Dashboard() {
         setBelowMin(itemsInStockWarning.length);
         setExpired(expiredItems.length);
         setExpiringSoon(expiringSoonItems);
-        setNoStockData(noStockItems);
-        setBelowMinData(itemsInStockWarning);
-        setExpiredData(expiredItems);
-        setExpiringSoonData(expiringSoonItems);
-        setRecentMovements(recentMovements);
-        setNonMovementProducts(nonMovementRes);
+
+        setRecentMovements(recentMovements.slice(0, DEFAULT_PAGE_SIZE));
+        setNonMovementProducts(
+          Array.isArray(nonMovementRes)
+            ? nonMovementRes.slice(0, DEFAULT_PAGE_SIZE)
+            : [],
+        );
 
         setMostMovData(
           medMoreRes.data.map((item) => ({
@@ -274,33 +269,25 @@ export default function Dashboard() {
         label: "Itens Abaixo do Estoque Mínimo",
         value: noStock,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "noStock", data: noStockData },
-          }),
+          navigate("/stock?filter=belowMin"),
       },
       {
         label: "Itens Próximos do Estoque Mínimo",
         value: belowMin,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "belowMin", data: belowMinData },
-          }),
+          navigate("/stock?filter=belowMin"),
       },
       {
         label: "Itens Vencidos",
         value: expired,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "expired", data: expiredData },
-          }),
+          navigate("/stock?filter=expired"),
       },
       {
         label: "Itens com Vencimento Próximo",
         value: expiringSoon.length,
         onClick: () =>
-          navigate("/stock", {
-            state: { filter: "expiringSoon", data: expiringSoonData },
-          }),
+          navigate("/stock?filter=expiringSoon"),
       },
     ],
     [
@@ -308,10 +295,6 @@ export default function Dashboard() {
       belowMin,
       expired,
       expiringSoon,
-      noStockData,
-      belowMinData,
-      expiredData,
-      expiringSoonData,
       navigate,
     ],
   );
@@ -364,11 +347,10 @@ export default function Dashboard() {
                 columns={[
                   { key: "nome", label: "Nome" },
                   { key: "detalhe", label: "Detalhe" },
-                  { key: "tipo_item", label: "Tipo" },
                   { key: "dias_parados", label: "Dias Parados" },
                   {
                     key: "ultima_movimentacao",
-                    label: "Última Movimentação",
+                    label: "Data",
                   },
                 ]}
                 data={paginatedNonMovement}
@@ -449,7 +431,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
-                Top 10 Mais Movimentados
+                Top 10 Medicações Mais Movimentadas
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -470,7 +452,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
-                Top 10 Menos Movimentados
+                Top 10 Medicações Menos Movimentadas
               </CardTitle>
             </CardHeader>
             <CardContent>

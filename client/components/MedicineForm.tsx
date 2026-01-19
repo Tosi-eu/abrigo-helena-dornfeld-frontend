@@ -87,9 +87,12 @@ export const MedicineForm = memo(function MedicineForm({
   }, [isCart, setValue]);
 
   useEffect(() => {
-    setValue("cabinetId", null);
-    setValue("drawerId", null);
-  }, [stockType, setValue]);
+    if (isCart) {
+      setValue("cabinetId", null);
+    } else {
+      setValue("drawerId", null);
+    }
+  }, [stockType, setValue, isCart]);
 
   useEffect(() => {
     if (!isIndividual) {
@@ -180,9 +183,15 @@ export const MedicineForm = memo(function MedicineForm({
                     <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
+                <PopoverContent
+                  side="bottom"
+                  align="start"
+                  sideOffset={4}
+                  avoidCollisions={false}
+                  className="w-full p-0"
+                >
                   <Command>
-                    <CommandInput placeholder="Buscar medicamento..." />
+                    <CommandInput placeholder="Buscar medicamento" />
                     <CommandEmpty>Nenhum medicamento encontrado.</CommandEmpty>
                     <CommandGroup>
                       {medicines.map((m) => (
@@ -475,7 +484,8 @@ export const MedicineForm = memo(function MedicineForm({
         )}
         {isIndividual && (
           <p className="text-xs text-slate-500 mt-1">
-            Para medicamentos individuais, use este campo para informar detalhes sobre o uso pelo residente.
+            Para medicamentos individuais, use este campo para informar detalhes
+            sobre o uso pelo residente.
           </p>
         )}
       </div>
@@ -493,9 +503,7 @@ export const MedicineForm = memo(function MedicineForm({
           disabled={isLoading}
           className={cn(
             "px-5 py-2 bg-sky-600 text-white rounded-lg text-sm transition-colors",
-            isLoading
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-sky-700"
+            isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-sky-700",
           )}
         >
           {isLoading ? "Processando..." : "Confirmar"}

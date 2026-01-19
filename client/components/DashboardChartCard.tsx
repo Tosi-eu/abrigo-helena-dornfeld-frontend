@@ -30,15 +30,20 @@ export const DashboardChartCard = memo(function DashboardChartCard({
         <CardTitle className="text-center">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="w-full h-72 flex justify-center">
-          <ResponsiveContainer width="90%" height="100%">
+        <div className="w-full h-96 flex justify-center">
+          <ResponsiveContainer width="95%" height="100%">
             <BarChart
               data={data}
               layout="vertical"
               margin={{ top: 20, right: 40, left: 40, bottom: 10 }}
             >
               <XAxis type="number" />
-              <YAxis type="category" dataKey={dataKey} width={80} />
+              <YAxis
+                type="category"
+                dataKey={dataKey}
+                width={80}
+                interval={0}
+              />
               <CartesianGrid strokeDasharray="3 3" />
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">

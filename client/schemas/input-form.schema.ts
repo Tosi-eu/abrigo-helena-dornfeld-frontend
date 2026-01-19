@@ -24,7 +24,7 @@ export const inputFormSchema = z
     }),
     lot: z
       .string()
-      .max(100, "Lote não pode ter mais de 100 caracteres")
+      .max(50, "Lote não pode ter mais de 50 caracteres")
       .optional()
       .nullable(),
     preco: z
@@ -43,48 +43,33 @@ export const inputFormSchema = z
       .transform((val) => (val === "" ? undefined : val)),
   })
   .refine(
-    (data) => {
-      if (data.stockType === ItemStockType.CARRINHO) {
-        return data.drawerId !== null;
-      }
-      return true;
-    },
+    (data) =>
+      ![ItemStockType.CARRINHO, ItemStockType.CARRINHO_PSICOTROPICOS].includes(
+        data.stockType,
+      ) || data.drawerId !== null,
     {
-      message: "Carrinho de emergência requer uma gaveta",
+      message: "Carrinho requer uma gaveta",
       path: ["drawerId"],
     },
   )
   .refine(
-    (data) => {
-      if (data.stockType !== ItemStockType.CARRINHO) {
-        return data.cabinetId !== null;
-      }
-      return true;
-    },
+    (data) =>
+      [ItemStockType.CARRINHO, ItemStockType.CARRINHO_PSICOTROPICOS].includes(
+        data.stockType,
+      ) || data.cabinetId !== null,
     {
       message: "Selecione um armário",
       path: ["cabinetId"],
     },
   )
+  .refine((data) => !(data.cabinetId !== null && data.drawerId !== null), {
+    message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
+    path: ["drawerId"],
+  })
+
   .refine(
-    (data) => {
-      if (data.cabinetId !== null && data.drawerId !== null) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Não é possível selecionar armário e gaveta ao mesmo tempo",
-      path: ["drawerId"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.casela !== null && data.stockType !== ItemStockType.INDIVIDUAL) {
-        return false;
-      }
-      return true;
-    },
+    (data) =>
+      !(data.casela !== null && data.stockType !== ItemStockType.INDIVIDUAL),
     {
       message: "A casela só pode ser preenchida para tipo individual",
       path: ["casela"],

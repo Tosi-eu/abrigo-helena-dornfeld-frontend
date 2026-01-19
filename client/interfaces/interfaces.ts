@@ -63,6 +63,8 @@ export interface User {
 export interface LoggedUser {
   id: number;
   login: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface AuthContextType {
@@ -169,6 +171,10 @@ export interface StockItem {
   origin?: string;
   lot?: string | null;
   preco?: number | null;
+  expirationStatus: string;
+  quantityStatus: string;
+  expirationMsg: string;
+  quantityMsg: string;
 }
 
 export interface InputFormProps {

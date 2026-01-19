@@ -173,7 +173,9 @@ export default function EditStock() {
             armario_id: typeof item.cabinet === "number" ? item.cabinet : null,
             gaveta_id: typeof item.drawer === "number" ? item.drawer : null,
             validade: validadeDate,
-            origem: isMedicineItem ? ((item.origin as OriginType) || null) : undefined,
+            origem: isMedicineItem
+              ? (item.origin as OriginType) || null
+              : undefined,
             setor: (item.sector as SectorType) || SectorType.FARMACIA,
             lote: item.lot || null,
             casela_id: typeof item.casela === "number" ? item.casela : null,
@@ -227,7 +229,10 @@ export default function EditStock() {
   }, [watchedArmarioId, setValue]);
 
   useEffect(() => {
-    if (watchedTipo === ItemStockType.CARRINHO || watchedTipo === ItemStockType.CARRINHO_PSICOTROPICOS) {
+    if (
+      watchedTipo === ItemStockType.CARRINHO ||
+      watchedTipo === ItemStockType.CARRINHO_PSICOTROPICOS
+    ) {
       setValue("setor", SectorType.ENFERMAGEM);
     }
   }, [watchedTipo, setValue]);
@@ -252,9 +257,10 @@ export default function EditStock() {
         lote: formData.lote || null,
         casela_id: formData.casela_id,
         tipo: formData.tipo,
-        preco: formData.preco && formData.preco.trim() !== ""
-          ? parseFloat(formData.preco.replace(",", "."))
-          : null,
+        preco:
+          formData.preco && formData.preco.trim() !== ""
+            ? parseFloat(formData.preco.replace(",", "."))
+            : null,
       };
 
       if (isMedicine) {
@@ -591,7 +597,9 @@ export default function EditStock() {
                   name="setor"
                   control={control}
                   render={({ field }) => {
-                    const isCart = watchedTipo === ItemStockType.CARRINHO || watchedTipo === ItemStockType.CARRINHO_PSICOTROPICOS;
+                    const isCart =
+                      watchedTipo === ItemStockType.CARRINHO ||
+                      watchedTipo === ItemStockType.CARRINHO_PSICOTROPICOS;
                     return (
                       <>
                         <Select
@@ -600,8 +608,8 @@ export default function EditStock() {
                           disabled={isSubmitting || isCart}
                           required
                         >
-                          <SelectTrigger 
-                            className={`bg-white ${isCart ? "bg-slate-100 text-slate-500 cursor-not-allowed" : ""}`} 
+                          <SelectTrigger
+                            className={`bg-white ${isCart ? "bg-slate-100 text-slate-500 cursor-not-allowed" : ""}`}
                             id="setor"
                           >
                             <SelectValue placeholder="Selecione" />

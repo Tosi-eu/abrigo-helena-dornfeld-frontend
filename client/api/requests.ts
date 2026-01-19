@@ -6,7 +6,8 @@ import {
   SectorType,
 } from "@/utils/enums";
 import { api } from "./canonical";
-import { StockItemType } from "@/interfaces/types";
+import { StockItemType, UpdateUserPayload } from "@/interfaces/types";
+import { MovementsParams } from "@/components/StockReporter";
 
 export const getCabinets = (page = 1, limit = 10) =>
   api.get("/armarios", {
@@ -22,9 +23,9 @@ export const checkCabinetStock = (number: number) =>
 export const deleteCabinet = (number: number, destiny?: any) =>
   api.delete(`/armarios/${number}`, destiny);
 
-export const getMedicines = (page = 1, limit = 10) =>
+export const getMedicines = (page = 1, limit = 10, name?: string) =>
   api.get("/medicamentos", {
-    params: { page, limit },
+    params: { page, limit, ...(name ? { name } : {}) },
   });
 
 export const deleteMedicine = (id: number) => api.delete(`/medicamentos/${id}`);
@@ -62,8 +63,14 @@ export const getMedicineMovements = ({
     params: { page, limit, days, type },
   });
 
-export const getInputs = (page = 1, limit = 10) =>
-  api.get(`/insumos?page=${page}&limit=${limit}`);
+export const getInputs = (page = 1, limit = 10, name?: string) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (name) params.append("name", name);
+  return api.get(`/insumos?${params.toString()}`);
+};
 
 export const deleteInput = (id: number) => api.delete(`/insumos/${id}`);
 
@@ -73,27 +80,51 @@ export const getResidents = (page = 1, limit = 20) =>
 export const deleteResident = (casela: string | number) =>
   api.delete(`/residentes/${casela}`);
 
-export const getReport = (type: string, casela?: number) => {
-  const params = new URLSearchParams({ type });
-  if (casela !== undefined) {
-    params.append('casela', casela.toString());
+export const getReport = (
+  type: string,
+  casela?: number,
+  params?: MovementsParams,
+) => {
+  const search = new URLSearchParams({ type });
+
+  if (casela != null) {
+    search.append("casela", casela.toString());
   }
-  return api.get(`/relatorios?${params.toString()}`);
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      search.append(key, value);
+    });
+  }
+
+  return api.get(`/relatorios?${search.toString()}`);
 };
 
 export const getTransferReport = () => {
-  return api.get('/relatorios?type=transferencias');
+  return api.get("/relatorios?type=transferencias");
 };
 
 export const getDailyMovementsReport = () => {
-  return api.get('/relatorios?type=movimentos_dia');
+  return api.get("/relatorios?type=movimentos_dia");
 };
 
 export const login = (login: string, password: string) =>
   api.post("/login/authenticate", { login, password });
 
-export const register = (login: string, password: string) =>
-  api.post("/login", { login, password });
+export const getCurrentUser = () => api.get("/login/usuario-logado");
+
+export const register = (
+  login: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+) =>
+  api.post("/login", {
+    login,
+    password,
+    first_name: firstName,
+    last_name: lastName,
+  });
 
 export const updateInput = (id: number, data: any) =>
   api.put(`/insumos/${id}`, data);
@@ -110,12 +141,8 @@ export const resetPassword = (login: string, newPassword: string) =>
 export const updateResident = (casela: string | number, data: any) =>
   api.put(`/residentes/${casela}`, data);
 
-export const updateUser = (payload: {
-  login: string;
-  password: string;
-  currentLogin: string;
-  currentPassword: string;
-}) => api.put(`/login`, payload);
+export const updateUser = (payload: UpdateUserPayload) =>
+  api.put("/login", payload);
 
 export const createCabinet = (numero: number, categoria_id: number) =>
   api.post("/armarios", { numero, categoria_id });
@@ -238,8 +265,38 @@ export const patchNotificationEvent = (
 
 export const getTodayNotifications = () => api.get("/notificacao/retirar-hoje");
 
-export const getStock = (page = 1, limit = 6, type?: string) =>
-  api.get(`/estoque?page=${page}&limit=${limit}${type ? `&type=${type}` : ""}`);
+export const getStock = (
+  page = 1,
+  limit = 6,
+  filters?: Record<string, any>,
+  extraFilter?: string | null
+) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  if (filters) {
+    if (filters.type) params.append("type", filters.type);
+    if (filters.name) params.append("name", filters.name);
+    if (filters.activeSubstance)
+      params.append("activeSubstance", filters.activeSubstance);
+    if (filters.cabinet) params.append("cabinet", filters.cabinet);
+    if (filters.drawer) params.append("drawer", filters.drawer);
+    if (filters.casela) params.append("casela", filters.casela);
+    if (filters.origin) params.append("origin", filters.origin);
+    if (filters.sector) params.append("sector", filters.sector);
+    if (filters.lot) params.append("lot", filters.lot);
+    if (filters.itemType) params.append("itemType", filters.itemType);
+    if (filters.stockType) params.append("stockType", filters.stockType);
+  }
+
+  if (extraFilter) {
+    params.append("filter", extraFilter);
+  }
+
+  return api.get(`/estoque?${params.toString()}`);
+};
 
 export const getCabinetCategories = (page = 1, limit = 5) =>
   api.get("/categoria-armario", {
@@ -348,7 +405,7 @@ export const updateStockItem = (
   },
 ) => {
   const { tipo: stockTipo, ...restData } = data;
-  return api.put(`/estoque/${estoqueId}`, { 
+  return api.put(`/estoque/${estoqueId}`, {
     tipo: itemTipo,
     stockTipo: stockTipo,
     ...restData,

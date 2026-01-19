@@ -18,7 +18,7 @@ const columns = [
 
 interface TransferData {
   data: string;
-  tipo_item: 'medicamento' | 'insumo';
+  tipo_item: "medicamento" | "insumo";
   nome: string;
   principio_ativo?: string | null;
   quantidade: number;
@@ -39,7 +39,7 @@ export default function TransferReport() {
   async function fetchTransfers() {
     setLoading(true);
     try {
-      const data = await getTransferReport() as TransferData[];
+      const data = (await getTransferReport()) as TransferData[];
 
       setTransfers(data);
       setTotal(data.length);
@@ -83,7 +83,9 @@ export default function TransferReport() {
           <div className="space-y-4">
             <div className="text-sm text-slate-600 mb-4">
               <p className="font-semibold">Transferências do dia atual</p>
-              <p>Total: <strong>{total}</strong> transferências</p>
+              <p>
+                Total: <strong>{total}</strong> transferências
+              </p>
             </div>
 
             {loading ? (
@@ -139,4 +141,3 @@ export default function TransferReport() {
     </Layout>
   );
 }
-
