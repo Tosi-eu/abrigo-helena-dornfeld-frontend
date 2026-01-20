@@ -27,7 +27,6 @@ export default function StockProportionCard({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = (index: number) => {
-    // Cancelar qualquer timeout pendente
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -36,7 +35,6 @@ export default function StockProportionCard({
   };
 
   const handleMouseLeave = () => {
-    // Cancelar qualquer timeout pendente antes de criar um novo
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }

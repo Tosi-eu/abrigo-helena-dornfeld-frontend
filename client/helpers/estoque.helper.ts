@@ -5,79 +5,58 @@ import {
 import { SectorType } from "@/utils/enums";
 
 export function prepareStockDistributionData(
-  proportionRes:
-    | StockProportionResponse
-    | { data?: StockProportionResponse }
-    | unknown,
+  response: StockProportionResponse,
   sector: SectorType,
 ): StockDistributionItem[] {
-  let data: StockProportionResponse | null = null;
+  const { percentuais, totais } = response;
 
-  if (proportionRes && typeof proportionRes === "object") {
-    if ("data" in proportionRes && proportionRes.data) {
-      data = proportionRes.data as StockProportionResponse;
-    } else if ("percentuais" in proportionRes && "totais" in proportionRes) {
-      data = proportionRes as StockProportionResponse;
-    }
-  }
+  const items: StockDistributionItem[] = [
+    {
+      name: "Medicamentos (Geral)",
+      value: percentuais.medicamentos_geral,
+      rawValue: totais.medicamentos_geral,
+    },
+    {
+      name: "Medicamentos (Individual)",
+      value: percentuais.medicamentos_individual,
+      rawValue: totais.medicamentos_individual,
+    },
+    {
+      name: "Insumos (Geral)",
+      value: percentuais.insumos_geral,
+      rawValue: totais.insumos_geral,
+    },
+    {
+      name: "Insumos (Individual)",
+      value: percentuais.insumos_individual,
+      rawValue: totais.insumos_individual,
+    },
+  ];
 
-  if (!data || !data.percentuais || !data.totais) {
-    return [];
-  }
-
-  const { percentuais, totais } = data;
-
-  if (sector === SectorType.FARMACIA) {
-    return [
+  if (sector === SectorType.ENFERMAGEM) {
+    items.push(
       {
-        name: "Medicamentos em Estoque Geral",
-        value: percentuais.medicamentos_geral,
-        rawValue: totais.medicamentos_geral,
+        name: "Carrinho de Emergência (Medicamentos)",
+        value: percentuais.carrinho_emergencia_medicamentos,
+        rawValue: totais.carrinho_emergencia_medicamentos,
       },
       {
-        name: "Medicamentos em Estoque Individual",
-        value: percentuais.medicamentos_individual,
-        rawValue: totais.medicamentos_individual,
+        name: "Carrinho de Psicotrópicos (Medicamentos)",
+        value: percentuais.carrinho_psicotropicos_medicamentos,
+        rawValue: totais.carrinho_psicotropicos_medicamentos,
       },
       {
-        name: "Insumos em Estoque Geral",
-        value: percentuais.insumos,
-        rawValue: totais.insumos,
+        name: "Carrinho de Emergência (Insumos)",
+        value: percentuais.carrinho_emergencia_insumos,
+        rawValue: totais.carrinho_emergencia_insumos,
       },
-    ];
+      {
+        name: "Carrinho de Psicotrópicos (Insumos)",
+        value: percentuais.carrinho_psicotropicos_insumos,
+        rawValue: totais.carrinho_psicotropicos_insumos,
+      },
+    );
   }
 
-  const items: StockDistributionItem[] = [];
-
-  items.push({
-    name: "Medicamentos em Estoque Geral",
-    value: percentuais.medicamentos_geral || 0,
-    rawValue: totais.medicamentos_geral || 0,
-  });
-
-  items.push({
-    name: "Medicamentos em Caselas",
-    value: percentuais.medicamentos_individual || 0,
-    rawValue: totais.medicamentos_individual || 0,
-  });
-
-  items.push({
-    name: "Insumos em Estoque Geral",
-    value: percentuais.insumos || 0,
-    rawValue: totais.insumos || 0,
-  });
-
-  items.push({
-    name: "Medicamentos no Carrinho",
-    value: percentuais.carrinho_medicamentos || 0,
-    rawValue: totais.carrinho_medicamentos || 0,
-  });
-
-  items.push({
-    name: "Insumos no Carrinho",
-    value: percentuais.carrinho_insumos || 0,
-    rawValue: totais.carrinho_insumos || 0,
-  });
-
-  return items.filter((item) => item.value > 0 || item.rawValue > 0);
+  return items.filter((i) => i.rawValue > 0);
 }

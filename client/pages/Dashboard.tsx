@@ -192,10 +192,13 @@ export default function Dashboard() {
         );
 
         setNursingDistribution(
-          prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM),
+          prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM)
+            .sort((a, b) => b.rawValue - a.rawValue),
         );
+
         setPharmacyDistribution(
-          prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA),
+          prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA)
+            .sort((a, b) => b.rawValue - a.rawValue),
         );
 
         const formattedCabinetData = cabinetRes.data.map((arm: any) => ({
@@ -300,9 +303,18 @@ export default function Dashboard() {
   );
 
   const COLORS = useMemo(
-    () => ["#0EA5E9", "#FACC15", "#EF4444", "#10B981", "#8B5CF6"],
+    () => [
+      "#0EA5E9", 
+      "#FACC15", 
+      "#10B981", 
+      "#EF4444", 
+      "#8B5CF6", 
+      "#F97316", 
+      "#14B8A6", 
+      "#6366F1", 
+    ],
     [],
-  );
+  );  
 
   const minRowsMovements = useMaxSectionRows(
     [nonMovementProducts, recentMovements],
