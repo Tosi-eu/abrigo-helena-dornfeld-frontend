@@ -10,6 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Check, ChevronDown } from "lucide-react";
 
 interface TransferQuantityModalProps {
   open: boolean;
@@ -36,26 +39,38 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
 }) => {
   const [quantity, setQuantity] = useState<string>("");
   const [selectedCasela, setSelectedCasela] = useState<string>("");
+  const [caselaOpen, setCaselaOpen] = useState(false);
+  const [caselaSearch, setCaselaSearch] = useState("");
 
   const needsCasela = item?.isGeneralMedicine === true;
 
   useEffect(() => {
-    if (open && item) {
+    if (open) {
       setQuantity("");
       setSelectedCasela("");
     }
-  }, [open, item]);
+  }, [open]);  
 
   const handleConfirm = () => {
     const qty = parseInt(quantity, 10);
 
     if (qty > 0 && qty <= (item?.quantity || 0)) {
-      const casela =
+      const casela = 
         needsCasela && selectedCasela ? parseInt(selectedCasela, 10) : null;
 
       onConfirm(qty, casela);
     }
   };
+
+  const filteredResidents = residents.filter((r) => {
+    if (!caselaSearch) return true;
+  
+    if (/^\d+$/.test(caselaSearch)) {
+      return r.casela === Number(caselaSearch);
+    }
+
+    return r.name.toLowerCase().includes(caselaSearch.toLowerCase());
+  });  
 
   const nextSector = item?.sector === "farmacia" ? "enfermagem" : "farmacia";
 
@@ -108,24 +123,66 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
 
           {needsCasela && (
             <div className="space-y-2">
-              <Label htmlFor="casela" className="text-slate-700">
-                Casela/Residente <span className="text-red-500">*</span>
+              <Label className="text-slate-700">
+                Casela <span className="text-red-500">*</span>
               </Label>
 
-              <select
-                id="casela"
-                value={selectedCasela}
-                onChange={(e) => setSelectedCasela(e.target.value)}
-                disabled={loading}
-                className="w-full px-3 py-2 border bg-white rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-100"
-              >
-                <option value="">Selecione uma casela...</option>
-                {residents.map((resident) => (
-                  <option key={resident.casela} value={resident.casela}>
-                    Casela {resident.casela} - {resident.name}
-                  </option>
-                ))}
-              </select>
+              <Popover open={caselaOpen} onOpenChange={setCaselaOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    disabled={loading}
+                    className="w-full justify-between"
+                  >
+                    {selectedCasela
+                      ? `Casela ${selectedCasela} - ${
+                          residents.find(r => r.casela === Number(selectedCasela))?.name
+                        }`
+                      : "Selecione uma casela..."}
+                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent
+                  align="start"
+                  side="bottom"
+                  className="w-[var(--radix-popover-trigger-width)] p-0"
+                >
+                  <Command shouldFilter={false}>
+                    <CommandInput
+                      placeholder="Buscar por casela ou nome"
+                      value={caselaSearch}
+                      onValueChange={setCaselaSearch}
+                    />
+
+                    <CommandEmpty>Nenhuma casela encontrada.</CommandEmpty>
+
+                    <CommandGroup className="max-h-60 overflow-auto">
+                      {filteredResidents.map((resident) => (
+                        <CommandItem
+                          key={resident.casela}
+                          value={resident.casela.toString()}
+                          onSelect={() => {
+                            setSelectedCasela(resident.casela.toString());
+                            setCaselaOpen(false);
+                            setCaselaSearch("");
+                          }}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedCasela === resident.casela.toString()
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          Casela {resident.casela} – {resident.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
 
               {!selectedCasela && quantity && (
                 <p className="text-sm text-red-500">
@@ -134,6 +191,7 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
               )}
             </div>
           )}
+
 
           {item && (
             <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
