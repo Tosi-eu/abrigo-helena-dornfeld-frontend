@@ -125,6 +125,7 @@ export default function Stock() {
       expirationStatus: item.st_expiracao,
       quantityStatus: item.st_quantidade,
       status: item.status || null,
+      destination: item.destino || null,
       suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
       itemType: item.tipo_item,
       sector: item.setor,
@@ -300,6 +301,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
     { key: "casela", label: "Casela", editable: false },
     { key: "origin", label: "Origem", editable: false },
     { key: "sector", label: "Setor", editable: false },
+    { key: "destination", label: "Destino", editable: false },
     { key: "status", label: "Status", editable: false },
     { key: "lot", label: "Lote", editable: false },
   ];
@@ -408,6 +410,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
   const handleTransferConfirm = async (
     quantity: number,
     casela?: number | null,
+    destino?: string | null,
   ) => {
     if (!pendingAction.row || pendingAction.type !== "transfer") return;
 
@@ -421,6 +424,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
         itemType: row.itemType as StockItemType,
         quantidade: quantity,
         casela_id: casela ?? null,
+        destino: destino ?? null,
       });
 
       await loadStock(page);
