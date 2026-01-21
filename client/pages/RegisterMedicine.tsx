@@ -88,8 +88,7 @@ export default function SignUpMedicine() {
         setValue("substance", selected.principio_ativo || "");
         setValue("dosageValue", dosageValue);
         if (
-          measurementUnit &&
-          ["mg", "ml", "g", "mcg", "mg/ml", "UI", "gts"].includes(
+          ["mg", "ml", "g", "mcg", "mg/ml", "g/ml", "mg+", "UI", "gts"].includes(
             measurementUnit,
           )
         ) {

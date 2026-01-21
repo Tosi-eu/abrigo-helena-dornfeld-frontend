@@ -105,67 +105,75 @@ export default function Stock() {
   >([]);
 
   const formatStockItems = (raw: any[]): StockItem[] => {
-    return raw.map((item) => ({
-      id: item.estoque_id,
-      name: item.nome || "-",
-      activeSubstance: item.principio_ativo || "-",
-      description: item.descricao || "-",
-      expiry: item.validade || "-",
-      quantity: Number(item.quantidade) || 0,
-      cabinet: item.armario_id ?? "-",
-      drawer: item.gaveta_id ?? "-",
-      casela: item.casela_id ?? null,
-      stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
-      tipo: item.tipo,
-      patient: item.paciente || "-",
-      origin: item.origem || "-",
-      minimumStock: item.minimo || 0,
-      expirationMsg: item.msg_expiracao,
-      quantityMsg: item.msg_quantidade,
-      expirationStatus: item.st_expiracao,
-      quantityStatus: item.st_quantidade,
-      status: item.status || null,
-      destination: item.destino || null,
-      suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
-      itemType: item.tipo_item,
-      sector: item.setor,
-      lot: item.lote ?? null,
-    }));
+    return raw.map((item) => {
+      const isMedicamento = item.tipo_item === "medicamento";
+
+      const name = isMedicamento
+        ? `${item.nome} ${item.dosagem}${item.unidade_medida}`.trim()
+        : item.nome?.trim();
+
+      return {
+        id: item.estoque_id,
+        name: name || "-",
+        activeSubstance: item.principio_ativo || "-",
+        description: item.descricao || "-",
+        expiry: item.validade || "-",
+        quantity: Number(item.quantidade) || 0,
+        cabinet: item.armario_id ?? "-",
+        drawer: item.gaveta_id ?? "-",
+        casela: item.casela_id ?? null,
+        stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
+        tipo: item.tipo,
+        patient: item.paciente || "-",
+        origin: item.origem || "-",
+        minimumStock: item.minimo || 0,
+        expirationMsg: item.msg_expiracao,
+        quantityMsg: item.msg_quantidade,
+        expirationStatus: item.st_expiracao,
+        quantityStatus: item.st_quantidade,
+        status: item.status || null,
+        destination: item.destino || null,
+        suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
+        detail: item.observacao || null,
+        itemType: item.tipo_item,
+        sector: item.setor,
+        lot: item.lote ?? null,
+      };
+    });
   };
 
-async function loadStock(pageToLoad: number, currentFilters = filters) {
-  setLoading(true);
-  try {
-    const filterParams: Record<string, any> = {};
+  async function loadStock(pageToLoad: number, currentFilters = filters) {
+    setLoading(true);
+    try {
+      const filterParams: Record<string, any> = {};
 
-    if (currentFilters.nome?.trim()) filterParams.name = currentFilters.nome.trim();
-    if (currentFilters.casela?.trim()) filterParams.casela = currentFilters.casela.trim();
-    if (currentFilters.armario?.trim()) filterParams.cabinet = currentFilters.armario.trim();
-    if (currentFilters.setor?.trim()) filterParams.sector = currentFilters.setor.trim();
+      if (currentFilters.nome?.trim()) filterParams.name = currentFilters.nome.trim();
+      if (currentFilters.casela?.trim()) filterParams.casela = currentFilters.casela.trim();
+      if (currentFilters.armario?.trim()) filterParams.cabinet = currentFilters.armario.trim();
+      if (currentFilters.setor?.trim()) filterParams.sector = currentFilters.setor.trim();
 
-    if (filter) {
-      filterParams.filter = filter; 
+      if (filter) {
+        filterParams.filter = filter; 
+      }
+
+      const res = await getStock(pageToLoad, limit, filterParams, filter);
+      setItems(formatStockItems(res.data));
+      setHasNext(res.hasNext);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os itens do estoque.";
+      toast({
+        title: "Erro ao carregar estoque",
+        description: errorMessage,
+        variant: "error",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
     }
-
-    const res = await getStock(pageToLoad, limit, filterParams, filter);
-    setItems(formatStockItems(res.data));
-    setHasNext(res.hasNext);
-  } catch (err: unknown) {
-    const errorMessage =
-      err instanceof Error
-        ? err.message
-        : "Não foi possível carregar os itens do estoque.";
-    toast({
-      title: "Erro ao carregar estoque",
-      description: errorMessage,
-      variant: "error",
-      duration: 3000,
-    });
-  } finally {
-    setLoading(false);
   }
-}
-
 
   async function loadAllStock() {
     try {
@@ -302,6 +310,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
     { key: "origin", label: "Origem", editable: false },
     { key: "sector", label: "Setor", editable: false },
     { key: "destination", label: "Destino", editable: false },
+    { key: "detail", label: "Observação", editable: false },
     { key: "status", label: "Status", editable: false },
     { key: "lot", label: "Lote", editable: false },
   ];
@@ -411,6 +420,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
     quantity: number,
     casela?: number | null,
     destino?: string | null,
+    observacao?: string | null,
   ) => {
     if (!pendingAction.row || pendingAction.type !== "transfer") return;
 
@@ -425,6 +435,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
         quantidade: quantity,
         casela_id: casela ?? null,
         destino: destino ?? null,
+        observacao: observacao ?? null,
       });
 
       await loadStock(page);
@@ -775,6 +786,7 @@ async function loadStock(pageToLoad: number, currentFilters = filters) {
                 itemType: pendingAction.row.itemType,
                 isGeneralMedicine:
                   pendingAction.row.tipo === ItemStockType.GERAL,
+                casela: pendingAction.row.casela ?? null,
               }
             : null
         }
