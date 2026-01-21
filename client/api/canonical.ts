@@ -53,9 +53,6 @@ function sanitizeErrorMessage(message: string): string {
   }
 
   const safeBusinessMessages = [
-    /lote.*já existe/i,
-    /lote.*único/i,
-    /lotes devem ser únicos entre medicamentos e insumos/i,
     /já existe.*medicamento/i,
     /já existe.*insumo/i,
     /combinação.*nome.*princípio/i,

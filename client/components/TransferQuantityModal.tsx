@@ -10,7 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "./ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "./ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Check, ChevronDown } from "lucide-react";
 
@@ -24,7 +30,11 @@ interface TransferQuantityModalProps {
     isGeneralMedicine?: boolean;
   } | null;
   residents?: Array<{ casela: number; name: string }>;
-  onConfirm: (quantity: number, casela?: number | null) => void;
+  onConfirm: (
+    quantity: number,
+    casela?: number | null,
+    destino?: string | null
+  ) => void;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -37,10 +47,11 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
   onCancel,
   loading = false,
 }) => {
-  const [quantity, setQuantity] = useState<string>("");
-  const [selectedCasela, setSelectedCasela] = useState<string>("");
+  const [quantity, setQuantity] = useState("");
+  const [selectedCasela, setSelectedCasela] = useState("");
   const [caselaOpen, setCaselaOpen] = useState(false);
   const [caselaSearch, setCaselaSearch] = useState("");
+  const [destination, setDestination] = useState("");
 
   const needsCasela = item?.isGeneralMedicine === true;
 
@@ -48,130 +59,142 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
     if (open) {
       setQuantity("");
       setSelectedCasela("");
+      setDestination("");
+      setCaselaSearch("");
     }
-  }, [open]);  
+  }, [open]);
+
+  const maxQuantity = item?.quantity || 0;
+  const quantityNum = parseInt(quantity, 10);
+
+  const hasDestination = destination.trim().length > 0;
+  const hasCasela = selectedCasela !== "";
+
+  const hasValidTarget =
+    hasDestination || (needsCasela && hasCasela);
+
+  const isValid =
+    quantityNum > 0 &&
+    quantityNum <= maxQuantity &&
+    hasValidTarget;
 
   const handleConfirm = () => {
-    const qty = parseInt(quantity, 10);
+    if (!isValid) return;
 
-    if (qty > 0 && qty <= (item?.quantity || 0)) {
-      const casela = 
-        needsCasela && selectedCasela ? parseInt(selectedCasela, 10) : null;
+    const casela =
+      hasDestination ? null : hasCasela ? Number(selectedCasela) : null;
 
-      onConfirm(qty, casela);
-    }
+    const destino = hasDestination ? destination.trim() : null;
+
+    onConfirm(quantityNum, casela, destino);
   };
 
   const filteredResidents = residents.filter((r) => {
     if (!caselaSearch) return true;
-  
+
     if (/^\d+$/.test(caselaSearch)) {
       return r.casela === Number(caselaSearch);
     }
 
     return r.name.toLowerCase().includes(caselaSearch.toLowerCase());
-  });  
+  });
 
-  const nextSector = item?.sector === "farmacia" ? "enfermagem" : "farmacia";
-
-  const maxQuantity = item?.quantity || 0;
-  const quantityNum = parseInt(quantity, 10);
-
-  const isValid =
-    quantityNum > 0 &&
-    quantityNum <= maxQuantity &&
-    (!needsCasela || selectedCasela !== "");
+  const nextSector =
+    item?.sector === "farmacia" ? "enfermagem" : "farmacia";
 
   return (
     <Dialog open={open} onOpenChange={onCancel}>
       <DialogContent className="max-w-md rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-slate-900">
+          <DialogTitle>
             Transferir para{" "}
             {nextSector === "farmacia" ? "Farmácia" : "Enfermaria"}
           </DialogTitle>
-          <DialogDescription className="text-slate-600">
+          <DialogDescription>
             Quantas unidades deseja transferir?
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="quantity" className="text-slate-700">
+            <Label>
               Quantidade disponível:{" "}
               <span className="font-semibold">{maxQuantity}</span>
             </Label>
 
             <Input
-              id="quantity"
               type="number"
-              min="1"
+              min={1}
               max={maxQuantity}
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder="Digite a quantidade"
               disabled={loading}
-              className="w-full"
             />
-
-            {quantity && !isValid && (
-              <p className="text-sm text-red-500">
-                A quantidade deve ser entre 1 e {maxQuantity}
-              </p>
-            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Destino</Label>
+            <Input
+              placeholder="Digite o destino"
+              value={destination}
+              onChange={(e) => {
+                setDestination(e.target.value);
+                if (e.target.value.trim()) {
+                  setSelectedCasela("");
+                }
+              }}
+              disabled={loading}
+            />
           </div>
 
           {needsCasela && (
             <div className="space-y-2">
-              <Label className="text-slate-700">
-                Casela <span className="text-red-500">*</span>
-              </Label>
+              <Label>Casela</Label>
 
               <Popover open={caselaOpen} onOpenChange={setCaselaOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     role="combobox"
-                    disabled={loading}
+                    disabled={loading || hasDestination}
                     className="w-full justify-between"
                   >
                     {selectedCasela
                       ? `Casela ${selectedCasela} - ${
-                          residents.find(r => r.casela === Number(selectedCasela))?.name
+                          residents.find(
+                            (r) => r.casela === Number(selectedCasela)
+                          )?.name
                         }`
                       : "Selecione uma casela..."}
                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent
-                  align="start"
-                  side="bottom"
-                  className="w-[var(--radix-popover-trigger-width)] p-0"
-                >
+                <PopoverContent className="p-0">
                   <Command shouldFilter={false}>
                     <CommandInput
                       placeholder="Buscar por casela ou nome"
                       value={caselaSearch}
                       onValueChange={setCaselaSearch}
                     />
-
                     <CommandEmpty>Nenhuma casela encontrada.</CommandEmpty>
-
-                    <CommandGroup className="max-h-60 overflow-auto">
+                    <CommandGroup>
                       {filteredResidents.map((resident) => (
                         <CommandItem
                           key={resident.casela}
-                          value={resident.casela.toString()}
                           onSelect={() => {
-                            setSelectedCasela(resident.casela.toString());
+                            setSelectedCasela(
+                              resident.casela.toString()
+                            );
+                            setDestination("");
                             setCaselaOpen(false);
                             setCaselaSearch("");
                           }}
                         >
                           <Check
                             className={`mr-2 h-4 w-4 ${
-                              selectedCasela === resident.casela.toString()
+                              selectedCasela ===
+                              resident.casela.toString()
                                 ? "opacity-100"
                                 : "opacity-0"
                             }`}
@@ -183,59 +206,25 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                   </Command>
                 </PopoverContent>
               </Popover>
-
-              {!selectedCasela && quantity && (
-                <p className="text-sm text-red-500">
-                  Selecione uma casela para continuar
-                </p>
-              )}
             </div>
           )}
 
-
-          {item && (
-            <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
-              <p>
-                <span className="font-semibold">{item.name}</span>
-              </p>
-
-              <p className="mt-1">Após a transferência:</p>
-
-              <ul className="list-disc list-inside mt-1 space-y-1">
-                <li>
-                  <span className="font-semibold">{quantityNum || 0}</span>{" "}
-                  unidades em{" "}
-                  {nextSector === "farmacia" ? "Farmácia" : "Enfermaria"}
-                  {needsCasela &&
-                    selectedCasela &&
-                    ` (Casela ${selectedCasela})`}
-                </li>
-
-                {maxQuantity - (quantityNum || 0) > 0 && (
-                  <li>
-                    <span className="font-semibold">
-                      {maxQuantity - (quantityNum || 0)}
-                    </span>{" "}
-                    unidades permanecerão em{" "}
-                    {item.sector === "farmacia" ? "Farmácia" : "Enfermaria"}
-                  </li>
-                )}
-              </ul>
-            </div>
+          {!hasValidTarget && quantity && (
+            <p className="text-sm text-red-500">
+              Informe um destino ou selecione uma casela
+            </p>
           )}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={loading}>
             Cancelar
           </Button>
-
           <Button
             onClick={handleConfirm}
             disabled={loading || !isValid}
-            className="bg-sky-600 hover:bg-sky-700 text-white"
           >
-            {loading ? "Transferindo..." : "Confirmar Transferência"}
+            Confirmar Transferência
           </Button>
         </DialogFooter>
       </DialogContent>

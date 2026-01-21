@@ -175,6 +175,7 @@ export interface StockItem {
   quantityStatus: string;
   expirationMsg: string;
   quantityMsg: string;
+  destino?: string | null;
 }
 
 export interface InputFormProps {
