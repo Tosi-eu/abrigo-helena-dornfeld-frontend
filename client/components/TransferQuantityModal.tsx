@@ -26,14 +26,16 @@ interface TransferQuantityModalProps {
     name: string;
     quantity: number;
     sector: string;
-    itemType?: string;
+    itemType?: "medicamento" | "insumo";
     isGeneralMedicine?: boolean;
+    casela?: number | null;
   } | null;
   residents?: Array<{ casela: number; name: string }>;
   onConfirm: (
     quantity: number,
     casela?: number | null,
-    destino?: string | null
+    destino?: string | null,
+    observacao?: string | null
   ) => void;
   onCancel: () => void;
   loading?: boolean;
@@ -52,7 +54,9 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
   const [caselaOpen, setCaselaOpen] = useState(false);
   const [caselaSearch, setCaselaSearch] = useState("");
   const [destination, setDestination] = useState("");
+  const [observacao, setObservacao] = useState("");
 
+  const isInput = item?.itemType === "insumo";
   const needsCasela = item?.isGeneralMedicine === true;
 
   useEffect(() => {
@@ -60,6 +64,7 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
       setQuantity("");
       setSelectedCasela("");
       setDestination("");
+      setObservacao("");
       setCaselaSearch("");
     }
   }, [open]);
@@ -67,35 +72,38 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
   const maxQuantity = item?.quantity || 0;
   const quantityNum = parseInt(quantity, 10);
 
-  const hasDestination = destination.trim().length > 0;
-  const hasCasela = selectedCasela !== "";
-
-  const hasValidTarget =
-    hasDestination || (needsCasela && hasCasela);
-
   const isValid =
-    quantityNum > 0 &&
-    quantityNum <= maxQuantity &&
-    hasValidTarget;
+    quantityNum > 0 && quantityNum <= maxQuantity;
 
   const handleConfirm = () => {
     if (!isValid) return;
 
-    const casela =
-      hasDestination ? null : hasCasela ? Number(selectedCasela) : null;
+    let casela: number | null;
 
-    const destino = hasDestination ? destination.trim() : null;
+    if (needsCasela) {
+      casela = selectedCasela ? Number(selectedCasela) : null;
+    } else {
+      casela = item?.casela ?? null;
+    }
 
-    onConfirm(quantityNum, casela, destino);
+    const destino =
+      isInput && destination.trim()
+        ? destination.trim()
+        : null;
+
+    onConfirm(
+      quantityNum,
+      casela,
+      destino,
+      observacao.trim() || null
+    );
   };
 
   const filteredResidents = residents.filter((r) => {
     if (!caselaSearch) return true;
-
     if (/^\d+$/.test(caselaSearch)) {
       return r.casela === Number(caselaSearch);
     }
-
     return r.name.toLowerCase().includes(caselaSearch.toLowerCase());
   });
 
@@ -131,18 +139,25 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
               disabled={loading}
             />
           </div>
-          
+
+          {isInput && (
+            <div className="space-y-2">
+              <Label>Destino</Label>
+              <Input
+                placeholder="Digite o destino (opcional)"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label>Destino</Label>
+            <Label>Observação</Label>
             <Input
-              placeholder="Digite o destino"
-              value={destination}
-              onChange={(e) => {
-                setDestination(e.target.value);
-                if (e.target.value.trim()) {
-                  setSelectedCasela("");
-                }
-              }}
+              placeholder="Digite uma observação (opcional)"
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
               disabled={loading}
             />
           </div>
@@ -156,7 +171,7 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                   <Button
                     variant="outline"
                     role="combobox"
-                    disabled={loading || hasDestination}
+                    disabled={loading}
                     className="w-full justify-between"
                   >
                     {selectedCasela
@@ -186,7 +201,6 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                             setSelectedCasela(
                               resident.casela.toString()
                             );
-                            setDestination("");
                             setCaselaOpen(false);
                             setCaselaSearch("");
                           }}
@@ -207,12 +221,6 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                 </PopoverContent>
               </Popover>
             </div>
-          )}
-
-          {!hasValidTarget && quantity && (
-            <p className="text-sm text-red-500">
-              Informe um destino ou selecione uma casela
-            </p>
           )}
         </div>
 

@@ -34,12 +34,9 @@ import { cn } from "@/lib/utils";
 const UI_PAGE_SIZE = 6;
 
 export default function StockOut() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { data: passedData } = location.state || {};
-
-  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<StockItemRaw[]>([]);
 
   const [uiPage, setUiPage] = useState(1);
@@ -63,7 +60,6 @@ export default function StockOut() {
   });
 
   async function fetchStock() {
-    setLoading(true);
     try {
       if (passedData && passedData.length > 0) {
         const filtered =
@@ -82,8 +78,6 @@ export default function StockOut() {
         variant: "error",
         duration: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   }
 

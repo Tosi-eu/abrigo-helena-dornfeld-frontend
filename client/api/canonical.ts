@@ -146,7 +146,7 @@ async function request(path: string, options: RequestInit = {}) {
     const rawMsg = data?.error || data?.message || "Erro inesperado";
     const messageStr = String(rawMsg).toLowerCase();
 
-    if (res.status === 401) {
+    if (res?.status === 401) {
       const isAuthError =
         messageStr.includes("invalidation") ||
         messageStr.includes("invalid session") ||

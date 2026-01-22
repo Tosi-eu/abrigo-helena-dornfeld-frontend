@@ -65,7 +65,8 @@ export interface ResidentMedicinesReport {
   residente: string;
   casela: number;
   medicamento: string;
-  principio_ativo: string | null;
+  principio_ativo: string;
+  dosagem: string;
   quantidade: number;
   validade: string;
 }
@@ -774,7 +775,6 @@ export function createStockPDF(
 
         {isResidentMedicines && residentMedicinesData && (
           <>
-            <Text style={styles.sectionTitle}>Medicamentos do Residente</Text>
 
             {residentMedicinesData.length > 0 ? (
               <>
@@ -800,6 +800,9 @@ export function createStockPDF(
                   <Text style={[styles.cell, { fontSize: 8 }]}>
                     Princípio Ativo
                   </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>
+                    Dosagem
+                  </Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Validade</Text>
                 </View>
@@ -813,16 +816,19 @@ export function createStockPDF(
                     ]}
                   >
                     <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {item.medicamento || "-"}
+                      {item.medicamento}
                     </Text>
                     <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {item.principio_ativo || "-"}
+                      {item.principio_ativo}
                     </Text>
                     <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {item.quantidade ?? "-"}
+                      {item.dosagem}
                     </Text>
                     <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {item.validade || "-"}
+                      {item.quantidade}
+                    </Text>
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {item.validade}
                     </Text>
                   </View>
                 ))}

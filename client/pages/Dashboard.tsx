@@ -278,7 +278,7 @@ export default function Dashboard() {
         label: "Itens Próximos do Estoque Mínimo",
         value: belowMin,
         onClick: () =>
-          navigate("/stock?filter=belowMin"),
+          navigate("/stock?filter=nearMin"),
       },
       {
         label: "Itens Vencidos",

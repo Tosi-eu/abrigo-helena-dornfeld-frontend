@@ -377,6 +377,7 @@ export const transferStockSector = (payload: {
   quantidade?: number;
   casela_id?: number;
   destino?: string | null;
+  observacao?: string | null;
 }) => {
   const basePath =
     payload.itemType === "medicamento"
@@ -387,6 +388,7 @@ export const transferStockSector = (payload: {
     quantidade: payload.quantidade,
     casela_id: payload.casela_id,
     destino: payload.destino,
+    observacao: payload.observacao,
   });
 };
 

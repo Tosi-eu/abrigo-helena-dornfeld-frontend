@@ -155,13 +155,15 @@ export interface StockItem {
   name: string;
   description?: string | null;
   activeSubstance?: string | null;
+  dosage?: string | null;
+  measurementUnit?: string | null;
   expiry: string;
   quantity: number;
   minimumStock?: number;
   patient?: string;
   cabinet?: number | string;
   drawer?: number | string;
-  casela?: string | number;
+  casela?: number | null;
   itemType: OperationType;
   stockType: ItemStockType | string;
   tipo?: string;
