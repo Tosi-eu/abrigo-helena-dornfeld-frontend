@@ -163,6 +163,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
         }
 
         if (movementPeriod === MovementPeriod.MENSAL) {
+          if (!movementMonth) {
+            alert("Selecione o mês");
+            setStatus("idle");
+            return;
+          }
           params = {
             periodo: MovementPeriod.MENSAL,
             mes: movementMonth,
@@ -203,8 +208,20 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
         response = await getReport(tipo, casela);
       }
 
+      const reportData =
+        tipo === "movimentacoes" &&
+        response != null &&
+        typeof response === "object" &&
+        "data" in response
+          ? (response as { data: unknown }).data
+          : response;
+
       const { createStockPDF } = await import("./StockReporter");
-      const doc = createStockPDF(tipo, response);
+      const doc = createStockPDF(
+        tipo,
+        reportData,
+        tipo === "movimentacoes" ? { movementPeriod } : undefined,
+      );
 
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);

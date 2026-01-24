@@ -258,6 +258,7 @@ export function createStockPDF(
     | DailyMovementReport[]
     | ResidentMedicinesReport[]
     | ExpiredMedicineReport[],
+  options?: { movementPeriod?: MovementPeriod },
 ) {
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
@@ -277,6 +278,26 @@ export function createStockPDF(
   const expiredMedicinesData = isExpiredMedicines
     ? (data as ExpiredMedicineReport[])
     : null;
+
+  const period = options?.movementPeriod;
+  const movementHeading =
+    period === MovementPeriod.MENSAL
+      ? "MOVIMENTAÇÕES MENSAIS"
+      : period === MovementPeriod.INTERVALO
+        ? "MOVIMENTAÇÕES NO PERÍODO"
+        : "MOVIMENTAÇÕES DO DIA";
+  const movementSection =
+    period === MovementPeriod.MENSAL
+      ? "Movimentações do Mês"
+      : period === MovementPeriod.INTERVALO
+        ? "Movimentações do Período"
+        : "Movimentações do Dia";
+  const movementEmpty =
+    period === MovementPeriod.MENSAL
+      ? "Nenhuma movimentação encontrada no mês."
+      : period === MovementPeriod.INTERVALO
+        ? "Nenhuma movimentação encontrada no período."
+        : "Nenhuma movimentação encontrada no dia.";
 
   return (
     <Document>
@@ -298,7 +319,7 @@ export function createStockPDF(
               : isTransferReport
                 ? "TRANSFERÊNCIAS DE SETOR"
                 : isDailyMovementsReport
-                  ? "MOVIMENTAÇÕES DO DIA"
+                  ? movementHeading
                   : isResidentMedicines
                     ? "MEDICAMENTOS POR RESIDENTE"
                     : isExpiredMedicines
@@ -647,7 +668,7 @@ export function createStockPDF(
 
         {isDailyMovementsReport && dailyMovementsData && (
           <>
-            <Text style={styles.sectionTitle}>Movimentações do Dia Atual</Text>
+            <Text style={styles.sectionTitle}>{movementSection}</Text>
 
             {dailyMovementsData.length > 0 ? (
               <>
@@ -767,7 +788,7 @@ export function createStockPDF(
               </>
             ) : (
               <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
-                Nenhuma movimentação encontrada no dia atual.
+                {movementEmpty}
               </Text>
             )}
           </>
