@@ -1,0 +1,112 @@
+import { getStock } from "@/api/requests";
+import { StockItem } from "@/interfaces/interfaces";
+import { ItemStockType, StockTypeLabels } from "@/utils/enums";
+
+export interface StockListFilters {
+  nome?: string;
+  casela?: string;
+  armario?: string;
+  setor?: string;
+}
+
+export interface StockFilterOption {
+  value: string;
+  label: string;
+}
+
+export interface StockFilterOptions {
+  sectors: StockFilterOption[];
+  cabinets: StockFilterOption[];
+  caselas: StockFilterOption[];
+}
+
+export async function fetchStockPage(
+  page: number,
+  limit: number,
+  filters: StockListFilters,
+  urlFilter?: string | null,
+): Promise<{ data: unknown[]; hasNext: boolean }> {
+  const filterParams: Record<string, string> = {};
+  if (filters.nome?.trim()) filterParams.name = filters.nome.trim();
+  if (filters.casela?.trim()) filterParams.casela = filters.casela.trim();
+  if (filters.armario?.trim()) filterParams.cabinet = filters.armario.trim();
+  if (filters.setor?.trim()) filterParams.sector = filters.setor.trim();
+
+  const res = await getStock(page, limit, filterParams, urlFilter ?? undefined);
+  return {
+    data: Array.isArray((res as any).data) ? (res as any).data : [],
+    hasNext: Boolean((res as any).hasNext),
+  };
+}
+
+export function formatStockItems(raw: unknown[]): StockItem[] {
+  return (raw || []).map((item: any) => {
+    const isMedicamento = item.tipo_item === "medicamento";
+    const name = isMedicamento
+      ? `${item.nome || ""} ${item.dosagem || ""}${item.unidade_medida || ""}`.trim()
+      : (item.nome || "").trim();
+
+    return {
+      id: item.estoque_id,
+      name: name || "-",
+      activeSubstance: item.principio_ativo || "-",
+      description: item.descricao || "-",
+      expiry: item.validade || "-",
+      quantity: Number(item.quantidade) || 0,
+      cabinet: item.armario_id ?? "-",
+      drawer: item.gaveta_id ?? "-",
+      casela: item.casela_id ?? null,
+      stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
+      tipo: item.tipo,
+      patient: item.paciente || "-",
+      origin: item.origem || "-",
+      minimumStock: item.minimo || 0,
+      expirationMsg: item.msg_expiracao,
+      quantityMsg: item.msg_quantidade,
+      expirationStatus: item.st_expiracao,
+      quantityStatus: item.st_quantidade,
+      status: item.status ?? null,
+      destination: item.destino ?? null,
+      suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
+      detail: item.observacao ?? null,
+      itemType: item.tipo_item,
+      sector: item.setor,
+      lot: item.lote ?? null,
+    } as StockItem;
+  });
+}
+
+export function buildFilterOptions(allRawData: unknown[]): StockFilterOptions {
+  const raw = Array.isArray(allRawData) ? allRawData : [];
+
+  const sectors: StockFilterOption[] = [
+    { value: "enfermagem", label: "Enfermagem" },
+    { value: "farmacia", label: "Farmácia" },
+  ];
+
+  const cabinetIds = Array.from(
+    new Set(
+      raw
+        .map((i: any) => i.armario_id)
+        .filter((id): id is number => id != null),
+    ),
+  )
+    .sort((a, b) => a - b)
+    .map((id) => ({ value: String(id), label: `Armário ${id}` }));
+
+  const caselaIds = Array.from(
+    new Set(
+      raw
+        .map((i: any) => i.casela_id)
+        .filter((id): id is number => id != null),
+    ),
+  )
+    .sort((a, b) => a - b)
+    .map((id) => ({ value: String(id), label: `Casela ${id}` }));
+
+  return {
+    sectors,
+    cabinets: cabinetIds,
+    caselas: caselaIds,
+  };
+}
