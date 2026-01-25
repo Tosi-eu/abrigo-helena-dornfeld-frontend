@@ -36,6 +36,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getReportTitle } from "@/helpers/relatorio.helper";
 import { parseYearMonthToDate } from "@/helpers/dates.helper";
+import { createStockPDF } from "./StockReporter";
 
 type StatusType = "idle" | "loading" | "success" | "error";
 
@@ -202,8 +203,6 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
         response = await getReport(tipo, casela);
       }
-
-      const { createStockPDF } = await import("./StockReporter");
       const doc = createStockPDF(tipo, response);
 
       const blob = await pdf(doc).toBlob();

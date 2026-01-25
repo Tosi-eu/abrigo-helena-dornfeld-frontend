@@ -34,16 +34,16 @@ interface ResidentesResponse {
 }
 
 export interface TransferReport {
-  data: string;
-  tipo_item: "medicamento" | "insumo";
-  nome: string;
-  principio_ativo: string | null;
-  quantidade: number;
-  casela: number;
-  residente: string;
-  armario: number;
-  setor: string;
-  lote: string | null;
+  data: string,
+  nome: string,
+  principio_ativo: string | null,
+  descricao: string | null,
+  quantidade: number,
+  casela: number | null,
+  residente: string | null,
+  armario: number | null,
+  lote: string | null,
+  destino: string | null
 }
 
 export interface DailyMovementReport {
@@ -59,6 +59,7 @@ export interface DailyMovementReport {
   gaveta: number | null;
   setor: string;
   lote: string | null;
+  destino: string | null;
 }
 
 export interface ResidentMedicinesReport {
@@ -197,9 +198,10 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     paddingHorizontal: 2,
-    textAlign: "center",
     fontSize: 9,
-    whiteSpace: "nowrap",
+    textAlign: "center",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   footer: {
@@ -589,14 +591,15 @@ export function createStockPDF(
                 <View style={[styles.tableHeader, { fontSize: 8 }]}>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Item</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>
-                    Princípio Ativo
+                    Complemento
                   </Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
-                  <Text style={[styles.cell, { fontSize: 8 }]}>Usuário</Text>
-                  <Text style={[styles.cell, { fontSize: 8 }]}>Data</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Armário</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Casela</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Residente</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Lote</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Destino</Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Data</Text>
                 </View>
 
                 {transferData.map((transfer, idx) => (
@@ -612,15 +615,11 @@ export function createStockPDF(
                     </Text>
 
                     <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {transfer.principio_ativo || "-"}
+                      {transfer.principio_ativo || transfer.descricao || "-"}
                     </Text>
 
                     <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {transfer.quantidade ?? "-"}
-                    </Text>
-
-                    <Text style={[styles.cell, { fontSize: 8 }]}>
-                      {transfer.data || "-"}
+                      {transfer.quantidade}
                     </Text>
 
                     <Text style={[styles.cell, { fontSize: 8 }]}>
@@ -633,6 +632,18 @@ export function createStockPDF(
 
                     <Text style={[styles.cell, { fontSize: 8 }]}>
                       {transfer.residente || "-"}
+                    </Text>
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.lote || "-"}
+                    </Text>
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.destino || "-"}
+                    </Text>
+
+                    <Text style={[styles.cell, { fontSize: 8 }]}>
+                      {transfer.data}
                     </Text>
                   </View>
                 ))}
