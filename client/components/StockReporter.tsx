@@ -46,12 +46,12 @@ export interface TransferReport {
   destino: string | null
 }
 
-export interface DailyMovementReport {
+export interface PeriodMovementReport {
   data: string;
   tipo_movimentacao: "entrada" | "saida" | "transferencia";
-  tipo_item: "medicamento" | "insumo";
   nome: string;
-  principio_ativo?: string | null;
+  principio_ativo: string | null;
+  descricao: string | null;
   quantidade: number;
   casela: number | null;
   residente: string | null;
@@ -257,22 +257,23 @@ export function createStockPDF(
     | ResidentesResponse
     | ResidentConsumptionReport
     | TransferReport[]
-    | DailyMovementReport[]
+    | PeriodMovementReport[]
     | ResidentMedicinesReport[]
     | ExpiredMedicineReport[],
-  options?: { movementPeriod?: MovementPeriod },
+  _reportMeta?: { period: MovementPeriod },
 ) {
   const isResidentConsumption = tipo === "residente_consumo";
   const isTransferReport = tipo === "transferencias";
-  const isDailyMovementsReport = tipo === "movimentacoes";
+  const isMovementsReport = tipo === "movimentacoes";
   const isResidentMedicines = tipo === "medicamentos_residente";
   const isExpiredMedicines = tipo === "medicamentos_vencidos";
   const consumptionData = isResidentConsumption
     ? (data as ResidentConsumptionReport)
     : null;
   const transferData = isTransferReport ? (data as TransferReport[]) : null;
-  const dailyMovementsData = isDailyMovementsReport
-    ? (data as DailyMovementReport[])
+
+  const movementsData = isMovementsReport
+    ? ((data as any).data as PeriodMovementReport[])
     : null;
   const residentMedicinesData = isResidentMedicines
     ? (data as ResidentMedicinesReport[])
@@ -281,25 +282,31 @@ export function createStockPDF(
     ? (data as ExpiredMedicineReport[])
     : null;
 
-  const period = options?.movementPeriod;
+   const movementsPayload = isMovementsReport ? (data as any) : null;
+
   const movementHeading =
-    period === MovementPeriod.MENSAL
+     movementsPayload?._reportMeta?.period === MovementPeriod.MENSAL
       ? "MOVIMENTAÇÕES MENSAIS"
-      : period === MovementPeriod.INTERVALO
+      : movementsPayload?._reportMeta?.period === MovementPeriod.INTERVALO
         ? "MOVIMENTAÇÕES NO PERÍODO"
         : "MOVIMENTAÇÕES DO DIA";
   const movementSection =
-    period === MovementPeriod.MENSAL
+    movementsPayload?._reportMeta?.period === MovementPeriod.MENSAL
       ? "Movimentações do Mês"
-      : period === MovementPeriod.INTERVALO
+      : movementsPayload?._reportMeta?.period === MovementPeriod.INTERVALO
         ? "Movimentações do Período"
         : "Movimentações do Dia";
   const movementEmpty =
-    period === MovementPeriod.MENSAL
+    movementsPayload?._reportMeta?.period === MovementPeriod.MENSAL
       ? "Nenhuma movimentação encontrada no mês."
-      : period === MovementPeriod.INTERVALO
+      : movementsPayload?._reportMeta?.period === MovementPeriod.INTERVALO
         ? "Nenhuma movimentação encontrada no período."
         : "Nenhuma movimentação encontrada no dia.";
+
+        console.log("TIPO:", data);
+console.log("IS MOVEMENTS:", isMovementsReport);
+console.log("MOVEMENTS DATA LENGTH:", movementsData?.length);
+
 
   return (
     <Document>
@@ -320,7 +327,7 @@ export function createStockPDF(
               ? "CONSUMO DO RESIDENTE"
               : isTransferReport
                 ? "TRANSFERÊNCIAS DE SETOR"
-                : isDailyMovementsReport
+                : isMovementsReport
                   ? movementHeading
                   : isResidentMedicines
                     ? "MEDICAMENTOS POR RESIDENTE"
@@ -677,18 +684,13 @@ export function createStockPDF(
           </>
         )}
 
-        {isDailyMovementsReport && dailyMovementsData && (
+        {isMovementsReport && movementsData && (
           <>
             <Text style={styles.sectionTitle}>{movementSection}</Text>
 
-            {dailyMovementsData.length > 0 ? (
+            {movementsData.length > 0 ? (
               <>
                 <View style={[styles.tableHeader, { fontSize: 8 }]}>
-                  <Text
-                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
-                  >
-                    Data
-                  </Text>
                   <Text
                     style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
                   >
@@ -702,7 +704,7 @@ export function createStockPDF(
                   <Text
                     style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
                   >
-                    Principio Ativo
+                    Complemento
                   </Text>
                   <Text
                     style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
@@ -719,16 +721,39 @@ export function createStockPDF(
                   >
                     Casela
                   </Text>
+
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Residente
+                  </Text>
+
+                  <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Armário
+                  </Text>
+
+                   <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Gaveta
+                  </Text>
+
+                   <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Lote
+                  </Text>
+
+                   <Text
+                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
+                  >
+                    Destino
+                  </Text>
                 </View>
 
-                {dailyMovementsData.map((movement, idx) => {
-                  const tipoLabel =
-                    movement.tipo_movimentacao === "entrada"
-                      ? "Entrada"
-                      : movement.tipo_movimentacao === "saida"
-                        ? "Saída"
-                        : "Transferência";
-
+                {movementsData.map((movement, idx) => {
                   return (
                     <View
                       key={idx}
@@ -743,15 +768,7 @@ export function createStockPDF(
                           { fontSize: 8, textAlign: "center" },
                         ]}
                       >
-                        {movement.data || "-"}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.cell,
-                          { fontSize: 8, textAlign: "center" },
-                        ]}
-                      >
-                        {tipoLabel}
+                        {movement.tipo_movimentacao}
                       </Text>
                       <Text
                         style={[
@@ -767,7 +784,7 @@ export function createStockPDF(
                           { fontSize: 8, textAlign: "center" },
                         ]}
                       >
-                        {movement.principio_ativo || "-"}
+                        {movement.principio_ativo ?? movement.descricao ?? "-"}
                       </Text>
                       <Text
                         style={[
@@ -792,6 +809,46 @@ export function createStockPDF(
                         ]}
                       >
                         {movement.casela ?? "-"}
+                      </Text>
+                                            <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.residente ?? "-"}
+                      </Text>
+                                            <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.armario ?? "-"}
+                      </Text>
+                                            <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.gaveta ?? "-"}
+                      </Text>
+                                            <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.lote ?? "-"}
+                      </Text>
+                                            <Text
+                        style={[
+                          styles.cell,
+                          { fontSize: 8, textAlign: "center" },
+                        ]}
+                      >
+                        {movement.destino ?? "-"}
                       </Text>
                     </View>
                   );
