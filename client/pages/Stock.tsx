@@ -18,8 +18,13 @@ import {
   transferStockSector,
   getResidents,
 } from "@/api/requests";
-import { ItemStockType, SectorType, StockTypeLabels } from "@/utils/enums";
+import { ItemStockType, SectorType } from "@/utils/enums";
 import { StockActionType, StockItemType } from "@/interfaces/types";
+import {
+  fetchStockPage,
+  formatStockItems,
+  buildFilterOptions,
+} from "@/helpers/stock-list.helper";
 import ConfirmActionModal from "@/components/ConfirmationActionModal";
 import TransferQuantityModal from "@/components/TransferQuantityModal";
 import {
@@ -104,61 +109,17 @@ export default function Stock() {
     Array<{ casela: number; name: string }>
   >([]);
 
-  const formatStockItems = (raw: any[]): StockItem[] => {
-    return raw.map((item) => {
-      const isMedicamento = item.tipo_item === "medicamento";
-
-      const name = isMedicamento
-        ? `${item.nome} ${item.dosagem}${item.unidade_medida}`.trim()
-        : item.nome?.trim();
-
-      return {
-        id: item.estoque_id,
-        name: name || "-",
-        activeSubstance: item.principio_ativo || "-",
-        description: item.descricao || "-",
-        expiry: item.validade || "-",
-        quantity: Number(item.quantidade) || 0,
-        cabinet: item.armario_id ?? "-",
-        drawer: item.gaveta_id ?? "-",
-        casela: item.casela_id ?? null,
-        stockType: StockTypeLabels[item.tipo as ItemStockType] ?? item.tipo,
-        tipo: item.tipo,
-        patient: item.paciente || "-",
-        origin: item.origem || "-",
-        minimumStock: item.minimo || 0,
-        expirationMsg: item.msg_expiracao,
-        quantityMsg: item.msg_quantidade,
-        expirationStatus: item.st_expiracao,
-        quantityStatus: item.st_quantidade,
-        status: item.status || null,
-        destination: item.destino || null,
-        suspended_at: item.suspenso_em ? new Date(item.suspenso_em) : null,
-        detail: item.observacao || null,
-        itemType: item.tipo_item,
-        sector: item.setor,
-        lot: item.lote ?? null,
-      };
-    });
-  };
-
   async function loadStock(pageToLoad: number, currentFilters = filters) {
     setLoading(true);
     try {
-      const filterParams: Record<string, any> = {};
-
-      if (currentFilters.nome?.trim()) filterParams.name = currentFilters.nome.trim();
-      if (currentFilters.casela?.trim()) filterParams.casela = currentFilters.casela.trim();
-      if (currentFilters.armario?.trim()) filterParams.cabinet = currentFilters.armario.trim();
-      if (currentFilters.setor?.trim()) filterParams.sector = currentFilters.setor.trim();
-
-      if (filter) {
-        filterParams.filter = filter; 
-      }
-
-      const res = await getStock(pageToLoad, limit, filterParams, filter);
-      setItems(formatStockItems(res.data));
-      setHasNext(res.hasNext);
+      const { data, hasNext } = await fetchStockPage(
+        pageToLoad,
+        limit,
+        currentFilters,
+        filter,
+      );
+      setItems(formatStockItems(data));
+      setHasNext(hasNext);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -256,30 +217,10 @@ export default function Stock() {
       loadStock(page, effectiveFilters);
   }, [page, effectiveFilters]);
 
-  const filterOptions = {
-    sectors: [
-      { value: "enfermagem", label: "Enfermagem" },
-      { value: "farmacia", label: "Farmácia" },
-    ],
-    cabinets: Array.from(
-      new Set(
-        allRawData
-          .map((i: any) => i.armario_id)
-          .filter((id): id is number => id !== null && id !== undefined),
-      ),
-    )
-      .sort((a, b) => a - b)
-      .map((id) => ({ value: String(id), label: `Armário ${id}` })),
-    caselas: Array.from(
-      new Set(
-        allRawData
-          .map((i: any) => i.casela_id)
-          .filter((id): id is number => id !== null && id !== undefined),
-      ),
-    )
-      .sort((a, b) => a - b)
-      .map((id) => ({ value: String(id), label: `Casela ${id}` })),
-  };
+  const filterOptions = useMemo(
+    () => buildFilterOptions(allRawData),
+    [allRawData],
+  );
 
   const filteredCabinets = useMemo(() => {
     if (!armarioSearch) return filterOptions.cabinets;

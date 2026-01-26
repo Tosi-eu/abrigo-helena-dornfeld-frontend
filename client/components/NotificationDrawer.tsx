@@ -35,8 +35,6 @@ export function NotificationDrawer() {
         hasNext,
       } = await getNotifications(p, 5, EventStatus.PENDENTE);
 
-      console.log(hasNext);
-
       setItems((prev) => (append ? [...prev, ...data] : data));
       setCount(total);
       setHasNext(hasNext);

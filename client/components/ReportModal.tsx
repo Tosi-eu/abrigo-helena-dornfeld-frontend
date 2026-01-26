@@ -36,6 +36,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getReportTitle } from "@/helpers/relatorio.helper";
 import { parseYearMonthToDate } from "@/helpers/dates.helper";
+import { createStockPDF } from "./StockReporter";
+import { toast } from "@/hooks/use-toast.hook";
 
 type StatusType = "idle" | "loading" | "success" | "error";
 
@@ -152,7 +154,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
         if (movementPeriod === MovementPeriod.DIARIO) {
           if (!movementDate) {
-            alert("Selecione a data");
+            toast({ title: "Selecione a data", variant: "error" });
             setStatus("idle");
             return;
           }
@@ -163,6 +165,11 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
         }
 
         if (movementPeriod === MovementPeriod.MENSAL) {
+          if (!movementMonth) {
+            toast({ title: "Selecione o mês", variant: "error" });
+            setStatus("idle");
+            return;
+          }
           params = {
             periodo: MovementPeriod.MENSAL,
             mes: movementMonth,
@@ -171,7 +178,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
         if (movementPeriod === MovementPeriod.INTERVALO) {
           if (!startDate || !endDate) {
-            alert("Selecione o intervalo de datas");
+            toast({ title: "Selecione o intervalo de datas", variant: "error" });
             setStatus("idle");
             return;
           }
@@ -185,7 +192,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
         response = await getReport("movimentacoes", undefined, params);
       } else if (tipo === "transferencias") {
         if (!transferDate) {
-          alert("Selecione a data da transferência");
+          toast({ title: "Selecione a data da transferência", variant: "error" });
           setStatus("idle");
           return;
         }
@@ -202,8 +209,6 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
         response = await getReport(tipo, casela);
       }
-
-      const { createStockPDF } = await import("./StockReporter");
       const doc = createStockPDF(tipo, response);
 
       const blob = await pdf(doc).toBlob();
