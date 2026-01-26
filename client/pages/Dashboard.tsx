@@ -192,13 +192,15 @@ export default function Dashboard() {
         );
 
         setNursingDistribution(
-          prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM)
-            .sort((a, b) => b.rawValue - a.rawValue),
+          prepareStockDistributionData(nursingRes, SectorType.ENFERMAGEM).sort(
+            (a, b) => b.rawValue - a.rawValue,
+          ),
         );
 
         setPharmacyDistribution(
-          prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA)
-            .sort((a, b) => b.rawValue - a.rawValue),
+          prepareStockDistributionData(pharmacyRes, SectorType.FARMACIA).sort(
+            (a, b) => b.rawValue - a.rawValue,
+          ),
         );
 
         const formattedCabinetData = cabinetRes.data.map((arm: any) => ({
@@ -271,50 +273,40 @@ export default function Dashboard() {
       {
         label: "Itens Abaixo do Estoque Mínimo",
         value: noStock,
-        onClick: () =>
-          navigate("/stock?filter=belowMin"),
+        onClick: () => navigate("/stock?filter=belowMin"),
       },
       {
         label: "Itens Próximos do Estoque Mínimo",
         value: belowMin,
-        onClick: () =>
-          navigate("/stock?filter=nearMin"),
+        onClick: () => navigate("/stock?filter=nearMin"),
       },
       {
         label: "Itens Vencidos",
         value: expired,
-        onClick: () =>
-          navigate("/stock?filter=expired"),
+        onClick: () => navigate("/stock?filter=expired"),
       },
       {
         label: "Itens com Vencimento Próximo",
         value: expiringSoon.length,
-        onClick: () =>
-          navigate("/stock?filter=expiringSoon"),
+        onClick: () => navigate("/stock?filter=expiringSoon"),
       },
     ],
-    [
-      noStock,
-      belowMin,
-      expired,
-      expiringSoon,
-      navigate,
-    ],
+    [noStock, belowMin, expired, expiringSoon, navigate],
   );
 
   const COLORS = useMemo(
     () => [
-      "#0EA5E9", 
-      "#FACC15", 
-      "#10B981", 
-      "#EF4444", 
-      "#8B5CF6", 
-      "#F97316", 
-      "#14B8A6", 
-      "#6366F1", 
+      "#0EA5E9",
+      "#FACC15",
+      "#10B981",
+      "#EF4444",
+      "#8B5CF6",
+      "#F97316",
+      "#14B8A6",
+      "#6366F1",
     ],
     [],
-  );  
+  );
 
   const minRowsMovements = useMaxSectionRows(
     [nonMovementProducts, recentMovements],

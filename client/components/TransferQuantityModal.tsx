@@ -35,7 +35,10 @@ interface TransferQuantityModalProps {
     quantity: number,
     casela?: number | null,
     destino?: string | null,
-    observacao?: string | null
+    details?: string | null,
+    options?: {
+      bypassCasela: boolean;
+    }
   ) => void;
   onCancel: () => void;
   loading?: boolean;
@@ -54,49 +57,54 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
   const [caselaOpen, setCaselaOpen] = useState(false);
   const [caselaSearch, setCaselaSearch] = useState("");
   const [destination, setDestination] = useState("");
-  const [observacao, setObservacao] = useState("");
+  const [details, setDetails] = useState("");
+  const [isGeneralUse, setIsGeneralUse] = useState(false);
 
   const isInput = item?.itemType === "insumo";
-  const needsCasela = item?.isGeneralMedicine === true;
+  const isGeneralMedicine = item?.isGeneralMedicine === true;
+  const isCaselaSelected = selectedCasela.length > 0;
 
   useEffect(() => {
     if (open) {
       setQuantity("");
       setSelectedCasela("");
       setDestination("");
-      setObservacao("");
+      setDetails("");
       setCaselaSearch("");
+      setIsGeneralUse(false);
     }
   }, [open]);
 
   const maxQuantity = item?.quantity || 0;
   const quantityNum = parseInt(quantity, 10);
+  const isValidQuantity = quantityNum > 0 && quantityNum <= maxQuantity;
 
-  const isValid =
-    quantityNum > 0 && quantityNum <= maxQuantity;
+const canConfirm =
+  isValidQuantity &&
+  (
+    (isInput &&
+      (destination.trim().length > 0 || isCaselaSelected)) ||
+
+    (isGeneralMedicine && (isGeneralUse || isCaselaSelected)) ||
+
+    (!isGeneralMedicine && !isInput && isCaselaSelected)
+  );
 
   const handleConfirm = () => {
-    if (!isValid) return;
+    if (!canConfirm) return;
 
-    let casela: number | null;
-
-    if (needsCasela) {
-      casela = selectedCasela ? Number(selectedCasela) : null;
-    } else {
-      casela = item?.casela ?? null;
-    }
+    const casela = isGeneralUse
+      ? null
+      : selectedCasela
+      ? Number(selectedCasela)
+      : null;
 
     const destino =
-      isInput && destination.trim()
-        ? destination.trim()
-        : null;
+      isInput && destination.trim() ? destination.trim() : null;
 
-    onConfirm(
-      quantityNum,
-      casela,
-      destino,
-      observacao.trim() || null
-    );
+    onConfirm(quantityNum, casela, destino, details.trim() || null, {
+      bypassCasela: isGeneralUse,
+    });
   };
 
   const filteredResidents = residents.filter((r) => {
@@ -140,7 +148,7 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
             />
           </div>
 
-          {isInput && (
+          {isInput && !isGeneralUse && (
             <div className="space-y-2">
               <Label>Destino</Label>
               <Input
@@ -156,14 +164,14 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
             <Label>Observação</Label>
             <Input
               placeholder="Digite uma observação (opcional)"
-              value={observacao}
-              onChange={(e) => setObservacao(e.target.value)}
-              disabled={loading}
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              disabled={loading || isGeneralUse}
             />
           </div>
 
-          {needsCasela && (
-            <div className="space-y-2">
+          {isGeneralMedicine && (
+            <div className="space-y-3">
               <Label>Casela</Label>
 
               <Popover open={caselaOpen} onOpenChange={setCaselaOpen}>
@@ -171,13 +179,14 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                   <Button
                     variant="outline"
                     role="combobox"
-                    disabled={loading}
+                    disabled={loading || isGeneralUse}
                     className="w-full justify-between"
                   >
                     {selectedCasela
                       ? `Casela ${selectedCasela} - ${
                           residents.find(
-                            (r) => r.casela === Number(selectedCasela)
+                            (r) =>
+                              r.casela === Number(selectedCasela),
                           )?.name
                         }`
                       : "Selecione uma casela..."}
@@ -192,14 +201,16 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                       value={caselaSearch}
                       onValueChange={setCaselaSearch}
                     />
-                    <CommandEmpty>Nenhuma casela encontrada.</CommandEmpty>
+                    <CommandEmpty>
+                      Nenhuma casela encontrada.
+                    </CommandEmpty>
                     <CommandGroup>
                       {filteredResidents.map((resident) => (
                         <CommandItem
                           key={resident.casela}
                           onSelect={() => {
                             setSelectedCasela(
-                              resident.casela.toString()
+                              resident.casela.toString(),
                             );
                             setCaselaOpen(false);
                             setCaselaSearch("");
@@ -220,6 +231,39 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
                   </Command>
                 </PopoverContent>
               </Popover>
+
+              {isGeneralMedicine && !isInput &&
+              <div
+                className={`flex items-start gap-2 rounded-md border p-3 ${
+                  isGeneralUse
+                    ? "border-red-400 bg-red-50"
+                    : "border-muted"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  id="general-use"
+                  checked={isGeneralUse}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsGeneralUse(checked);
+
+                    if (checked) {
+                      setSelectedCasela("");
+                      setDetails(""); 
+                    }
+                  }}
+                  className="mt-1"
+                />
+                <Label
+                  htmlFor="general-use"
+                  className="text-sm leading-snug cursor-pointer"
+                >
+                  Este medicamento é para{" "}
+                  <strong>uso geral</strong>.
+                </Label>
+              </div>
+              }
             </div>
           )}
         </div>
@@ -230,7 +274,7 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={loading || !isValid}
+            disabled={loading || !canConfirm}
           >
             Confirmar Transferência
           </Button>

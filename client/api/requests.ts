@@ -269,7 +269,7 @@ export const getStock = (
   page = 1,
   limit = 6,
   filters?: Record<string, any>,
-  extraFilter?: string | null
+  extraFilter?: string | null,
 ) => {
   const params = new URLSearchParams({
     page: String(page),
@@ -378,6 +378,7 @@ export const transferStockSector = (payload: {
   casela_id?: number;
   destino?: string | null;
   observacao?: string | null;
+  bypassCasela: boolean;
 }) => {
   const basePath =
     payload.itemType === "medicamento"
@@ -389,6 +390,7 @@ export const transferStockSector = (payload: {
     casela_id: payload.casela_id,
     destino: payload.destino,
     observacao: payload.observacao,
+    bypassCasela: payload.bypassCasela,
   });
 };
 

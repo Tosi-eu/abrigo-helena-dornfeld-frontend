@@ -9,7 +9,7 @@ export const formatMonthToPtBr = (monthString: string) => {
 export const getReportTitle = (
   tipo: string,
   period?: MovementPeriod,
-  date?: Date | string | [Date | string, Date | string]
+  date?: Date | string | [Date | string, Date | string],
 ) => {
   switch (tipo) {
     case "insumos":
@@ -31,9 +31,7 @@ export const getReportTitle = (
         return `Relatório Diário (${formatDateToPtBr(date as Date | string)})`;
       if (period === MovementPeriod.MENSAL)
         return `Relatório Mensal (${formatMonthToPtBr(date as string)})`;
-      if (
-        period === MovementPeriod.INTERVALO
-      )
+      if (period === MovementPeriod.INTERVALO)
         return `Relatório (${formatDateToPtBr(date[0])} → ${formatDateToPtBr(
           date[1],
         )})`;
