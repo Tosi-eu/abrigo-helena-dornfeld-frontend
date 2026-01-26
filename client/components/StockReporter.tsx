@@ -301,12 +301,7 @@ export function createStockPDF(
       ? "Nenhuma movimentação encontrada no mês."
       : movementsPayload?._reportMeta?.period === MovementPeriod.INTERVALO
         ? "Nenhuma movimentação encontrada no período."
-        : "Nenhuma movimentação encontrada no dia.";
-
-        console.log("TIPO:", data);
-console.log("IS MOVEMENTS:", isMovementsReport);
-console.log("MOVEMENTS DATA LENGTH:", movementsData?.length);
-
+        : "Nenhuma movimentação encontrada no dia."
 
   return (
     <Document>
