@@ -305,9 +305,9 @@ export function createStockPDF(
         ? "Nenhuma movimentação encontrada no período."
         : "Nenhuma movimentação encontrada no dia.";
 
-  const showCabinetColumn = movementsData.some(
-    (movement) => movement.armario != null,
-  );
+  const showCabinetColumn =
+    Array.isArray(movementsData) &&
+    movementsData.some((movement) => movement.armario != null);
 
   return (
     <Document>
