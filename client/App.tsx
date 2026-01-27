@@ -12,7 +12,10 @@ import React from "react";
 import { AuthProvider } from "./context/auth-context";
 import PrivateRoute from "./pages/PrivateRoute";
 import { NotificationProvider } from "./context/notification.context";
-import { InvalidSessionProvider, useInvalidSession } from "./context/invalid-session.context";
+import {
+  InvalidSessionProvider,
+  useInvalidSession,
+} from "./context/invalid-session.context";
 import { LoadingFallback } from "./components/LoadingFallback";
 import { InvalidSessionModal } from "./components/InvalidSessionModal";
 
@@ -60,350 +63,311 @@ const AppContent = () => {
 
   return (
     <>
-      <InvalidSessionModal open={showModal} onClose={() => setShowModal(false)} />
+      <InvalidSessionModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+      />
       <Routes>
-              <Route path="/" element={<Navigate to="/user/login" replace />} />
-              <Route
-                path="/user/login"
-                element={
-                  <Suspense
-                    fallback={<LoadingFallback title="Carregando login..." />}
-                  >
-                    <Auth />
-                  </Suspense>
-                }
-              />
+        <Route path="/" element={<Navigate to="/user/login" replace />} />
+        <Route
+          path="/user/login"
+          element={
+            <Suspense
+              fallback={<LoadingFallback title="Carregando login..." />}
+            >
+              <Auth />
+            </Suspense>
+          }
+        />
 
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando dashboard..." />
-                      }
-                    >
-                      <Dashboard />
-                    </Suspense>
-                  </PrivateRoute>
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando dashboard..." />}
+              >
+                <Dashboard />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/movements"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={
+                  <LoadingFallback title="Carregando movimentações..." />
                 }
-              />
-              <Route
-                path="/movements"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando movimentações..." />
-                      }
-                    >
-                      <Movements />
-                    </Suspense>
-                  </PrivateRoute>
+              >
+                <Movements />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/medicines"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={
+                  <LoadingFallback title="Carregando medicamentos..." />
                 }
-              />
-              <Route
-                path="/medicines"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando medicamentos..." />
-                      }
-                    >
-                      <Medicines />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/medicines/register"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando formulário..." />
-                      }
-                    >
-                      <SignUpMedicine />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/medicines/edit"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando edição..." />
-                      }
-                    >
-                      <EditMedicine />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/stock"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando estoque..." />
-                      }
-                    >
-                      <Stock />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/stock/in"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando entrada..." />
-                      }
-                    >
-                      <StockEntry />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/stock/out"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={<LoadingFallback title="Carregando saída..." />}
-                    >
-                      <StockOut />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/stock/edit"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando edição..." />
-                      }
-                    >
-                      <EditStock />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/residents"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando residentes..." />
-                      }
-                    >
-                      <Resident />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/residents/register"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando formulário..." />
-                      }
-                    >
-                      <RegisterResident />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/residents/edit"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando edição..." />
-                      }
-                    >
-                      <EditResident />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/inputs"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando insumos..." />
-                      }
-                    >
-                      <Inputs />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/inputs/register"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando formulário..." />
-                      }
-                    >
-                      <RegisterInput />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/inputs/edit"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando edição..." />
-                      }
-                    >
-                      <EditInput />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/cabinets"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando armários..." />
-                      }
-                    >
-                      <Cabinets />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/cabinets/register"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando formulário..." />
-                      }
-                    >
-                      <RegisterCabinet />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/cabinets/edit"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando edição..." />
-                      }
-                    >
-                      <EditCabinet />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/drawers"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando gavetas..." />
-                      }
-                    >
-                      <Drawers />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/drawer/register"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando formulário..." />
-                      }
-                    >
-                      <RegisterDrawer />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/drawers/edit"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando edição..." />
-                      }
-                    >
-                      <EditDrawer />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/user/profile"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando perfil..." />
-                      }
-                    >
-                      <Profile />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/user/forgot-password"
-                element={
-                  <Suspense
-                    fallback={<LoadingFallback title="Carregando..." />}
-                  >
-                    <ForgotPassword />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/reports/transfers"
-                element={
-                  <PrivateRoute>
-                    <Suspense
-                      fallback={
-                        <LoadingFallback title="Carregando relatório..." />
-                      }
-                    >
-                      <TransferReport />
-                    </Suspense>
-                  </PrivateRoute>
-                }
-              />
+              >
+                <Medicines />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/medicines/register"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando formulário..." />}
+              >
+                <SignUpMedicine />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/medicines/edit"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando edição..." />}
+              >
+                <EditMedicine />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stock"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando estoque..." />}
+              >
+                <Stock />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stock/in"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando entrada..." />}
+              >
+                <StockEntry />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stock/out"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando saída..." />}
+              >
+                <StockOut />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stock/edit"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando edição..." />}
+              >
+                <EditStock />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/residents"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando residentes..." />}
+              >
+                <Resident />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/residents/register"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando formulário..." />}
+              >
+                <RegisterResident />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/residents/edit"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando edição..." />}
+              >
+                <EditResident />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/inputs"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando insumos..." />}
+              >
+                <Inputs />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/inputs/register"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando formulário..." />}
+              >
+                <RegisterInput />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/inputs/edit"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando edição..." />}
+              >
+                <EditInput />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cabinets"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando armários..." />}
+              >
+                <Cabinets />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cabinets/register"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando formulário..." />}
+              >
+                <RegisterCabinet />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cabinets/edit"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando edição..." />}
+              >
+                <EditCabinet />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/drawers"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando gavetas..." />}
+              >
+                <Drawers />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/drawer/register"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando formulário..." />}
+              >
+                <RegisterDrawer />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/drawers/edit"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando edição..." />}
+              >
+                <EditDrawer />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/user/profile"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando perfil..." />}
+              >
+                <Profile />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/user/forgot-password"
+          element={
+            <Suspense fallback={<LoadingFallback title="Carregando..." />}>
+              <ForgotPassword />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reports/transfers"
+          element={
+            <PrivateRoute>
+              <Suspense
+                fallback={<LoadingFallback title="Carregando relatório..." />}
+              >
+                <TransferReport />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </>
   );
@@ -415,13 +379,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-          <NotificationProvider>
-            <InvalidSessionProvider>
-              <BrowserRouter>
-                <AppContent />
-              </BrowserRouter>
-            </InvalidSessionProvider>
-          </NotificationProvider>
+        <NotificationProvider>
+          <InvalidSessionProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </InvalidSessionProvider>
+        </NotificationProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

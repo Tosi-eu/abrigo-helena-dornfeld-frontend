@@ -178,7 +178,10 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
         if (movementPeriod === MovementPeriod.INTERVALO) {
           if (!startDate || !endDate) {
-            toast({ title: "Selecione o intervalo de datas", variant: "error" });
+            toast({
+              title: "Selecione o intervalo de datas",
+              variant: "error",
+            });
             setStatus("idle");
             return;
           }
@@ -192,7 +195,10 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
         response = await getReport("movimentacoes", undefined, params);
       } else if (tipo === "transferencias") {
         if (!transferDate) {
-          toast({ title: "Selecione a data da transferência", variant: "error" });
+          toast({
+            title: "Selecione a data da transferência",
+            variant: "error",
+          });
           setStatus("idle");
           return;
         }
@@ -245,7 +251,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
 
   const showMovementFilters = selectedReports[0] === "movimentacoes";
 
-  const iconSize = 140; 
+  const iconSize = 140;
 
   const filteredResidents = residents.filter((r) => {
     if (!residentSearch) return true;
@@ -301,7 +307,6 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                         <span className="text-sm font-medium">{label}</span>
                       </motion.div>
 
-
                       {isSelected && value === "transferencias" && (
                         <div className="mt-2 col-span-2">
                           <label className="block mb-1 text-gray-600">
@@ -351,9 +356,7 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                               </label>
                               <DatePicker
                                 selected={movementDate}
-                                onChange={(date: Date) =>
-                                  setMovementDate(date)
-                                }
+                                onChange={(date: Date) => setMovementDate(date)}
                                 dateFormat="dd/MM/yyyy"
                                 locale="pt-BR"
                                 className="w-full border rounded px-2 py-1"
@@ -367,20 +370,24 @@ export default function ReportModal({ open, onClose }: ReportModalProps) {
                                 Mês
                               </label>
                               <DatePicker
-                                  selected={
-                                    movementMonth ? parseYearMonthToDate(movementMonth) : null
-                                  }
-                                  onChange={(date: Date) => {
-                                    const year = date.getFullYear();
-                                    const month = String(date.getMonth() + 1).padStart(2, "0");
-                                    setMovementMonth(`${year}-${month}`);
-                                  }}
-                                  dateFormat="MM/yyyy"
-                                  showMonthYearPicker
-                                  locale="pt-BR"
-                                  placeholderText="Selecione o mês"
-                                  className="w-full border rounded px-2 py-1"
-                                />
+                                selected={
+                                  movementMonth
+                                    ? parseYearMonthToDate(movementMonth)
+                                    : null
+                                }
+                                onChange={(date: Date) => {
+                                  const year = date.getFullYear();
+                                  const month = String(
+                                    date.getMonth() + 1,
+                                  ).padStart(2, "0");
+                                  setMovementMonth(`${year}-${month}`);
+                                }}
+                                dateFormat="MM/yyyy"
+                                showMonthYearPicker
+                                locale="pt-BR"
+                                placeholderText="Selecione o mês"
+                                className="w-full border rounded px-2 py-1"
+                              />
                             </div>
                           )}
 

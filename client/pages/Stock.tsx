@@ -214,7 +214,7 @@ export default function Stock() {
   }, [effectiveFilters]);
 
   useEffect(() => {
-      loadStock(page, effectiveFilters);
+    loadStock(page, effectiveFilters);
   }, [page, effectiveFilters]);
 
   const filterOptions = useMemo(
@@ -359,9 +359,10 @@ export default function Stock() {
 
   const handleTransferConfirm = async (
     quantity: number,
-    casela?: number | null,
-    destino?: string | null,
-    observacao?: string | null,
+    casela?: number,
+    destino?: string,
+    details?: string,
+    options?: { bypassCasela: boolean }
   ) => {
     if (!pendingAction.row || pendingAction.type !== "transfer") return;
 
@@ -376,7 +377,8 @@ export default function Stock() {
         quantidade: quantity,
         casela_id: casela ?? null,
         destino: destino ?? null,
-        observacao: observacao ?? null,
+        observacao: details ?? null,
+        bypassCasela: options?.bypassCasela ?? false
       });
 
       await loadStock(page);
@@ -693,8 +695,8 @@ export default function Stock() {
               onSuspend={requestSuspend}
               onResume={requestResume}
               onDeleteSuccess={() => {
-                  loadStock(page);
-                  loadAllStock();
+                loadStock(page);
+                loadAllStock();
               }}
               entityType="stock"
             />

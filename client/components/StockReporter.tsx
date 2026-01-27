@@ -34,16 +34,16 @@ interface ResidentesResponse {
 }
 
 export interface TransferReport {
-  data: string,
-  nome: string,
-  principio_ativo: string | null,
-  descricao: string | null,
-  quantidade: number,
-  casela: number | null,
-  residente: string | null,
-  armario: number | null,
-  lote: string | null,
-  destino: string | null
+  data: string;
+  nome: string;
+  principio_ativo: string | null;
+  descricao: string | null;
+  quantidade: number;
+  casela: number | null;
+  residente: string | null;
+  armario: number | null;
+  lote: string | null;
+  destino: string | null;
 }
 
 export interface PeriodMovementReport {
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 9,
+    fontSize: 8,
   },
 
   tableRow: {
@@ -198,17 +198,19 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     paddingHorizontal: 2,
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "center",
     justifyContent: "center",
     alignItems: "center",
+    flexWrap: "wrap",
+    overflow: "hidden",
   },
 
   footer: {
     position: "absolute",
     bottom: 20,
     right: 30,
-    fontSize: 9,
+    fontSize: 8,
     color: "#444",
   },
 });
@@ -282,10 +284,10 @@ export function createStockPDF(
     ? (data as ExpiredMedicineReport[])
     : null;
 
-   const movementsPayload = isMovementsReport ? (data as any) : null;
+  const movementsPayload = isMovementsReport ? (data as any) : null;
 
   const movementHeading =
-     movementsPayload?._reportMeta?.period === MovementPeriod.MENSAL
+    movementsPayload?._reportMeta?.period === MovementPeriod.MENSAL
       ? "MOVIMENTAÇÕES MENSAIS"
       : movementsPayload?._reportMeta?.period === MovementPeriod.INTERVALO
         ? "MOVIMENTAÇÕES NO PERÍODO"
@@ -301,7 +303,11 @@ export function createStockPDF(
       ? "Nenhuma movimentação encontrada no mês."
       : movementsPayload?._reportMeta?.period === MovementPeriod.INTERVALO
         ? "Nenhuma movimentação encontrada no período."
-        : "Nenhuma movimentação encontrada no dia."
+        : "Nenhuma movimentação encontrada no dia.";
+
+  const showCabinetColumn = movementsData.some(
+    (movement) => movement.armario != null,
+  );
 
   return (
     <Document>
@@ -717,31 +723,19 @@ export function createStockPDF(
                     Casela
                   </Text>
 
-                  <Text
-                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
-                  >
-                    Residente
-                  </Text>
+                  {showCabinetColumn ? (
+                    <Text style={styles.cell}>Armário</Text>
+                  ) : (
+                    <Text style={styles.cell}>Gaveta</Text>
+                  )}
 
                   <Text
-                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
-                  >
-                    Armário
-                  </Text>
-
-                   <Text
-                    style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
-                  >
-                    Gaveta
-                  </Text>
-
-                   <Text
                     style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
                   >
                     Lote
                   </Text>
 
-                   <Text
+                  <Text
                     style={[styles.cell, { fontSize: 8, textAlign: "center" }]}
                   >
                     Destino
@@ -805,31 +799,17 @@ export function createStockPDF(
                       >
                         {movement.casela ?? "-"}
                       </Text>
-                                            <Text
-                        style={[
-                          styles.cell,
-                          { fontSize: 8, textAlign: "center" },
-                        ]}
-                      >
-                        {movement.residente ?? "-"}
-                      </Text>
-                                            <Text
-                        style={[
-                          styles.cell,
-                          { fontSize: 8, textAlign: "center" },
-                        ]}
-                      >
-                        {movement.armario ?? "-"}
-                      </Text>
-                                            <Text
-                        style={[
-                          styles.cell,
-                          { fontSize: 8, textAlign: "center" },
-                        ]}
-                      >
-                        {movement.gaveta ?? "-"}
-                      </Text>
-                                            <Text
+                      {showCabinetColumn ? (
+                        <Text style={styles.cell}>
+                          {movement.armario ?? "-"}
+                        </Text>
+                      ) : (
+                        <Text style={styles.cell}>
+                          {movement.gaveta ?? "-"}
+                        </Text>
+                      )}
+                      <Text
+                        wrap
                         style={[
                           styles.cell,
                           { fontSize: 8, textAlign: "center" },
@@ -837,7 +817,7 @@ export function createStockPDF(
                       >
                         {movement.lote ?? "-"}
                       </Text>
-                                            <Text
+                      <Text
                         style={[
                           styles.cell,
                           { fontSize: 8, textAlign: "center" },
@@ -850,7 +830,7 @@ export function createStockPDF(
                 })}
               </>
             ) : (
-              <Text style={{ fontSize: 10, marginTop: 10, color: "#666" }}>
+              <Text style={{ fontSize: 8, marginTop: 10, color: "#666" }}>
                 {movementEmpty}
               </Text>
             )}
@@ -859,7 +839,6 @@ export function createStockPDF(
 
         {isResidentMedicines && residentMedicinesData && (
           <>
-
             {residentMedicinesData.length > 0 ? (
               <>
                 <View style={{ marginBottom: 15 }}>
@@ -884,9 +863,7 @@ export function createStockPDF(
                   <Text style={[styles.cell, { fontSize: 8 }]}>
                     Princípio Ativo
                   </Text>
-                  <Text style={[styles.cell, { fontSize: 8 }]}>
-                    Dosagem
-                  </Text>
+                  <Text style={[styles.cell, { fontSize: 8 }]}>Dosagem</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Quantidade</Text>
                   <Text style={[styles.cell, { fontSize: 8 }]}>Validade</Text>
                 </View>
