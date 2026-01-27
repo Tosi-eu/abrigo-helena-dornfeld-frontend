@@ -62,7 +62,6 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
 
   const isInput = item?.itemType === "insumo";
   const isGeneralMedicine = item?.isGeneralMedicine === true;
-  const isCaselaSelected = selectedCasela.length > 0;
 
   useEffect(() => {
     if (open) {
@@ -78,29 +77,39 @@ const TransferQuantityModal: FC<TransferQuantityModalProps> = ({
   const maxQuantity = item?.quantity || 0;
   const quantityNum = parseInt(quantity, 10);
   const isValidQuantity = quantityNum > 0 && quantityNum <= maxQuantity;
+  const isIndividualStock = item?.casela != null;
+  const isInsumo = item?.itemType === "insumo";
+  const isMedicamento = item?.itemType === "medicamento";
+  const isIndividual = item?.casela != null;
+  const isMedicamentoGeral = isMedicamento && item?.isGeneralMedicine === true;
+  const isInsumoGeral = isInsumo && !isIndividual;
+  const hasCaselaSelected = selectedCasela.length > 0;
+  const hasDestination = destination.trim().length > 0;
 
-const canConfirm =
-  isValidQuantity &&
-  (
-    (isInput &&
-      (destination.trim().length > 0 || isCaselaSelected)) ||
-
-    (isGeneralMedicine && (isGeneralUse || isCaselaSelected)) ||
-
-    (!isGeneralMedicine && !isInput && isCaselaSelected)
-  );
+  const canConfirm =
+    isValidQuantity &&
+    (
+      isIndividual ||
+      (isMedicamentoGeral && (isGeneralUse || hasCaselaSelected)) ||
+      (isInsumoGeral && (hasCaselaSelected || hasDestination))
+    );
 
   const handleConfirm = () => {
     if (!canConfirm) return;
 
-    const casela = isGeneralUse
-      ? null
-      : selectedCasela
-      ? Number(selectedCasela)
-      : null;
+    const casela =
+      isIndividualStock
+        ? item.casela
+        : isGeneralUse
+        ? null
+        : selectedCasela
+        ? Number(selectedCasela)
+        : null;
 
     const destino =
-      isInput && destination.trim() ? destination.trim() : null;
+      (isIndividualStock || isInput) && hasDestination
+        ? destination.trim()
+        : null;
 
     onConfirm(quantityNum, casela, destino, details.trim() || null, {
       bypassCasela: isGeneralUse,
@@ -148,7 +157,7 @@ const canConfirm =
             />
           </div>
 
-          {isInput && !isGeneralUse && (
+          {isInput && !isIndividualStock && !isGeneralUse && (
             <div className="space-y-2">
               <Label>Destino</Label>
               <Input
